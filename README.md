@@ -12,7 +12,7 @@ The graph provides structure for product work and gives agents a way to understa
 
 The framework connects product vision, strategy, OKRs, outcomes, opportunity solution trees, assumptions, experiments, PRDs, user stories, acceptance criteria, code, tests, and evidence into one coherent system.
 
-It is not a replacement for human product judgment. Humans still set direction, talk to users, interpret nuance, and make decisions. Agentic engineering can help maintain structure, analyze assumptions, generate options, implement code, run tests, and preserve traceability across the system.
+It is not a replacement for human product judgment. Humans still set direction, talk to users, interpret nuance, and make decisions. Agentic engineering can help maintain structure, reframe opportunities, analyze assumptions, challenge output-thinking, expose what is known and unknown, generate options, implement code, run tests, and preserve traceability across the system.
 
 Agents can generate plausible opportunities, solutions, assumptions, stories, and analyses, but plausibility is not grounding. Synthetic artifacts remain hypotheses until supported by real customer, user, market, business, or technical evidence.
 

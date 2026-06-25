@@ -49,6 +49,23 @@ Agentic engineering can operate across the graph:
 
 The goal is not autonomous product management. The goal is a structured system where agents help humans preserve product intent and move faster without collapsing discovery into delivery.
 
+## Challenge Function
+
+Outcome Engineering should help humans challenge their own product thinking.
+
+The system should help reframe opportunities, especially when a team describes a solution or output as if it were an opportunity. It should challenge humans when they believe they are thinking in outcomes, but are actually thinking in outputs.
+
+It should also make the boundary between known and unknown explicit. For each product belief, the graph should help show what is supported by evidence, what is assumed, what is uncertain, and what needs to be learned next.
+
+The system should challenge the four major product risks described by Marty Cagan:
+
+- Value risk: whether customers will buy it or users will choose to use it.
+- Usability risk: whether users can figure out how to use it.
+- Feasibility risk: whether the team can build it.
+- Viability risk: whether the solution works for the business.
+
+Agents can support this challenge function by asking sharper questions, detecting output-shaped thinking, identifying missing evidence, surfacing untested assumptions, and suggesting ways to reduce the most important risks.
+
 ## Synthetic Artifacts
 
 Agents can generate plausible opportunities, solutions, assumptions, stories, and analyses. This can be useful, but plausibility is not grounding.
