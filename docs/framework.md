@@ -4,6 +4,8 @@ Outcome Engineering is a way to help humans continuously challenge product think
 
 It does this by structuring product development as a traceable graph of intent, discovery, delivery, evidence, and learning.
 
+The graph gives humans a structure for product work and gives agents a context model they can use to understand, organize, and challenge what is happening.
+
 It starts from the belief that product work should preserve meaning across levels of abstraction. A line of code should be explainable in terms of the user behavior it enables, the acceptance criteria it satisfies, the story it implements, the opportunity it serves, the outcome it is intended to move, and the product vision it supports.
 
 The inverse should also be true: a product vision should be traceable downward into the concrete bets, decisions, stories, tests, and code that attempt to realize it.
