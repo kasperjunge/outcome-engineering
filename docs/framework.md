@@ -1,6 +1,8 @@
 # Framework
 
-Outcome Engineering is a way to structure product development as a traceable graph of intent, discovery, delivery, evidence, and learning.
+Outcome Engineering is a way to help humans continuously challenge product thinking and invent valuable solutions that users and customers actually want, use, and pay for, in ways that work for the business.
+
+It does this by structuring product development as a traceable graph of intent, discovery, delivery, evidence, and learning.
 
 It starts from the belief that product work should preserve meaning across levels of abstraction. A line of code should be explainable in terms of the user behavior it enables, the acceptance criteria it satisfies, the story it implements, the opportunity it serves, the outcome it is intended to move, and the product vision it supports.
 
@@ -80,4 +82,3 @@ The graph should support two questions:
 2. Looking upward: why does this artifact, decision, test, or line of code exist?
 
 If either question cannot be answered, the graph has a gap.
-

@@ -1,10 +1,12 @@
 # Outcome Engineering
 
-Outcome Engineering is a framework for making product development traceable from product vision to shipped code and back to learning.
+Outcome Engineering is a framework for helping humans continuously challenge product thinking and invent valuable solutions that users and customers actually want, use, and pay for, in ways that work for the business.
 
 The core claim:
 
 > Product development should be modeled as a living intent graph where every product bet can be traced upward to its strategic purpose, downward to implementation, and sideways to the evidence and learning that shaped it.
+
+Traceability is the mechanism. Better product judgment and better product outcomes are the point.
 
 The framework connects product vision, strategy, OKRs, outcomes, opportunity solution trees, assumptions, experiments, PRDs, user stories, acceptance criteria, code, tests, and evidence into one coherent system.
 
@@ -83,4 +85,3 @@ This loop runs continuously. Discovery does not stop when delivery starts, and l
 - [docs/framework.md](docs/framework.md) defines the framework.
 - [docs/graph.md](docs/graph.md) describes the concept graph.
 - [docs/glossary.md](docs/glossary.md) defines the core terms.
-
