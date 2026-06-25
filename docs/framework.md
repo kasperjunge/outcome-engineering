@@ -49,6 +49,22 @@ Agentic engineering can operate across the graph:
 
 The goal is not autonomous product management. The goal is a structured system where agents help humans preserve product intent and move faster without collapsing discovery into delivery.
 
+## Synthetic Artifacts
+
+Agents can generate plausible opportunities, solutions, assumptions, stories, and analyses. This can be useful, but plausibility is not grounding.
+
+A synthetic product artifact can feel real while still being only a belief. A structured opportunity is not necessarily a real opportunity. A coherent solution is not necessarily desirable. A detailed PRD is not necessarily based on valid assumptions.
+
+Structure does not make a belief true. Evidence does.
+
+Outcome Engineering should distinguish between:
+
+- Synthetic artifact: a generated idea, opportunity, assumption, solution, story, or analysis.
+- Grounded artifact: an artifact supported by real customer, user, market, business, or technical evidence.
+- Validated artifact: an artifact whose underlying belief has survived a relevant test.
+
+Agents should help label confidence, expose missing grounding, and challenge the difference between something that sounds coherent and something that is supported by reality.
+
 ## Evidence Is Distributed
 
 Evidence is not only generated after a feature is released.

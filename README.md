@@ -14,6 +14,8 @@ The framework connects product vision, strategy, OKRs, outcomes, opportunity sol
 
 It is not a replacement for human product judgment. Humans still set direction, talk to users, interpret nuance, and make decisions. Agentic engineering can help maintain structure, analyze assumptions, generate options, implement code, run tests, and preserve traceability across the system.
 
+Agents can generate plausible opportunities, solutions, assumptions, stories, and analyses, but plausibility is not grounding. Synthetic artifacts remain hypotheses until supported by real customer, user, market, business, or technical evidence.
+
 ## The Problem
 
 Most organizations lose intent as work moves through the product development process.
