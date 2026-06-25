@@ -66,20 +66,6 @@ Evidence can come from user interviews, customer conversations, sales calls, sup
 
 Quantitative data can show what is happening. Human discovery is needed to understand why it is happening.
 
-## The Operating Loop
-
-```text
-Intent
-  -> Discovery
-    -> Decision
-      -> Delivery
-        -> Evidence
-          -> Learning
-            -> Updated Intent
-```
-
-This loop runs continuously. Discovery does not stop when delivery starts, and learning does not only happen after release.
-
 ## Repository Structure
 
 - [docs/framework.md](docs/framework.md) defines the framework.
