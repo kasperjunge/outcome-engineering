@@ -76,3 +76,13 @@ Quantitative data can show what is happening. Human discovery is needed to under
 - [docs/graph.md](docs/graph.md) describes the concept graph.
 - [docs/glossary.md](docs/glossary.md) defines the core terms.
 - [docs/example-structure.md](docs/example-structure.md) explains the example filesystem graph.
+
+## CLI
+
+Run the current CLI locally:
+
+```sh
+uv run oe validate examples/delegation-product-graph
+uv run oe tree examples/delegation-product-graph
+uv run oe create-example --force
+```
