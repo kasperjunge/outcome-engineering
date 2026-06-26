@@ -18,6 +18,16 @@ def skill_target(agent: str) -> Path:
     raise ValueError(f"unsupported agent {agent!r}; expected codex, claude, or all")
 
 
+def project_skill_target(kind: str, cwd: Path | None = None) -> Path:
+    root = (cwd or Path.cwd()).resolve()
+    normalized = kind.lower()
+    if normalized in {"", "claude"}:
+        return root / ".claude" / "skills" / SKILL_NAME
+    if normalized == "agents":
+        return root / ".agents" / "skills" / SKILL_NAME
+    raise ValueError("unsupported --skills value; use --skills, --skills=claude, or --skills=agents")
+
+
 def codex_skill_target() -> Path:
     codex_home = os.environ.get("CODEX_HOME")
     if codex_home:
@@ -42,6 +52,10 @@ def install_skill_for_agent(agent: str, force: bool = False) -> list[Path]:
     if normalized == "all":
         return [copy_skill(skill_target(name), force=force) for name in ("codex", "claude")]
     return [copy_skill(skill_target(normalized), force=force)]
+
+
+def install_project_skill(kind: str = "claude", cwd: Path | None = None, force: bool = False) -> Path:
+    return copy_skill(project_skill_target(kind, cwd=cwd), force=force)
 
 
 def copy_skill(destination: Path, force: bool = False) -> Path:

@@ -64,7 +64,6 @@ For real repositories, use `product/` as the stable product graph root.
 Install the bundled agent skill:
 
 ```sh
-uvx outcome-engineering install-skill
-uvx outcome-engineering install-skill --agent claude
-uvx outcome-engineering install-skill --agent all
+uvx outcome-engineering install --skills
+uvx outcome-engineering install --skills=agents
 ```

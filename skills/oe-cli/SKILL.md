@@ -12,9 +12,8 @@ The Python package is `outcome-engineering`. The command is `oe`.
 Install the skill for agent tools:
 
 ```sh
-uvx outcome-engineering install-skill --agent codex
-uvx outcome-engineering install-skill --agent claude
-uvx outcome-engineering install-skill --agent all
+uvx outcome-engineering install --skills
+uvx outcome-engineering install --skills=agents
 ```
 
 Outcome Engineering stores product intent as a filesystem graph rooted at:

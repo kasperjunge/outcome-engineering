@@ -4,7 +4,8 @@ from pathlib import Path
 
 from outcome_engineering.example import create_example
 from outcome_engineering.graph import create_node, find_node, find_nodes_by_kind, marker_content, node_ancestors, supporting_files, validate
-from outcome_engineering.skill_installer import install_skill, install_skill_for_agent
+from outcome_engineering.cli import parse_skills_option
+from outcome_engineering.skill_installer import install_project_skill, install_skill, install_skill_for_agent
 
 
 def test_example_graph_is_valid(tmp_path: Path) -> None:
@@ -119,3 +120,18 @@ def test_install_skill_for_agents(tmp_path: Path, monkeypatch) -> None:
     ]
     assert (tmp_path / "codex" / "skills" / "oe-cli" / "SKILL.md").exists()
     assert (tmp_path / "claude" / "skills" / "oe-cli" / "SKILL.md").exists()
+
+
+def test_install_project_skill_targets_playwright_style_dirs(tmp_path: Path) -> None:
+    claude_target = install_project_skill("claude", cwd=tmp_path)
+    agents_target = install_project_skill("agents", cwd=tmp_path, force=True)
+
+    assert claude_target == tmp_path / ".claude" / "skills" / "oe-cli"
+    assert agents_target == tmp_path / ".agents" / "skills" / "oe-cli"
+    assert (claude_target / "SKILL.md").exists()
+    assert (agents_target / "SKILL.md").exists()
+
+
+def test_parse_skills_option() -> None:
+    assert parse_skills_option(["--skills"]) == "claude"
+    assert parse_skills_option(["--skills=agents"]) == "agents"

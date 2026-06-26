@@ -16,9 +16,30 @@ from outcome_engineering.graph import (
     validate as validate_graph,
 )
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
-from outcome_engineering.skill_installer import install_skill, install_skill_for_agent
+from outcome_engineering.skill_installer import install_project_skill, install_skill, install_skill_for_agent
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
+
+
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+def install(
+    ctx: typer.Context,
+    force: bool = typer.Option(False, "--force", help="Replace the target skill directory if it already exists."),
+) -> None:
+    """Install bundled assets, including the oe-cli skill."""
+    try:
+        skill_value = parse_skills_option(ctx.args)
+        installed_at = install_project_skill(skill_value, force=force)
+    except ValueError as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    except FileExistsError as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+
+    typer.echo(f"Installed oe-cli skill at {installed_at}")
 
 
 @app.command()
@@ -254,6 +275,27 @@ def load_valid_node(root: Path, selector: str):
         typer.echo(f"Node not found or ambiguous: {selector}")
         raise typer.Exit(code=1)
     return node
+
+
+def parse_skills_option(args: list[str]) -> str:
+    if not args:
+        raise ValueError("nothing to install; use --skills or --skills=agents")
+
+    value: str | None = None
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg == "--skills":
+            value = "claude"
+        elif arg.startswith("--skills="):
+            value = arg.split("=", 1)[1] or "claude"
+        else:
+            raise ValueError(f"unknown install option: {arg}")
+        index += 1
+
+    if value is None:
+        raise ValueError("nothing to install; use --skills or --skills=agents")
+    return value
 
 
 def print_node(node, prefix: str, is_last: bool) -> None:

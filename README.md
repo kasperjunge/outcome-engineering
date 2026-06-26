@@ -89,6 +89,8 @@ uv run oe trace solution.agent-central --root examples/delegation-product-graph
 uv run oe show solution.agent-central --root examples/delegation-product-graph
 uv run oe context solution.agent-central --root examples/delegation-product-graph
 uv run oe create-example --force
+uv run oe install --skills --force
+uv run oe install --skills=agents --force
 uv run oe install-skill --agent codex --force
 uv run oe install-skill --agent claude --force
 uv run oe install-skill --agent all --force
