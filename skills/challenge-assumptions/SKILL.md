@@ -1,6 +1,6 @@
 ---
 name: challenge-assumptions
-description: Use this skill whenever the user wants to challenge assumptions, test a product idea, reduce value/usability/feasibility/viability risk, avoid overbuilding, or turn messy product thinking into assumptions and learning steps. Listen first for the idea, feature, PRD, assumption, or messy product text the user wants challenged. Use oe-cli and any product graph as quiet background context when present, not as the visible center of the response.
+description: Use this skill whenever the user wants to challenge assumptions, test product thinking, reduce value/usability/feasibility/viability risk, avoid overbuilding, or turn rough thinking into assumptions and checks. Treat any text passed with the skill invocation as the thing to challenge. Use oe-cli and any product graph as quiet background context when present, not as the visible center of the response.
 ---
 
 # Challenge Assumptions
@@ -9,8 +9,8 @@ Help the user expose what must be true before they build too much.
 
 ## Workflow
 
-1. Listen for the product thinking the user wants challenged: an idea, feature, PRD, assumption, solution, opportunity, or messy pasted notes.
-2. If the user has not provided anything to challenge, ask for it directly and stop. Do not inspect or explain graph structure first.
+1. Listen for the thinking the user wants challenged. If the user invoked the skill with arguments or inline text, treat that text as the input.
+2. If the user has not provided anything to challenge, ask "What do you want to challenge assumptions about?" and stop. Do not inspect or explain graph structure first.
 3. Use the `oe-cli` skill.
 4. Quietly check for a graph:
    ```sh
@@ -24,7 +24,7 @@ Help the user expose what must be true before they build too much.
    ```sh
    uv run oe context <node-id-or-slug> --root product
    ```
-7. Identify the riskiest assumptions in plain language.
+7. Identify the assumptions in plain language.
 8. Group assumptions by product risk when useful: value, usability, feasibility, viability.
 9. Propose product graph changes only when useful, and keep them secondary. Do not silently mutate product truth. Humans approve.
 
@@ -39,9 +39,8 @@ Help the user expose what must be true before they build too much.
 
 Keep the response concise:
 
-- The likely hidden assumptions.
-- The riskiest assumption to learn about next.
-- The next learning step.
+- Assumptions to challenge.
+- Useful checks or questions.
 - Suggested graph nodes or edits, only if useful.
 
 Prefer useful partial graphs over complete graphs.
