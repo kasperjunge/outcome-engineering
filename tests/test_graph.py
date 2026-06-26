@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from outcome_engineering.example import create_example
-from outcome_engineering.graph import create_node, find_node, node_ancestors, validate
+from outcome_engineering.graph import create_node, find_node, find_nodes_by_kind, marker_content, node_ancestors, supporting_files, validate
 
 
 def test_example_graph_is_valid(tmp_path: Path) -> None:
@@ -75,3 +75,22 @@ def test_find_node_and_ancestors(tmp_path: Path) -> None:
         "outcome.delegation-confidence",
         "opportunity.agents-lack-safe-access-to-tools",
     ]
+
+
+def test_find_nodes_by_kind(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    solutions = find_nodes_by_kind(root, "solution")
+
+    assert [node.id for node in solutions] == ["solution.agent-central", "solution.delegation-interview"]
+
+
+def test_marker_content_and_supporting_files(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    node = find_node(root, "opportunity.users-do-not-know-what-to-delegate")
+
+    assert node is not None
+    assert "# Users Do Not Know What To Delegate" in marker_content(node)
+    assert [path.name for path in supporting_files(node)] == ["interview-patterns.md"]

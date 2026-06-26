@@ -84,7 +84,10 @@ Run the current CLI locally:
 ```sh
 uv run oe validate examples/delegation-product-graph
 uv run oe tree examples/delegation-product-graph
+uv run oe list solutions --root examples/delegation-product-graph
 uv run oe trace solution.agent-central --root examples/delegation-product-graph
+uv run oe show solution.agent-central --root examples/delegation-product-graph
+uv run oe context solution.agent-central --root examples/delegation-product-graph
 uv run oe create-example --force
 ```
 
@@ -96,4 +99,10 @@ uv run oe new opportunity agents-lack-safe-access --root product --under outcome
 uv run oe new solution agent-central --root product --under opportunity.agents-lack-safe-access
 uv run oe new assumption operation-discovery-reduces-tool-overload --root product --under solution.agent-central
 uv run oe new experiment fake-connector-prototype --root product --under assumption.operation-discovery-reduces-tool-overload
+```
+
+The stable convention for real product repositories is to store the graph at:
+
+```text
+product/
 ```

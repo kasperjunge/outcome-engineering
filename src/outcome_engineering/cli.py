@@ -5,7 +5,16 @@ from pathlib import Path
 import typer
 
 from outcome_engineering.example import create_example
-from outcome_engineering.graph import create_node, discover_nodes, find_node, node_ancestors, validate as validate_graph
+from outcome_engineering.graph import (
+    create_node,
+    discover_nodes,
+    find_node,
+    find_nodes_by_kind,
+    marker_content,
+    node_ancestors,
+    supporting_files,
+    validate as validate_graph,
+)
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
@@ -108,6 +117,85 @@ def trace(
             typer.echo(f"- {child.kind}: {child.slug}")
 
 
+@app.command("list")
+def list_command(
+    kind: str | None = typer.Argument(None, help="Optional node kind to list."),
+    root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
+) -> None:
+    """List graph nodes."""
+    issues = validate_graph(root)
+    if issues:
+        typer.echo(f"Invalid product graph: {root}")
+        for issue in issues:
+            typer.echo(f"- {issue.path}: {issue.message}")
+        raise typer.Exit(code=1)
+
+    if kind is not None and kind.endswith("s"):
+        kind = kind[:-1]
+    if kind is not None and kind not in KIND_TO_RELATIONSHIP:
+        supported = ", ".join(sorted(KIND_TO_RELATIONSHIP))
+        typer.echo(f"unsupported node kind {kind!r}; expected one of: {supported}")
+        raise typer.Exit(code=1)
+
+    nodes = find_nodes_by_kind(root, kind)
+    for node in nodes:
+        typer.echo(f"{node.id}\t{node.path}")
+
+
+@app.command()
+def show(
+    selector: str = typer.Argument(..., help="Node id, slug, node directory, or marker file path."),
+    root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
+) -> None:
+    """Print a node's marker file."""
+    node = load_valid_node(root, selector)
+    typer.echo(marker_content(node).rstrip())
+
+
+@app.command()
+def context(
+    selector: str = typer.Argument(..., help="Node id, slug, node directory, or marker file path."),
+    root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
+) -> None:
+    """Print deterministic context around a node for an agent."""
+    node = load_valid_node(root, selector)
+    ancestors = node_ancestors(node)
+
+    typer.echo(f"# Context: {node.id}")
+    typer.echo("")
+    typer.echo("## Trace")
+    for ancestor in ancestors:
+        typer.echo(f"- {ancestor.id} ({ancestor.marker_file})")
+    typer.echo(f"- {node.id} ({node.marker_file})")
+
+    if node.children:
+        typer.echo("")
+        typer.echo("## Children")
+        for child in node.children:
+            typer.echo(f"- {child.id} ({child.marker_file})")
+
+    files = supporting_files(node)
+    if files:
+        typer.echo("")
+        typer.echo("## Supporting Files")
+        for path in files:
+            typer.echo(f"- {path}")
+
+    if ancestors:
+        typer.echo("")
+        typer.echo("## Ancestor Content")
+        for ancestor in ancestors:
+            typer.echo("")
+            typer.echo(f"### {ancestor.id}")
+            typer.echo("")
+            typer.echo(marker_content(ancestor).rstrip())
+
+    typer.echo("")
+    typer.echo("## Node Content")
+    typer.echo("")
+    typer.echo(marker_content(node).rstrip())
+
+
 @app.command("new")
 def new_command(
     kind: str = typer.Argument(..., help=f"Node kind: {', '.join(sorted(KIND_TO_RELATIONSHIP))}."),
@@ -134,6 +222,21 @@ def new_command(
     typer.echo(f"Created {node.id}")
     typer.echo(f"path: {node.path}")
     typer.echo(f"marker: {node.marker_file}")
+
+
+def load_valid_node(root: Path, selector: str):
+    issues = validate_graph(root)
+    if issues:
+        typer.echo(f"Invalid product graph: {root}")
+        for issue in issues:
+            typer.echo(f"- {issue.path}: {issue.message}")
+        raise typer.Exit(code=1)
+
+    node = find_node(root, selector)
+    if node is None:
+        typer.echo(f"Node not found or ambiguous: {selector}")
+        raise typer.Exit(code=1)
+    return node
 
 
 def print_node(node, prefix: str, is_last: bool) -> None:

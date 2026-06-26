@@ -86,6 +86,13 @@ def find_node(root: Path, selector: str) -> ProductNode | None:
     return None
 
 
+def find_nodes_by_kind(root: Path, kind: str | None = None) -> list[ProductNode]:
+    nodes = [node for node in discover_nodes(root) if node.kind not in {"vision", "strategy"}]
+    if kind is None:
+        return sorted(nodes, key=lambda node: (node.kind, node.slug, str(node.path)))
+    return sorted((node for node in nodes if node.kind == kind), key=lambda node: (node.slug, str(node.path)))
+
+
 def node_ancestors(node: ProductNode) -> list[ProductNode]:
     ancestors: list[ProductNode] = []
     current = node.parent
@@ -165,6 +172,21 @@ status: draft
 
 def title_from_slug(slug: str) -> str:
     return " ".join(part.capitalize() for part in slug.replace("_", "-").split("-") if part)
+
+
+def marker_content(node: ProductNode) -> str:
+    return node.marker_file.read_text(encoding="utf-8")
+
+
+def supporting_files(node: ProductNode) -> list[Path]:
+    relationship_names = set(RELATIONSHIP_TO_CHILD_KIND)
+    return sorted(
+        path
+        for path in node.path.rglob("*")
+        if path.is_file()
+        and path != node.marker_file
+        and not any(part in relationship_names for part in path.relative_to(node.path).parts[:-1])
+    )
 
 
 def relationship_dirs(path: Path) -> list[Path]:
