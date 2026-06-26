@@ -24,9 +24,9 @@ Help the user expose what must be true before they build too much.
    ```sh
    uv run oe context <node-id-or-slug> --root product
    ```
-7. Identify the assumptions in plain language.
-8. Group assumptions by product risk when useful: value, usability, feasibility, viability.
-9. Propose product graph changes only when useful, and keep them secondary. Do not silently mutate product truth. Humans approve.
+7. Identify the single highest-leverage assumption to challenge first.
+8. Offer one useful check or question that would reduce risk.
+9. Ask whether the user wants another assumption challenged. Only expand into multiple assumptions, risk categories, or graph edits if the user asks.
 
 ## Interaction Principles
 
@@ -34,13 +34,14 @@ Help the user expose what must be true before they build too much.
 - Do not narrate graph validation, tree structure, node ids, or CLI steps unless the user asks.
 - Mention the graph only when it materially changes the product judgment or when suggesting a concrete edit.
 - Keep the answer anchored in the user's words and decision, not in the repository structure.
+- Default to one thing per interaction. Be compact and concise.
 
 ## Output
 
-Keep the response concise:
+Default response shape:
 
-- Assumptions to challenge.
-- Useful checks or questions.
-- Suggested graph nodes or edits, only if useful.
+- `Assumption:` one sentence naming the highest-risk assumption.
+- `Check:` one sentence naming the next useful test, question, or observation.
+- `Next:` ask whether to challenge another assumption.
 
-Prefer useful partial graphs over complete graphs.
+Avoid lists unless the user asks for a broader pass. Mention graph nodes or edits only when the user asks or they are the single most useful next step.
