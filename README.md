@@ -118,7 +118,7 @@ Real product repositories should store the graph at:
 product/
 ```
 
-Install the bundled agent skill with Playwright-style project-local commands:
+Install the bundled agent skills with Playwright-style project-local commands:
 
 ```sh
 uv run oe install --skills --force
@@ -174,7 +174,7 @@ uv run oe tree examples/delegation-product-graph
 uv run oe context solution.agent-central --root examples/delegation-product-graph
 ```
 
-Install the skill into explicit global agent-tool locations:
+Install the skills into explicit global agent-tool locations:
 
 ```sh
 uv run oe install-skill --agent codex --force

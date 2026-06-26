@@ -9,7 +9,7 @@ Use the `oe` CLI to work with repo-native product graphs.
 
 The Python package is `outcome-engineering`. The command is `oe`.
 
-Install the skill for agent tools:
+Install the bundled skills for agent tools:
 
 ```sh
 uvx outcome-engineering install --skills

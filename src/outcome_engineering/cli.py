@@ -16,7 +16,11 @@ from outcome_engineering.graph import (
     validate as validate_graph,
 )
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
-from outcome_engineering.skill_installer import install_project_skill, install_skill, install_skill_for_agent
+from outcome_engineering.skill_installer import (
+    install_project_skills,
+    install_skill,
+    install_skills_for_agent,
+)
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
 
@@ -28,10 +32,10 @@ def install(
     ctx: typer.Context,
     force: bool = typer.Option(False, "--force", help="Replace the target skill directory if it already exists."),
 ) -> None:
-    """Install bundled assets, including the oe-cli skill."""
+    """Install bundled assets, including Outcome Engineering skills."""
     try:
         skill_value = parse_skills_option(ctx.args)
-        installed_at = install_project_skill(skill_value, force=force)
+        installed_paths = install_project_skills(skill_value, force=force)
     except ValueError as error:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
@@ -39,7 +43,8 @@ def install(
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
 
-    typer.echo(f"Installed oe-cli skill at {installed_at}")
+    for installed_at in installed_paths:
+        typer.echo(f"Installed skill at {installed_at}")
 
 
 @app.command()
@@ -102,14 +107,14 @@ def install_skill_command(
     target: Path | None = typer.Option(None, "--target", "-t", help="Exact skill install directory. Overrides --agent."),
     force: bool = typer.Option(False, "--force", help="Replace the target skill directory if it already exists."),
 ) -> None:
-    """Install the bundled oe-cli agent skill."""
+    """Install the bundled Outcome Engineering agent skills."""
     try:
-        installed_paths = [install_skill(target=target, force=force)] if target is not None else install_skill_for_agent(agent, force=force)
+        installed_paths = [install_skill(target=target, force=force)] if target is not None else install_skills_for_agent(agent, force=force)
     except (FileExistsError, ValueError) as error:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
     for installed_at in installed_paths:
-        typer.echo(f"Installed oe-cli skill at {installed_at}")
+        typer.echo(f"Installed skill at {installed_at}")
 
 
 @app.command()

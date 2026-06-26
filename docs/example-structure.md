@@ -62,7 +62,7 @@ uv run oe new opportunity my-opportunity --root product --under outcome.my-outco
 
 For real repositories, use `product/` as the stable product graph root.
 
-Install the bundled agent skill:
+Install the bundled agent skills:
 
 ```sh
 uvx outcome-engineering install --skills
