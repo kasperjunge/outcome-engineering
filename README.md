@@ -1,18 +1,38 @@
 # Outcome Engineering
 
-Outcome Engineering is a framework for helping humans continuously challenge product thinking and invent valuable solutions that users and customers actually want, use, and pay for, in ways that work for the business.
+Outcome Engineering helps teams stay aligned on the single most important thing to work on to drive an outcome toward a larger vision.
 
-The core claim:
+It is a method and toolset for turning messy product thinking into a traceable, actionable product graph. The graph connects vision, strategy, outcomes, opportunities, solutions, assumptions, experiments, evidence, PRDs, acceptance tests, and code so humans and agents can reason about what to do next.
 
-> Product development should be modeled as a living intent graph where every product bet can be traced upward to its strategic purpose, downward to implementation, and sideways to the evidence and learning that shaped it.
+The point is not documentation for its own sake. The point is faster, more efficient, and more consistent motion toward product-market fit, business value, and customer value.
+
+## What It Helps You Do
+
+Outcome Engineering is designed to be useful from any messy product entry point, then grow a coherent graph around it.
+
+### Challenge assumptions
+
+Paste messy product thinking into an agent and ask it to expose the hidden or risky assumptions. This helps teams validate earlier instead of building too long on beliefs that may not survive contact with customers, users, the market, the business, or technical reality.
+
+### Craft vision and strategy
+
+Use an agent to clarify the top of the graph: vision, strategy, outcomes, and focus. This helps teams avoid confusing outputs with outcomes and keeps product work aligned around the highest-leverage next step.
+
+### Challenge product intent
+
+Bring a PRD, spec, issue, idea, code change, or acceptance test and challenge whether it traces upward to an opportunity, outcome, strategy, and vision. This helps prevent delivery work from drifting away from product intent.
+
+See [docs/agent-entry-points.md](docs/agent-entry-points.md) for the recommended agent-native starting points.
+
+## The Core Claim
+
+Product development should be modeled as a living intent graph where every product bet can be traced upward to its strategic purpose, downward to implementation, and sideways to the evidence and learning that shaped it.
 
 Traceability is the mechanism. Better product judgment and better product outcomes are the point.
 
-The graph provides structure for product work and gives agents a way to understand, organize, and challenge what is happening.
+The graph gives humans a structure for product work and gives agents a context model they can use to understand, organize, and challenge what is happening.
 
-The framework connects product vision, strategy, OKRs, outcomes, opportunity solution trees, assumptions, experiments, PRDs, user stories, acceptance criteria, code, tests, and evidence into one coherent system.
-
-It is not a replacement for human product judgment. Humans still set direction, talk to users, interpret nuance, and make decisions. Agentic engineering can help maintain structure, reframe opportunities, analyze assumptions, challenge output-thinking, expose what is known and unknown, generate options, implement code, run tests, and preserve traceability across the system.
+It is not a replacement for human product judgment. Humans still set direction, talk to users, interpret nuance, and make decisions. Agents can help maintain structure, reframe opportunities, analyze assumptions, challenge output-thinking, expose what is known and unknown, generate options, implement code, run tests, and preserve traceability across the system.
 
 Agents can generate plausible opportunities, solutions, assumptions, stories, and analyses, but plausibility is not grounding. Synthetic artifacts remain hypotheses until supported by real customer, user, market, business, or technical evidence.
 
@@ -70,8 +90,19 @@ Evidence can come from user interviews, customer conversations, sales calls, sup
 
 Quantitative data can show what is happening. Human discovery is needed to understand why it is happening.
 
+## Start Small
+
+You do not need a complete graph to get value.
+
+Start with the product material you already have: a vague idea, meeting notes, a PRD, a spec, an issue, or a code change. Let an agent structure and challenge it, then keep the useful parts as graph artifacts.
+
+Useful partial graphs matter more than perfect graph completeness.
+
 ## Repository Structure
 
+- [product/VISION.md](product/VISION.md) defines the product vision for Outcome Engineering itself.
+- [product/STRATEGY.md](product/STRATEGY.md) defines the current product strategy for Outcome Engineering itself.
+- [docs/agent-entry-points.md](docs/agent-entry-points.md) describes the first agent-native use cases.
 - [docs/framework.md](docs/framework.md) defines the framework.
 - [docs/graph.md](docs/graph.md) describes the concept graph.
 - [docs/glossary.md](docs/glossary.md) defines the core terms.
