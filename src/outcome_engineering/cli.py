@@ -16,6 +16,7 @@ from outcome_engineering.graph import (
     validate as validate_graph,
 )
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
+from outcome_engineering.skill_installer import install_skill, install_skill_for_agent
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
 
@@ -72,6 +73,22 @@ def create_example_command(
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
     typer.echo(f"Created example product graph at {output}")
+
+
+@app.command("install-skill")
+def install_skill_command(
+    agent: str = typer.Option("codex", "--agent", "-a", help="Agent tool target: codex, claude, or all."),
+    target: Path | None = typer.Option(None, "--target", "-t", help="Exact skill install directory. Overrides --agent."),
+    force: bool = typer.Option(False, "--force", help="Replace the target skill directory if it already exists."),
+) -> None:
+    """Install the bundled oe-cli agent skill."""
+    try:
+        installed_paths = [install_skill(target=target, force=force)] if target is not None else install_skill_for_agent(agent, force=force)
+    except (FileExistsError, ValueError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    for installed_at in installed_paths:
+        typer.echo(f"Installed oe-cli skill at {installed_at}")
 
 
 @app.command()

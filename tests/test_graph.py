@@ -4,6 +4,7 @@ from pathlib import Path
 
 from outcome_engineering.example import create_example
 from outcome_engineering.graph import create_node, find_node, find_nodes_by_kind, marker_content, node_ancestors, supporting_files, validate
+from outcome_engineering.skill_installer import install_skill, install_skill_for_agent
 
 
 def test_example_graph_is_valid(tmp_path: Path) -> None:
@@ -94,3 +95,27 @@ def test_marker_content_and_supporting_files(tmp_path: Path) -> None:
     assert node is not None
     assert "# Users Do Not Know What To Delegate" in marker_content(node)
     assert [path.name for path in supporting_files(node)] == ["interview-patterns.md"]
+
+
+def test_install_skill(tmp_path: Path) -> None:
+    target = tmp_path / "skills" / "oe-cli"
+
+    installed_at = install_skill(target=target)
+
+    assert installed_at == target
+    assert (target / "SKILL.md").exists()
+    assert "name: oe-cli" in (target / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_install_skill_for_agents(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "codex"))
+    monkeypatch.setenv("CLAUDE_HOME", str(tmp_path / "claude"))
+
+    installed = install_skill_for_agent("all")
+
+    assert installed == [
+        tmp_path / "codex" / "skills" / "oe-cli",
+        tmp_path / "claude" / "skills" / "oe-cli",
+    ]
+    assert (tmp_path / "codex" / "skills" / "oe-cli" / "SKILL.md").exists()
+    assert (tmp_path / "claude" / "skills" / "oe-cli" / "SKILL.md").exists()

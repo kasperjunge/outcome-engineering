@@ -1,11 +1,21 @@
 ---
-name: outcome-engineering
-description: Use this skill whenever a repository has an Outcome Engineering product graph, an `oe` CLI, or the user asks about product vision, outcomes, opportunities, solutions, assumptions, experiments, PRDs, product discovery, or implementing work that should trace to product intent. This skill tells agents how to use `oe` to inspect, create, validate, and contextualize product graph structure before doing product or delivery work.
+name: oe-cli
+description: Use this skill whenever a repository has an Outcome Engineering product graph, the `oe` CLI, the `outcome-engineering` Python package, or the user asks about product vision, outcomes, opportunities, solutions, assumptions, experiments, PRDs, product discovery, or implementing work that should trace to product intent. This skill tells agents how to use `oe` to inspect, create, validate, and contextualize product graph structure before doing product or delivery work.
 ---
 
 # Outcome Engineering
 
 Use the `oe` CLI to work with repo-native product graphs.
+
+The Python package is `outcome-engineering`. The command is `oe`.
+
+Install the skill for agent tools:
+
+```sh
+uvx outcome-engineering install-skill --agent codex
+uvx outcome-engineering install-skill --agent claude
+uvx outcome-engineering install-skill --agent all
+```
 
 Outcome Engineering stores product intent as a filesystem graph rooted at:
 
@@ -106,4 +116,3 @@ If a slug is ambiguous, use the full node id or marker file path.
 `oe` currently manages deterministic structure. It does not make product judgment.
 
 Do not pretend that `oe validate` means the product thinking is good. It only means the graph structure is valid. Human judgment and user discovery remain required.
-
