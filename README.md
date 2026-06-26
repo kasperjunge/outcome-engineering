@@ -84,5 +84,16 @@ Run the current CLI locally:
 ```sh
 uv run oe validate examples/delegation-product-graph
 uv run oe tree examples/delegation-product-graph
+uv run oe trace solution.agent-central --root examples/delegation-product-graph
 uv run oe create-example --force
+```
+
+Create nodes deterministically:
+
+```sh
+uv run oe new outcome delegation-confidence --root product
+uv run oe new opportunity agents-lack-safe-access --root product --under outcome.delegation-confidence
+uv run oe new solution agent-central --root product --under opportunity.agents-lack-safe-access
+uv run oe new assumption operation-discovery-reduces-tool-overload --root product --under solution.agent-central
+uv run oe new experiment fake-connector-prototype --root product --under assumption.operation-discovery-reduces-tool-overload
 ```

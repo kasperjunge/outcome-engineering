@@ -4,7 +4,10 @@ from pathlib import Path
 
 from outcome_engineering.model import (
     ALLOWED_CHILD_RELATIONSHIPS,
+    KIND_TO_MARKER_FILE,
+    KIND_TO_RELATIONSHIP,
     MARKER_FILES,
+    PARENT_KIND_TO_CHILD_KIND,
     RELATIONSHIP_TO_CHILD_KIND,
     ProductNode,
     ValidationIssue,
@@ -65,6 +68,103 @@ def discover_nodes(root: Path) -> list[ProductNode]:
         )
 
     return nodes
+
+
+def find_node(root: Path, selector: str) -> ProductNode | None:
+    root = root.resolve()
+    selector_path = Path(selector)
+    if selector_path.exists():
+        resolved_selector = selector_path.resolve()
+        for node in discover_nodes(root):
+            if node.path == resolved_selector or node.marker_file == resolved_selector:
+                return node
+        return None
+
+    matches = [node for node in discover_nodes(root) if node.id == selector or node.slug == selector]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+def node_ancestors(node: ProductNode) -> list[ProductNode]:
+    ancestors: list[ProductNode] = []
+    current = node.parent
+    while current is not None:
+        ancestors.append(current)
+        current = current.parent
+    return list(reversed(ancestors))
+
+
+def create_node(root: Path, kind: str, slug: str, title: str | None, under: str | None) -> ProductNode:
+    root = root.resolve()
+    if kind not in KIND_TO_RELATIONSHIP:
+        supported = ", ".join(sorted(KIND_TO_RELATIONSHIP))
+        raise ValueError(f"unsupported node kind {kind!r}; expected one of: {supported}")
+
+    parent: ProductNode | None = None
+    parent_kind = "root"
+    parent_path = root
+    if kind != "outcome":
+        if under is None:
+            raise ValueError(f"{kind} requires --under")
+        parent = find_node(root, under)
+        if parent is None:
+            raise ValueError(f"parent not found: {under}")
+        parent_kind = parent.kind
+        parent_path = parent.path
+    elif under is not None:
+        raise ValueError("outcome cannot use --under; outcomes live under the product graph root")
+
+    allowed_child_kinds = PARENT_KIND_TO_CHILD_KIND.get(parent_kind, set())
+    if kind not in allowed_child_kinds:
+        allowed = ", ".join(sorted(allowed_child_kinds)) or "none"
+        raise ValueError(f"cannot create {kind} under {parent_kind}; allowed child kinds: {allowed}")
+
+    relationship = KIND_TO_RELATIONSHIP[kind]
+    node_path = parent_path / relationship / slug
+    if node_path.exists():
+        raise FileExistsError(f"{node_path} already exists")
+
+    marker = KIND_TO_MARKER_FILE[kind]
+    node_path.mkdir(parents=True)
+    marker_path = node_path / marker
+    marker_path.write_text(render_template(kind, slug, title or title_from_slug(slug)), encoding="utf-8")
+
+    return ProductNode(
+        path=node_path,
+        kind=kind,
+        marker_file=marker_path,
+        slug=slug,
+        parent=parent,
+        relationship=relationship,
+        children=[],
+    )
+
+
+def render_template(kind: str, slug: str, title: str) -> str:
+    sections = {
+        "outcome": "## Measures\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
+        "opportunity": "## Evidence\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
+        "solution": "## Product Risks\n\n- Value: TODO\n- Usability: TODO\n- Feasibility: TODO\n- Viability: TODO\n\n## Assumptions\n\n- TODO\n",
+        "assumption": "## Risk Type\n\nTODO\n\n## How This Could Be False\n\nTODO\n",
+        "experiment": "## Tests Assumption\n\nTODO\n\n## Success / Failure Signal\n\nTODO\n\n## Decision It Informs\n\nTODO\n",
+        "prd": "## Problem\n\nTODO\n\n## User Stories\n\n- TODO\n\n## Acceptance Criteria\n\n- TODO\n",
+    }
+    body = sections[kind]
+    return f"""# {title}
+
+```yaml
+type: {kind}
+id: {kind}.{slug}
+status: draft
+```
+
+{body}
+"""
+
+
+def title_from_slug(slug: str) -> str:
+    return " ".join(part.capitalize() for part in slug.replace("_", "-").split("-") if part)
 
 
 def relationship_dirs(path: Path) -> list[Path]:

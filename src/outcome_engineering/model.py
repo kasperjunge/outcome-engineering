@@ -24,6 +24,25 @@ RELATIONSHIP_TO_CHILD_KIND = {
     "prds": {"prd"},
 }
 
+KIND_TO_MARKER_FILE = {kind: marker for marker, kind in MARKER_FILES.items()}
+
+KIND_TO_RELATIONSHIP = {
+    "outcome": "outcomes",
+    "opportunity": "opportunities",
+    "solution": "solutions",
+    "assumption": "assumptions",
+    "experiment": "experiments",
+    "prd": "prds",
+}
+
+PARENT_KIND_TO_CHILD_KIND = {
+    "root": {"outcome"},
+    "outcome": {"opportunity"},
+    "opportunity": {"opportunity", "solution"},
+    "solution": {"assumption", "prd"},
+    "assumption": {"experiment"},
+}
+
 ALLOWED_CHILD_RELATIONSHIPS = {
     "root": {"outcomes"},
     "vision": set(),
@@ -56,4 +75,3 @@ class ProductNode:
 class ValidationIssue:
     path: Path
     message: str
-

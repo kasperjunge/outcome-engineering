@@ -6,6 +6,8 @@ Run:
 
 ```sh
 uv run oe create-example --force
+uv run oe validate examples/delegation-product-graph
+uv run oe tree examples/delegation-product-graph
 ```
 
 The script writes:
@@ -31,3 +33,15 @@ outcomes/delegation-confidence/
 ```
 
 This path says that `agent-central` is a solution bet for the opportunity `agents-lack-safe-access-to-tools`, which supports the outcome `delegation-confidence`.
+
+Trace a node:
+
+```sh
+uv run oe trace solution.agent-central --root examples/delegation-product-graph
+```
+
+Create a new node:
+
+```sh
+uv run oe new opportunity my-opportunity --root product --under outcome.my-outcome
+```
