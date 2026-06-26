@@ -75,3 +75,4 @@ Quantitative data can show what is happening. Human discovery is needed to under
 - [docs/framework.md](docs/framework.md) defines the framework.
 - [docs/graph.md](docs/graph.md) describes the concept graph.
 - [docs/glossary.md](docs/glossary.md) defines the core terms.
+- [docs/example-structure.md](docs/example-structure.md) explains the example filesystem graph.

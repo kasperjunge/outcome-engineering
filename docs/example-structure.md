@@ -1,0 +1,33 @@
+# Example Structure
+
+This repository includes a small generator for an example Outcome Engineering product graph.
+
+Run:
+
+```sh
+python3 scripts/create_example_product_graph.py --force
+```
+
+The script writes:
+
+```text
+examples/delegation-product-graph/
+```
+
+The example uses a filesystem-native graph convention:
+
+- A graph node is a directory with a canonical marker file, such as `OUTCOME.md`, `OPPORTUNITY.md`, `SOLUTION.md`, `ASSUMPTION.md`, `EXPERIMENT.md`, or `PRD.md`.
+- Relationship directories, such as `opportunities/`, `solutions/`, `assumptions/`, `experiments/`, and `prds/`, define the edge from a parent node to child nodes.
+- Supporting files can live beside the marker file inside the node directory.
+
+Example path:
+
+```text
+outcomes/delegation-confidence/
+  opportunities/agents-lack-safe-access-to-tools/
+    solutions/agent-central/
+      PRD.md
+```
+
+This path says that `agent-central` is a solution bet for the opportunity `agents-lack-safe-access-to-tools`, which supports the outcome `delegation-confidence`.
+
