@@ -124,12 +124,14 @@ Create nodes deterministically:
 ```sh
 uv run oe new outcome delegation-confidence --root product
 uv run oe new opportunity agents-lack-safe-access --root product --under outcome.delegation-confidence
+uv run oe new assumption customer-pain-is-frequent --root product --under opportunity.agents-lack-safe-access
 uv run oe new solution agent-central --root product --under opportunity.agents-lack-safe-access
 uv run oe new assumption operation-discovery-reduces-tool-overload --root product --under solution.agent-central
 uv run oe new experiment fake-connector-prototype --root product --under assumption.operation-discovery-reduces-tool-overload
 uv run oe new prd agent-central-mvp --root product --under solution.agent-central
 ```
 
+Assumptions can live under opportunities or solutions.
 Experiments can only live under assumptions.
 
 Try the example graph:

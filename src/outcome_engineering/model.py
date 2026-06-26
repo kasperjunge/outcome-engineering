@@ -24,6 +24,8 @@ RELATIONSHIP_TO_CHILD_KIND = {
     "prds": {"prd"},
 }
 
+RELATIONSHIP_ORDER = ("outcomes", "opportunities", "assumptions", "solutions", "experiments", "prds")
+
 KIND_TO_MARKER_FILE = {kind: marker for marker, kind in MARKER_FILES.items()}
 
 KIND_TO_RELATIONSHIP = {
@@ -38,7 +40,7 @@ KIND_TO_RELATIONSHIP = {
 PARENT_KIND_TO_CHILD_KIND = {
     "root": {"outcome"},
     "outcome": {"opportunity"},
-    "opportunity": {"opportunity", "solution"},
+    "opportunity": {"opportunity", "assumption", "solution"},
     "solution": {"assumption", "prd"},
     "assumption": {"experiment"},
 }
@@ -48,7 +50,7 @@ ALLOWED_CHILD_RELATIONSHIPS = {
     "vision": set(),
     "strategy": set(),
     "outcome": {"opportunities"},
-    "opportunity": {"opportunities", "solutions"},
+    "opportunity": {"opportunities", "assumptions", "solutions"},
     "solution": {"assumptions", "prds"},
     "assumption": {"experiments"},
     "experiment": set(),

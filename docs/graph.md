@@ -132,6 +132,9 @@ Outcomes describe the real-world change that should move the key result.
 Outcome -> OST
 An opportunity solution tree explores how to create the outcome.
 
+Opportunity -> Assumption
+Assumptions are the beliefs that must be true for the opportunity to be real.
+
 Opportunity -> Solution
 Solutions are possible interventions for a discovered opportunity.
 

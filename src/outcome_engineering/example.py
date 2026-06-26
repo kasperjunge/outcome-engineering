@@ -91,6 +91,24 @@ Example evidence placeholder. In a real product graph this would link to intervi
 """,
                     },
                     children={
+                        "assumptions": [
+                            ExampleNode(
+                                slug="delegation-pain-is-frequent",
+                                kind="assumption",
+                                title="Delegation Pain Is Frequent",
+                                body="""Users run into this uncertainty often enough that solving it would materially increase delegation confidence.""",
+                                children={
+                                    "experiments": [
+                                        ExampleNode(
+                                            slug="frequency-interviews",
+                                            kind="experiment",
+                                            title="Frequency Interviews",
+                                            body="""Interview users about recent work and count how often they wanted to delegate something but could not identify a concrete agent-ready task.""",
+                                        )
+                                    ]
+                                },
+                            )
+                        ],
                         "opportunities": [
                             ExampleNode(
                                 slug="recurring-work-is-hard-to-describe",
@@ -228,4 +246,3 @@ Focus on recurring knowledge work where better task framing and safer tool acces
 """,
     )
     write_node(root / "outcomes", example_graph())
-

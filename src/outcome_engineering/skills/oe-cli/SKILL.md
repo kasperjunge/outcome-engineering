@@ -36,6 +36,12 @@ product/
           OPPORTUNITY.md
           opportunities/
             <sub-opportunity>/
+          assumptions/
+            <assumption>/
+              ASSUMPTION.md
+              experiments/
+                <experiment>/
+                  EXPERIMENT.md
           solutions/
             <solution>/
               SOLUTION.md
@@ -50,7 +56,7 @@ product/
                   PRD.md
 ```
 
-Experiments belong under assumptions. Do not create experiments directly under solutions.
+Assumptions can live under opportunities or solutions. Experiments belong under assumptions. Do not create experiments directly under opportunities or solutions.
 
 ## When To Use
 
@@ -102,6 +108,7 @@ Create graph nodes through `oe new` instead of hand-rolling directories.
 ```sh
 uv run oe new outcome <slug> --root product
 uv run oe new opportunity <slug> --root product --under outcome.<slug>
+uv run oe new assumption <slug> --root product --under opportunity.<slug>
 uv run oe new solution <slug> --root product --under opportunity.<slug>
 uv run oe new assumption <slug> --root product --under solution.<slug>
 uv run oe new experiment <slug> --root product --under assumption.<slug>

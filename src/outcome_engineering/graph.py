@@ -8,6 +8,7 @@ from outcome_engineering.model import (
     KIND_TO_RELATIONSHIP,
     MARKER_FILES,
     PARENT_KIND_TO_CHILD_KIND,
+    RELATIONSHIP_ORDER,
     RELATIONSHIP_TO_CHILD_KIND,
     ProductNode,
     ValidationIssue,
@@ -190,7 +191,11 @@ def supporting_files(node: ProductNode) -> list[Path]:
 
 
 def relationship_dirs(path: Path) -> list[Path]:
-    return sorted(child for child in path.iterdir() if child.is_dir() and child.name in RELATIONSHIP_TO_CHILD_KIND)
+    order = {relationship: index for index, relationship in enumerate(RELATIONSHIP_ORDER)}
+    return sorted(
+        (child for child in path.iterdir() if child.is_dir() and child.name in RELATIONSHIP_TO_CHILD_KIND),
+        key=lambda child: order[child.name],
+    )
 
 
 def validate(root: Path) -> list[ValidationIssue]:

@@ -30,7 +30,7 @@ A possible intervention intended to address an opportunity.
 
 ## Assumption
 
-A belief that must be true for a solution, opportunity, or strategy to work.
+A belief that must be true for an opportunity to be real or for a solution to work.
 
 ## Experiment
 
@@ -69,4 +69,3 @@ The implementation of selected product behavior.
 ## Test
 
 An executable check that verifies behavior or implementation.
-

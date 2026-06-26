@@ -21,6 +21,7 @@ The example uses a filesystem-native graph convention:
 
 - A graph node is a directory with a canonical marker file, such as `OUTCOME.md`, `OPPORTUNITY.md`, `SOLUTION.md`, `ASSUMPTION.md`, `EXPERIMENT.md`, or `PRD.md`.
 - Relationship directories, such as `opportunities/`, `solutions/`, `assumptions/`, `experiments/`, and `prds/`, define the edge from a parent node to child nodes.
+- Assumptions can live under opportunities or solutions.
 - Experiments can only live under assumptions.
 - Supporting files can live beside the marker file inside the node directory.
 
