@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__GRAPH_TITLE__ · product graph</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222b;
+    --line: #2a2f3a;
+    --text: #e6e9ef;
+    --muted: #97a0b0;
+    --accent: #5b8def;
+    --icp: #b07cf0;
+    --outcome: #4f8cf7;
+    --opportunity: #2bb3a3;
+    --solution: #f0913a;
+    --assumption-test: #e6c34a;
+    --prd: #8a94a6;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+  #app { display: flex; flex-direction: column; height: 100%; }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-bottom: 1px solid var(--line);
+    background: var(--panel); flex: 0 0 auto;
+  }
+  header .title { font-weight: 600; }
+  header .crumbs { color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  header .crumbs a { color: var(--accent); cursor: pointer; text-decoration: none; }
+  header .crumbs a:hover { text-decoration: underline; }
+  header .spacer { flex: 1; }
+  button.btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 7px; padding: 6px 11px; cursor: pointer; font-size: 13px;
+  }
+  button.btn:hover { border-color: var(--accent); }
+  button.btn:disabled { opacity: .4; cursor: default; }
+  #main { flex: 1; display: flex; min-height: 0; }
+  #canvas-wrap { position: relative; flex: 1; min-width: 0; }
+  svg { width: 100%; height: 100%; display: block; cursor: grab; }
+  svg.panning { cursor: grabbing; }
+  .legend {
+    position: absolute; left: 12px; bottom: 12px; background: rgba(23,26,33,.92);
+    border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 5px; font-size: 12px; max-width: 190px;
+  }
+  .legend .item { display: flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
+  .legend .item.off { opacity: .35; }
+  .legend .swatch { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 auto; }
+  .hint {
+    position: absolute; right: 12px; bottom: 12px; color: var(--muted);
+    font-size: 12px; background: rgba(23,26,33,.85); padding: 5px 9px;
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  /* graph nodes */
+  .node { cursor: pointer; }
+  .node rect.box { stroke-width: 2; fill: var(--panel-2); }
+  .node:hover rect.box { filter: brightness(1.25); }
+  .node.selected rect.box { stroke-width: 3; }
+  .node .kind { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; fill: var(--muted); }
+  .node .label { font-size: 12px; font-weight: 600; fill: var(--text); }
+  .node .status { font-size: 9px; fill: var(--muted); }
+  .node.dim { opacity: .2; }
+  .edge { fill: none; stroke: var(--line); stroke-width: 1.6; }
+  .edge.icp { stroke: var(--icp); stroke-dasharray: 5 4; stroke-width: 1.4; opacity: .8; }
+  .edge.dim { opacity: .08; }
+  .toggle { cursor: pointer; }
+  .toggle circle { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+  .toggle text { font-size: 13px; fill: var(--text); text-anchor: middle; dominant-baseline: central; }
+  .band-label { fill: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  /* detail panel */
+  #detail {
+    flex: 0 0 380px; border-left: 1px solid var(--line); background: var(--panel);
+    overflow-y: auto; padding: 16px 18px;
+  }
+  #detail.empty { color: var(--muted); }
+  #detail .pill {
+    display: inline-block; font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); margin-right: 6px;
+  }
+  #detail h1 { font-size: 18px; margin: 12px 0 4px; }
+  #detail .id { color: var(--muted); font-size: 12px; font-family: ui-monospace, monospace; }
+  #detail .served { margin-top: 10px; }
+  #detail .served .chip {
+    display: inline-block; font-size: 11px; padding: 2px 8px; margin: 2px 4px 2px 0;
+    border-radius: 99px; background: var(--panel-2); border: 1px solid var(--line); cursor: pointer;
+  }
+  #detail .served .chip:hover { border-color: var(--icp); }
+  .md { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .md h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 16px 0 6px; }
+  .md h3 { font-size: 13px; margin: 12px 0 4px; }
+  .md ul { margin: 6px 0; padding-left: 18px; }
+  .md li { margin: 3px 0; }
+  .md p { margin: 8px 0; }
+  .md code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+  .md pre { background: var(--panel-2); padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
+  .md pre code { background: none; padding: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="title">__GRAPH_TITLE__</span>
+    <span class="crumbs" id="crumbs"></span>
+    <span class="spacer"></span>
+    <button class="btn" id="btn-vision">Vision</button>
+    <button class="btn" id="btn-strategy">Strategy</button>
+    <button class="btn" id="btn-overview">Overview</button>
+    <button class="btn" id="btn-fit">Fit</button>
+  </header>
+  <div id="main">
+    <div id="canvas-wrap">
+      <svg id="svg"><g id="viewport"></g></svg>
+      <div class="legend" id="legend"></div>
+      <div class="hint">scroll to zoom · drag to pan · click an outcome to focus</div>
+    </div>
+    <div id="detail" class="empty">Select a node to see its content.</div>
+  </div>
+</div>
+<script id="graph-data" type="application/json">__GRAPH_DATA__</script>
+<script>
+const GRAPH = JSON.parse(document.getElementById("graph-data").textContent);
+const KINDS = ["icp", "outcome", "opportunity", "solution", "assumption-test", "prd"];
+const KIND_COLOR = {
+  "icp": "#b07cf0", "outcome": "#4f8cf7", "opportunity": "#2bb3a3",
+  "solution": "#f0913a", "assumption-test": "#e6c34a", "prd": "#8a94a6",
+};
+const NODE_W = 168, NODE_H = 46, ROW_H = 118, COL_W = 196;
+
+const byId = new Map(GRAPH.nodes.map(n => [n.id, n]));
+const childrenOf = new Map();
+GRAPH.nodes.forEach(n => childrenOf.set(n.id, []));
+GRAPH.nodes.forEach(n => { if (n.parent && childrenOf.has(n.parent)) childrenOf.get(n.parent).push(n); });
+const outcomes = GRAPH.nodes.filter(n => n.kind === "outcome");
+const icps = GRAPH.nodes.filter(n => n.kind === "icp");
+
+// Union of ICP ids referenced anywhere in a node's subtree (incl. itself).
+function subtreeIcps(node) {
+  const seen = new Set();
+  (function walk(n) {
+    (n.icps || []).forEach(i => seen.add(i));
+    childrenOf.get(n.id).forEach(walk);
+  })(node);
+  return [...seen];
+}
+// Nodes inside an outcome subtree that directly reference a given icp.
+function referrersOf(outcome, icpId) {
+  const out = [];
+  (function walk(n) {
+    if ((n.icps || []).includes(icpId)) out.push(n);
+    childrenOf.get(n.id).forEach(walk);
+  })(outcome);
+  return out;
+}
+
+const svg = document.getElementById("svg");
+const viewport = document.getElementById("viewport");
+const SVGNS = "http://www.w3.org/2000/svg";
+const state = {
+  mode: "overview",   // "overview" | "focus"
+  focus: null,        // outcome id when focused
+  collapsed: new Set(),
+  selected: null,
+  hiddenKinds: new Set(),
+  view: { x: 0, y: 0, k: 1 },
+};
+
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  for (const c of [].concat(children)) node.appendChild(c);
+  return node;
+}
+function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+// ---- node + edge primitives -------------------------------------------------
+function drawNode(n, x, y, opts = {}) {
+  const color = KIND_COLOR[n.kind] || "#888";
+  const g = el("g", { class: "node" + (state.selected === n.id ? " selected" : "") + (state.hiddenKinds.has(n.kind) ? " dim" : ""), transform: `translate(${x},${y})` });
+  g.appendChild(el("rect", { class: "box", x: -NODE_W / 2, y: -NODE_H / 2, width: NODE_W, height: NODE_H, rx: 9, stroke: color }));
+  g.appendChild(el("rect", { x: -NODE_W / 2, y: -NODE_H / 2, width: 5, height: NODE_H, rx: 2, fill: color }));
+  const kindText = el("text", { class: "kind", x: -NODE_W / 2 + 14, y: -NODE_H / 2 + 14 });
+  kindText.textContent = n.kind;
+  g.appendChild(kindText);
+  const label = el("text", { class: "label", x: -NODE_W / 2 + 14, y: 6 });
+  label.textContent = truncate(n.title, 22);
+  g.appendChild(label);
+  if (n.status) {
+    const s = el("text", { class: "status", x: -NODE_W / 2 + 14, y: NODE_H / 2 - 7 });
+    s.textContent = n.status;
+    g.appendChild(s);
+  }
+  g.addEventListener("click", (e) => { e.stopPropagation(); onNodeClick(n); });
+  viewport.appendChild(g);
+  // collapse / expand toggle
+  if (opts.toggle) {
+    const t = el("g", { class: "toggle", transform: `translate(0,${NODE_H / 2 + 12})` });
+    t.appendChild(el("circle", { r: 10 }));
+    const sign = el("text", {});
+    sign.textContent = state.collapsed.has(n.id) ? "+" : "−";
+    t.appendChild(sign);
+    t.addEventListener("click", (e) => { e.stopPropagation(); toggleCollapse(n.id); });
+    viewport.appendChild(t);
+  }
+  return { x, y };
+}
+
+function edgePath(a, b, type) {
+  const my = (a.y + b.y) / 2;
+  const d = `M ${a.x} ${a.y + NODE_H / 2} C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y - NODE_H / 2}`;
+  return el("path", { class: "edge" + (type === "icp" ? " icp" : ""), d });
+}
+function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+// ---- overview (strategic) layout -------------------------------------------
+function renderOverview() {
+  clear(viewport);
+  const usedIcps = icps.filter(icp => outcomes.some(o => subtreeIcps(o).includes(icp.id)) || true);
+  const icpX = spread(usedIcps.length, COL_W);
+  const outX = spread(outcomes.length, COL_W * 1.15);
+  const icpY = 0, outY = ROW_H * 1.4;
+  const pos = new Map();
+  usedIcps.forEach((icp, i) => pos.set(icp.id, { x: icpX[i], y: icpY }));
+  outcomes.forEach((o, i) => pos.set(o.id, { x: outX[i], y: outY }));
+
+  // edges: outcome serves icp (aggregated over its subtree)
+  outcomes.forEach(o => {
+    if (state.hiddenKinds.has("outcome")) return;
+    subtreeIcps(o).forEach(icpId => {
+      if (!pos.has(icpId) || state.hiddenKinds.has("icp")) return;
+      viewport.appendChild(edgePath(pos.get(o.id), pos.get(icpId), "icp"));
+    });
+  });
+  if (usedIcps.length) addBandLabel("ideal customer profiles", icpX, icpY);
+  addBandLabel("outcomes", outX, outY);
+  usedIcps.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
+  outcomes.forEach(o => drawNode(o, pos.get(o.id).x, pos.get(o.id).y));
+  fit();
+}
+
+function addBandLabel(text, xs, y) {
+  if (!xs.length) return;
+  const t = el("text", { class: "band-label", x: Math.min(...xs) - NODE_W / 2, y: y - NODE_H / 2 - 14 });
+  t.textContent = text;
+  viewport.appendChild(t);
+}
+function spread(count, gap) {
+  const xs = [];
+  const start = -((count - 1) * gap) / 2;
+  for (let i = 0; i < count; i++) xs.push(start + i * gap);
+  return xs;
+}
+
+// ---- focus (tactical) layout: one outcome subtree --------------------------
+function renderFocus(outcomeId) {
+  clear(viewport);
+  const root = byId.get(outcomeId);
+  let cursor = 0;
+  const pos = new Map();
+  (function layout(n, depth) {
+    const kids = state.collapsed.has(n.id) ? [] : childrenOf.get(n.id).filter(c => !state.hiddenKinds.has(c.kind));
+    const y = depth * ROW_H;
+    if (kids.length === 0) {
+      pos.set(n.id, { x: cursor * COL_W, y });
+      cursor++;
+    } else {
+      kids.forEach(c => layout(c, depth + 1));
+      const xs = kids.map(c => pos.get(c.id).x);
+      pos.set(n.id, { x: (Math.min(...xs) + Math.max(...xs)) / 2, y });
+    }
+  })(root, 1);
+
+  // pinned ICPs this subtree serves, sitting above the outcome
+  const served = subtreeIcps(root).map(id => byId.get(id)).filter(Boolean);
+  const icpXs = spread(served.length, COL_W);
+  const rootX = pos.get(root.id).x;
+  served.forEach((icp, i) => pos.set(icp.id, { x: rootX + icpXs[i], y: -ROW_H * 0.55 }));
+
+  // structural edges
+  (function edges(n) {
+    if (state.collapsed.has(n.id)) return;
+    childrenOf.get(n.id).filter(c => !state.hiddenKinds.has(c.kind)).forEach(c => {
+      viewport.appendChild(edgePath(pos.get(n.id), pos.get(c.id), "structural"));
+      edges(c);
+    });
+  })(root);
+  // icp reference edges to the specific referrers
+  if (!state.hiddenKinds.has("icp")) {
+    served.forEach(icp => {
+      referrersOf(root, icp.id).forEach(ref => {
+        if (pos.has(ref.id)) viewport.appendChild(edgePath(pos.get(icp.id), pos.get(ref.id), "icp"));
+      });
+    });
+  }
+  served.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
+  (function nodes(n) {
+    const p = pos.get(n.id);
+    const kids = childrenOf.get(n.id).filter(c => !state.hiddenKinds.has(c.kind));
+    drawNode(n, p.x, p.y, { toggle: kids.length > 0 });
+    if (!state.collapsed.has(n.id)) kids.forEach(nodes);
+  })(root);
+  fit();
+}
+
+// ---- interaction ------------------------------------------------------------
+function onNodeClick(n) {
+  state.selected = n.id;
+  showDetail(n);
+  if (n.kind === "outcome" && state.mode === "overview") enterFocus(n.id);
+  else render();
+}
+function enterFocus(outcomeId) { state.mode = "focus"; state.focus = outcomeId; state.collapsed.clear(); render(); }
+function goOverview() { state.mode = "overview"; state.focus = null; state.selected = null; render(); clearDetail(); }
+function toggleCollapse(id) { state.collapsed.has(id) ? state.collapsed.delete(id) : state.collapsed.add(id); render(); }
+
+function render() {
+  if (state.mode === "focus" && state.focus) renderFocus(state.focus);
+  else renderOverview();
+  renderCrumbs();
+  renderLegend();
+  document.getElementById("btn-overview").disabled = state.mode === "overview";
+}
+function renderCrumbs() {
+  const c = document.getElementById("crumbs");
+  clearHtml(c);
+  if (state.mode === "overview") { c.textContent = "· overview"; return; }
+  const o = byId.get(state.focus);
+  const link = document.createElement("a");
+  link.textContent = "overview";
+  link.onclick = goOverview;
+  c.appendChild(document.createTextNode("· "));
+  c.appendChild(link);
+  c.appendChild(document.createTextNode(" / " + (o ? o.title : state.focus)));
+}
+function renderLegend() {
+  const present = new Set(GRAPH.nodes.map(n => n.kind));
+  const wrap = document.getElementById("legend");
+  clearHtml(wrap);
+  KINDS.filter(k => present.has(k)).forEach(k => {
+    const item = document.createElement("div");
+    item.className = "item" + (state.hiddenKinds.has(k) ? " off" : "");
+    const sw = document.createElement("span");
+    sw.className = "swatch"; sw.style.background = KIND_COLOR[k];
+    const lab = document.createElement("span"); lab.textContent = k;
+    item.appendChild(sw); item.appendChild(lab);
+    item.onclick = () => { state.hiddenKinds.has(k) ? state.hiddenKinds.delete(k) : state.hiddenKinds.add(k); render(); };
+    wrap.appendChild(item);
+  });
+}
+
+// ---- detail panel -----------------------------------------------------------
+function clearHtml(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+function clearDetail() {
+  const d = document.getElementById("detail");
+  d.className = "empty"; d.textContent = "Select a node to see its content.";
+}
+function showDoc(title, body) {
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const h = document.createElement("h1"); h.textContent = title; d.appendChild(h);
+  const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(body);
+  d.appendChild(md);
+}
+function showDetail(n) {
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const pill = document.createElement("span");
+  pill.className = "pill"; pill.style.color = KIND_COLOR[n.kind]; pill.style.borderColor = KIND_COLOR[n.kind];
+  pill.textContent = n.kind; d.appendChild(pill);
+  if (n.status) { const s = document.createElement("span"); s.className = "pill"; s.textContent = n.status; d.appendChild(s); }
+  const h = document.createElement("h1"); h.textContent = n.title; d.appendChild(h);
+  const id = document.createElement("div"); id.className = "id"; id.textContent = n.id; d.appendChild(id);
+
+  const served = n.kind === "icp" ? (n.servedBy || []) : (n.icps || []);
+  if (served.length) {
+    const wrap = document.createElement("div"); wrap.className = "served";
+    const lbl = document.createElement("div"); lbl.style.color = "var(--muted)"; lbl.style.fontSize = "12px";
+    lbl.textContent = n.kind === "icp" ? "Serves" : "ICPs served";
+    wrap.appendChild(lbl);
+    served.forEach(rid => {
+      const chip = document.createElement("span"); chip.className = "chip";
+      const target = byId.get(rid); chip.textContent = target ? target.title : rid;
+      chip.onclick = () => { const t = byId.get(rid); if (t) onNodeClick(t); };
+      wrap.appendChild(chip);
+    });
+    d.appendChild(wrap);
+  }
+  const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(stripFrontHeading(n.body));
+  d.appendChild(md);
+}
+// drop the leading "# Title" and the fenced yaml block from the node body
+function stripFrontHeading(body) {
+  return body.replace(/^#\s+.*\n/, "").replace(/```yaml[\s\S]*?```/, "").trim();
+}
+
+// minimal, safe markdown -> html (escapes first, then formats a known subset)
+function renderMarkdown(src) {
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const lines = src.split("\n");
+  let html = "", inUl = false, inCode = false, code = "";
+  const closeUl = () => { if (inUl) { html += "</ul>"; inUl = false; } };
+  for (const raw of lines) {
+    const line = raw;
+    if (line.trim().startsWith("```")) {
+      if (inCode) { html += "<pre><code>" + esc(code) + "</code></pre>"; code = ""; inCode = false; }
+      else { closeUl(); inCode = true; }
+      continue;
+    }
+    if (inCode) { code += line + "\n"; continue; }
+    if (/^###\s+/.test(line)) { closeUl(); html += "<h3>" + inline(esc(line.replace(/^###\s+/, ""))) + "</h3>"; continue; }
+    if (/^##\s+/.test(line)) { closeUl(); html += "<h2>" + inline(esc(line.replace(/^##\s+/, ""))) + "</h2>"; continue; }
+    if (/^#\s+/.test(line)) { closeUl(); html += "<h3>" + inline(esc(line.replace(/^#\s+/, ""))) + "</h3>"; continue; }
+    if (/^\s*[-*]\s+/.test(line)) { if (!inUl) { html += "<ul>"; inUl = true; } html += "<li>" + inline(esc(line.replace(/^\s*[-*]\s+/, ""))) + "</li>"; continue; }
+    if (line.trim() === "") { closeUl(); continue; }
+    closeUl(); html += "<p>" + inline(esc(line)) + "</p>";
+  }
+  if (inCode) html += "<pre><code>" + esc(code) + "</code></pre>";
+  closeUl();
+  return html;
+}
+function inline(s) {
+  return s.replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+// ---- pan / zoom -------------------------------------------------------------
+function applyView() { viewport.setAttribute("transform", `translate(${state.view.x},${state.view.y}) scale(${state.view.k})`); }
+function fit() {
+  const bb = viewport.getBBox();
+  if (!bb.width || !bb.height) { state.view = { x: 0, y: 0, k: 1 }; applyView(); return; }
+  const rect = svg.getBoundingClientRect();
+  const pad = 60;
+  const k = Math.min((rect.width - pad) / bb.width, (rect.height - pad) / bb.height, 1.3);
+  state.view.k = k;
+  state.view.x = rect.width / 2 - (bb.x + bb.width / 2) * k;
+  state.view.y = rect.height / 2 - (bb.y + bb.height / 2) * k;
+  applyView();
+}
+svg.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const rect = svg.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const factor = Math.exp(-e.deltaY * 0.0012);
+  const nk = Math.min(Math.max(state.view.k * factor, 0.15), 3);
+  const r = nk / state.view.k;
+  state.view.x = mx - (mx - state.view.x) * r;
+  state.view.y = my - (my - state.view.y) * r;
+  state.view.k = nk;
+  applyView();
+}, { passive: false });
+let dragging = false, last = null;
+svg.addEventListener("mousedown", (e) => { dragging = true; last = { x: e.clientX, y: e.clientY }; svg.classList.add("panning"); });
+window.addEventListener("mousemove", (e) => {
+  if (!dragging) return;
+  state.view.x += e.clientX - last.x; state.view.y += e.clientY - last.y;
+  last = { x: e.clientX, y: e.clientY }; applyView();
+});
+window.addEventListener("mouseup", () => { dragging = false; svg.classList.remove("panning"); });
+svg.addEventListener("click", () => { state.selected = null; render(); });
+
+// ---- buttons ----------------------------------------------------------------
+document.getElementById("btn-overview").onclick = goOverview;
+document.getElementById("btn-fit").onclick = fit;
+document.getElementById("btn-vision").onclick = () => { state.selected = null; render(); showDoc("Vision", stripFrontHeading(GRAPH.vision || "_No vision recorded._")); };
+document.getElementById("btn-strategy").onclick = () => { state.selected = null; render(); showDoc("Strategy", stripFrontHeading(GRAPH.strategy || "_No strategy recorded._")); };
+window.addEventListener("resize", () => applyView());
+
+render();
+</script>
+</body>
+</html>

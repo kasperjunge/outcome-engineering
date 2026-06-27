@@ -22,6 +22,7 @@ from outcome_engineering.skill_installer import (
     install_skill,
     install_skills_for_agent,
 )
+from outcome_engineering.viz import build_graph_payload, render_html
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
 
@@ -81,6 +82,32 @@ def tree_command(
     top_level = [node for node in discover_nodes(root) if node.parent is None and node.kind not in {"vision", "strategy"}]
     for index, node in enumerate(top_level):
         print_node(node, prefix="", is_last=index == len(top_level) - 1)
+
+
+@app.command("viz")
+def viz_command(
+    path: Path = typer.Argument(Path("product"), help="Product graph root to visualize."),
+    output: Path = typer.Option(
+        Path("product-graph.html"),
+        "--output",
+        "-o",
+        help="HTML file to write. Use '-' to print to stdout.",
+    ),
+) -> None:
+    """Generate a single self-contained HTML view of the product graph."""
+    issues = validate_graph(path)
+    if issues:
+        typer.echo(f"Invalid product graph: {path}")
+        for issue in issues:
+            typer.echo(f"- {issue.path}: {issue.message}")
+        raise typer.Exit(code=1)
+
+    html = render_html(build_graph_payload(path))
+    if str(output) == "-":
+        typer.echo(html)
+        return
+    output.write_text(html, encoding="utf-8")
+    typer.echo(f"Wrote {output}")
 
 
 @app.command("create-example")

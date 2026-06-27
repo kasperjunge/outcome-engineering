@@ -15,6 +15,7 @@ from outcome_engineering.graph import (
     supporting_files,
     validate,
 )
+from outcome_engineering.viz import build_graph_payload, render_html
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
     SKILL_NAMES,
@@ -288,3 +289,40 @@ def test_install_project_skills_targets_playwright_style_dirs(tmp_path: Path) ->
 def test_parse_skills_option() -> None:
     assert parse_skills_option(["--skills"]) == "claude"
     assert parse_skills_option(["--skills=agents"]) == "agents"
+
+
+def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    payload = build_graph_payload(root)
+
+    ids = {node["id"] for node in payload["nodes"]}
+    assert "outcome.delegation-confidence" in ids
+    assert "icp.solo-knowledge-worker" in ids
+    # vision/strategy are prose context, not nodes
+    assert all(node["kind"] != "vision" and node["kind"] != "strategy" for node in payload["nodes"])
+    assert payload["vision"] and payload["strategy"]
+
+    structural = {(e["source"], e["target"]) for e in payload["edges"] if e["type"] == "structural"}
+    icp_edges = {(e["source"], e["target"]) for e in payload["edges"] if e["type"] == "icp"}
+    assert ("outcome.delegation-confidence", "opportunity.users-do-not-know-what-to-delegate") in structural
+    assert ("outcome.delegation-confidence", "icp.solo-knowledge-worker") in icp_edges
+
+    icp_node = next(node for node in payload["nodes"] if node["id"] == "icp.solo-knowledge-worker")
+    assert icp_node["servedBy"] == ["outcome.delegation-confidence"]
+
+
+def test_render_html_is_self_contained(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    html = render_html(build_graph_payload(root))
+
+    assert "__GRAPH_DATA__" not in html
+    assert "__GRAPH_TITLE__" not in html
+    assert "Delegation Confidence" in html
+    # no external dependencies: nothing fetched over the network
+    assert "http://" not in html.replace("http://www.w3.org/2000/svg", "")
+    assert "https://" not in html
+    assert "src=" not in html
