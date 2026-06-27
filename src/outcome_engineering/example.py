@@ -15,6 +15,7 @@ class ExampleNode:
     body: str
     children: dict[str, list["ExampleNode"]] = field(default_factory=dict)
     files: dict[str, str] = field(default_factory=dict)
+    icps: list[str] = field(default_factory=list)
 
     @property
     def marker_file(self) -> str:
@@ -27,12 +28,15 @@ def write_file(path: Path, content: str) -> None:
 
 
 def render_node(node: ExampleNode) -> str:
+    icp_block = ""
+    if node.icps:
+        icp_block = "icps:\n" + "".join(f"  - {ref}\n" for ref in node.icps)
     return f"""# {node.title}
 
 ```yaml
 type: {node.kind}
 id: {node.kind}.{node.slug}
-status: example
+{icp_block}status: example
 ```
 
 {node.body}
@@ -56,6 +60,7 @@ def example_graph() -> ExampleNode:
         slug="delegation-confidence",
         kind="outcome",
         title="Delegation Confidence",
+        icps=["icp.solo-knowledge-worker"],
         body="""Knowledge workers trust delegated agent work enough to use it for real recurring tasks.
 
 ## Measures
@@ -195,6 +200,32 @@ Test: not yet designed. Identify whether early-access organizations name an owne
     )
 
 
+def example_icps() -> list[ExampleNode]:
+    return [
+        ExampleNode(
+            slug="solo-knowledge-worker",
+            kind="icp",
+            title="Solo Knowledge Worker",
+            body="""## Who They Are
+
+An independent operator or small-team lead who already works alongside AI agents and owns their own recurring workflows end to end.
+
+## Jobs / Pains
+
+- Wants to offload recurring, well-understood work without becoming a prompt engineer.
+- Distrusts agent output they cannot quickly review.
+
+## Why They Choose Us
+
+- We help them turn messy real work into agent-usable instructions and keep the result reviewable.
+
+## Where They Are Not A Fit
+
+- Large orgs that need central governance and audited tool access before any delegation happens.""",
+        ),
+    ]
+
+
 def create_example(root: Path, force: bool) -> None:
     if root.exists():
         if not force:
@@ -215,4 +246,6 @@ Enable knowledge workers to securely and effectively delegate work to AI agents.
 Focus on recurring knowledge work where better task framing and safer tool access can make delegation feel trustworthy.
 """,
     )
+    for icp in example_icps():
+        write_node(root / "icps", icp)
     write_node(root / "outcomes", example_graph())

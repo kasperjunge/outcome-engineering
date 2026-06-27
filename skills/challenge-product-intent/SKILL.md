@@ -19,15 +19,15 @@ Help the user determine whether work is the right work.
    ```sh
    uv run oe context <node-id-or-slug> --root product
    ```
-4. Trace upward from the artifact to opportunity, outcome, strategy, and vision.
-5. Challenge gaps: unclear opportunity, output mistaken for outcome, weak evidence, risky assumptions, or low leverage.
+4. Trace upward from the artifact to opportunity, outcome, strategy, and vision, and check which ICP it serves (`oe context` surfaces the ICPs a node inherits).
+5. Challenge gaps: unclear opportunity, no named ICP, output mistaken for outcome, weak evidence, risky assumptions, or low leverage.
 6. Propose graph changes, but do not silently mutate product truth. Humans approve.
 
 ## Output
 
 Keep the response concise:
 
-- What outcome the work appears to serve.
+- What outcome and ICP the work appears to serve.
 - Whether the trace to vision is clear, weak, or missing.
 - The main assumptions or evidence gaps.
 - Whether this looks like the highest-leverage next work.

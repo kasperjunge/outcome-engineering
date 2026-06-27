@@ -7,6 +7,7 @@ from pathlib import Path
 MARKER_FILES = {
     "VISION.md": "vision",
     "STRATEGY.md": "strategy",
+    "ICP.md": "icp",
     "OUTCOME.md": "outcome",
     "OPPORTUNITY.md": "opportunity",
     "SOLUTION.md": "solution",
@@ -24,9 +25,24 @@ RELATIONSHIP_TO_CHILD_KIND = {
 
 RELATIONSHIP_ORDER = ("outcomes", "opportunities", "solutions", "assumption-tests", "prds")
 
+# An ICP (Ideal Customer Profile) is the "who" the graph serves. It is not a step
+# in the outcome -> opportunity -> solution trace chain, so it does not nest under
+# another node. Instead ICPs live in a top-level collection and outcomes and
+# opportunities point at them by id through the ICP_REFERENCE_FIELD. This keeps the
+# many-to-many reality (one ICP serves many outcomes, one outcome serves many ICPs)
+# without breaking the strict tree the trace chain relies on.
+ICP_COLLECTION = "icps"
+ICP_KIND = "icp"
+ICP_REFERENCE_FIELD = "icps"
+ICP_REFERRING_KINDS = {"outcome", "opportunity"}
+
+# Node kinds that live directly under the graph root rather than under a parent node.
+ROOT_KINDS = {"outcome", "icp"}
+
 KIND_TO_MARKER_FILE = {kind: marker for marker, kind in MARKER_FILES.items()}
 
 KIND_TO_RELATIONSHIP = {
+    "icp": "icps",
     "outcome": "outcomes",
     "opportunity": "opportunities",
     "solution": "solutions",
@@ -35,7 +51,7 @@ KIND_TO_RELATIONSHIP = {
 }
 
 PARENT_KIND_TO_CHILD_KIND = {
-    "root": {"outcome"},
+    "root": {"outcome", "icp"},
     "outcome": {"opportunity"},
     "opportunity": {"opportunity", "solution"},
     "solution": {"assumption-test", "prd"},
@@ -45,6 +61,7 @@ ALLOWED_CHILD_RELATIONSHIPS = {
     "root": {"outcomes"},
     "vision": set(),
     "strategy": set(),
+    "icp": set(),
     "outcome": {"opportunities"},
     "opportunity": {"opportunities", "solutions"},
     "solution": {"assumption-tests", "prds"},

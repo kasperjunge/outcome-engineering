@@ -3,7 +3,18 @@ from __future__ import annotations
 from pathlib import Path
 
 from outcome_engineering.example import create_example
-from outcome_engineering.graph import create_node, find_node, find_nodes_by_kind, marker_content, node_ancestors, supporting_files, validate
+from outcome_engineering.graph import (
+    create_node,
+    find_node,
+    find_nodes_by_kind,
+    marker_content,
+    node_ancestors,
+    node_icp_references,
+    parse_icp_references,
+    related_icps,
+    supporting_files,
+    validate,
+)
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
     SKILL_NAMES,
@@ -114,6 +125,104 @@ def test_marker_content_and_supporting_files(tmp_path: Path) -> None:
     assert node is not None
     assert "# Users Do Not Know What To Delegate" in marker_content(node)
     assert [path.name for path in supporting_files(node)] == ["interview-patterns.md"]
+
+
+def test_parse_icp_references_block_and_inline() -> None:
+    block = """# Outcome
+
+```yaml
+type: outcome
+id: outcome.x
+icps:
+  - icp.a
+  - icp.b
+status: draft
+```
+"""
+    inline = """# Outcome
+
+```yaml
+type: outcome
+id: outcome.x
+icps: [icp.a, "icp.b"]
+status: draft
+```
+"""
+    assert parse_icp_references(block) == ["icp.a", "icp.b"]
+    assert parse_icp_references(inline) == ["icp.a", "icp.b"]
+
+
+def test_create_icp_lives_under_root_collection(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+
+    icp = create_node(root, kind="icp", slug="smb-ops-lead", title=None, under=None)
+
+    assert icp.marker_file == root / "icps" / "smb-ops-lead" / "ICP.md"
+    assert validate(root) == []
+
+
+def test_create_icp_rejects_under(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+
+    try:
+        create_node(root, kind="icp", slug="smb-ops-lead", title=None, under="outcome.x")
+    except ValueError as error:
+        assert "cannot use --under" in str(error)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_example_graph_resolves_icp_inherited_through_ancestors(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    outcome = find_node(root, "outcome.delegation-confidence")
+    solution = find_node(root, "solution.delegation-interview")
+
+    assert outcome is not None and solution is not None
+    assert node_icp_references(outcome) == ["icp.solo-knowledge-worker"]
+    inherited = related_icps(root, solution, node_ancestors(solution))
+    assert [icp.id for icp in inherited] == ["icp.solo-knowledge-worker"]
+
+
+def test_unknown_icp_reference_is_invalid(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    outcome_marker = root / "outcomes" / "delegation-confidence" / "OUTCOME.md"
+    outcome_marker.write_text(
+        outcome_marker.read_text(encoding="utf-8").replace("icp.solo-knowledge-worker", "icp.does-not-exist"),
+        encoding="utf-8",
+    )
+
+    issues = validate(root)
+
+    assert any("does not resolve to a known ICP" in issue.message for issue in issues)
+
+
+def test_icp_reference_only_allowed_on_outcome_and_opportunity(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    solution_marker = root / "outcomes" / "delegation-confidence" / "opportunities" / "agents-lack-safe-access-to-tools" / "solutions" / "agent-central" / "SOLUTION.md"
+    text = solution_marker.read_text(encoding="utf-8")
+    solution_marker.write_text(text.replace("id: solution.agent-central\n", "id: solution.agent-central\nicps: [icp.solo-knowledge-worker]\n"), encoding="utf-8")
+
+    issues = validate(root)
+
+    assert any("solution cannot reference ICPs" in issue.message for issue in issues)
+
+
+def test_misplaced_icp_marker_is_invalid(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    stray = root / "outcomes" / "delegation-confidence" / "icps" / "stray"
+    stray.mkdir(parents=True)
+    (stray / "ICP.md").write_text("# Stray\n", encoding="utf-8")
+
+    issues = validate(root)
+
+    assert any("only valid directly under icps/" in issue.message for issue in issues)
 
 
 def test_install_skill(tmp_path: Path) -> None:
