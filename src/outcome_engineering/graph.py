@@ -4,12 +4,17 @@ from pathlib import Path
 
 from outcome_engineering.model import (
     ALLOWED_CHILD_RELATIONSHIPS,
+    ICP_COLLECTION,
+    ICP_KIND,
+    ICP_REFERENCE_FIELD,
+    ICP_REFERRING_KINDS,
     KIND_TO_MARKER_FILE,
     KIND_TO_RELATIONSHIP,
     MARKER_FILES,
     PARENT_KIND_TO_CHILD_KIND,
     RELATIONSHIP_ORDER,
     RELATIONSHIP_TO_CHILD_KIND,
+    ROOT_KINDS,
     ProductNode,
     ValidationIssue,
 )
@@ -51,7 +56,9 @@ def discover_nodes(root: Path) -> list[ProductNode]:
         return node
 
     for child in sorted(root.iterdir()):
-        if child.is_dir() and child.name in RELATIONSHIP_TO_CHILD_KIND:
+        if not child.is_dir():
+            continue
+        if child.name == ICP_COLLECTION or child.name in RELATIONSHIP_TO_CHILD_KIND:
             for node_dir in sorted(grandchild for grandchild in child.iterdir() if grandchild.is_dir()):
                 visit_node_dir(node_dir, None, child.name)
 
@@ -112,7 +119,8 @@ def create_node(root: Path, kind: str, slug: str, title: str | None, under: str 
     parent: ProductNode | None = None
     parent_kind = "root"
     parent_path = root
-    if kind != "outcome":
+    relationship = KIND_TO_RELATIONSHIP[kind]
+    if kind not in ROOT_KINDS:
         if under is None:
             raise ValueError(f"{kind} requires --under")
         parent = find_node(root, under)
@@ -121,14 +129,13 @@ def create_node(root: Path, kind: str, slug: str, title: str | None, under: str 
         parent_kind = parent.kind
         parent_path = parent.path
     elif under is not None:
-        raise ValueError("outcome cannot use --under; outcomes live under the product graph root")
+        raise ValueError(f"{kind} cannot use --under; {relationship} live under the product graph root")
 
     allowed_child_kinds = PARENT_KIND_TO_CHILD_KIND.get(parent_kind, set())
     if kind not in allowed_child_kinds:
         allowed = ", ".join(sorted(allowed_child_kinds)) or "none"
         raise ValueError(f"cannot create {kind} under {parent_kind}; allowed child kinds: {allowed}")
 
-    relationship = KIND_TO_RELATIONSHIP[kind]
     node_path = parent_path / relationship / slug
     if node_path.exists():
         raise FileExistsError(f"{node_path} already exists")
@@ -151,6 +158,7 @@ def create_node(root: Path, kind: str, slug: str, title: str | None, under: str 
 
 def render_template(kind: str, slug: str, title: str) -> str:
     sections = {
+        "icp": "## Who They Are\n\nTODO\n\n## Jobs / Pains\n\n- TODO\n\n## Why They Choose Us\n\n- TODO\n\n## Where They Are Not A Fit\n\n- TODO\n",
         "outcome": "## Measures\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
         "opportunity": "## Evidence\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
         "solution": "## Product Risks\n\n- Value: TODO\n- Usability: TODO\n- Feasibility: TODO\n- Viability: TODO\n\n## Assumptions\n\n- TODO\n",
@@ -176,6 +184,86 @@ def title_from_slug(slug: str) -> str:
 
 def marker_content(node: ProductNode) -> str:
     return node.marker_file.read_text(encoding="utf-8")
+
+
+def parse_icp_references(text: str) -> list[str]:
+    """Extract the icp ids a node declares it serves, from its fenced yaml block.
+
+    Supports both inline (``icps: [icp.a, icp.b]``) and block list form::
+
+        icps:
+          - icp.a
+          - icp.b
+    """
+    lines = _yaml_block_lines(text)
+    references: list[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        if stripped == f"{ICP_REFERENCE_FIELD}:" or stripped.startswith(f"{ICP_REFERENCE_FIELD}:"):
+            inline = stripped[len(ICP_REFERENCE_FIELD) + 1 :].strip()
+            if inline:
+                references.extend(_parse_inline_list(inline))
+            else:
+                index += 1
+                while index < len(lines) and lines[index].strip().startswith("- "):
+                    references.append(lines[index].strip()[2:].strip())
+                    index += 1
+                continue
+        index += 1
+    return [ref for ref in (_strip_quotes(ref) for ref in references) if ref]
+
+
+def node_icp_references(node: ProductNode) -> list[str]:
+    return parse_icp_references(marker_content(node))
+
+
+def resolve_icp_references(root: Path, node: ProductNode) -> list[ProductNode]:
+    resolved: list[ProductNode] = []
+    for ref in node_icp_references(node):
+        match = find_node(root, ref)
+        if match is not None and match.kind == ICP_KIND:
+            resolved.append(match)
+    return resolved
+
+
+def related_icps(root: Path, node: ProductNode, ancestors: list[ProductNode]) -> list[ProductNode]:
+    """ICPs a node serves, inherited from itself and its outcome/opportunity ancestors."""
+    seen: dict[str, ProductNode] = {}
+    for candidate in [*ancestors, node]:
+        for icp in resolve_icp_references(root, candidate):
+            seen.setdefault(icp.id, icp)
+    return list(seen.values())
+
+
+def _yaml_block_lines(text: str) -> list[str]:
+    lines = text.splitlines()
+    inside = False
+    block: list[str] = []
+    for line in lines:
+        if line.strip().startswith("```"):
+            if inside:
+                break
+            inside = line.strip().startswith("```yaml")
+            continue
+        if inside:
+            block.append(line)
+    return block
+
+
+def _parse_inline_list(value: str) -> list[str]:
+    value = value.strip()
+    if value.startswith("[") and value.endswith("]"):
+        value = value[1:-1]
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _strip_quotes(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
 
 
 def supporting_files(node: ProductNode) -> list[Path]:
@@ -228,6 +316,16 @@ def validate(root: Path) -> list[ValidationIssue]:
             else:
                 seen_ids[node_id] = path
 
+            if kind == ICP_KIND:
+                if path.parent.name != ICP_COLLECTION or path.parent.parent != root:
+                    issues.append(
+                        ValidationIssue(
+                            path,
+                            f"{marker.name} is only valid directly under {ICP_COLLECTION}/ at the graph root",
+                        )
+                    )
+                continue
+
             parent_info = parent_node_and_relationship(root, path)
             if path == root:
                 continue
@@ -257,6 +355,29 @@ def validate(root: Path) -> list[ValidationIssue]:
                 child_markers = marker_files_in(child_dir)
                 if len(child_markers) == 0:
                     issues.append(ValidationIssue(child_dir, f"missing marker file for child under {rel_dir.name}/"))
+
+    icps_dir = root / ICP_COLLECTION
+    if icps_dir.is_dir():
+        for child_dir in sorted(child for child in icps_dir.iterdir() if child.is_dir()):
+            if len(marker_files_in(child_dir)) == 0:
+                issues.append(ValidationIssue(child_dir, f"missing marker file for node under {ICP_COLLECTION}/"))
+
+    icp_ids = {node_id for node_id in seen_ids if node_id.startswith(f"{ICP_KIND}.")}
+    for path in sorted([root, *[p for p in root.rglob("*") if p.is_dir()]]):
+        markers = marker_files_in(path)
+        if path == root or len(markers) != 1:
+            continue
+        kind = MARKER_FILES[markers[0].name]
+        references = parse_icp_references(markers[0].read_text(encoding="utf-8"))
+        if references and kind not in ICP_REFERRING_KINDS:
+            allowed = ", ".join(sorted(ICP_REFERRING_KINDS))
+            issues.append(ValidationIssue(markers[0], f"{kind} cannot reference ICPs; only {allowed} may"))
+            continue
+        for reference in references:
+            if not reference.startswith(f"{ICP_KIND}."):
+                issues.append(ValidationIssue(markers[0], f"icp reference {reference!r} must be an icp id"))
+            elif reference not in icp_ids:
+                issues.append(ValidationIssue(markers[0], f"icp reference {reference!r} does not resolve to a known ICP"))
 
     return issues
 

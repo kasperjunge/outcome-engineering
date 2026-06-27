@@ -1,6 +1,6 @@
 ---
 name: oe-cli
-description: Use this skill whenever a repository has an Outcome Engineering product graph, the `oe` CLI, the `outcome-engineering` Python package, or the user asks about product vision, outcomes, opportunities, solutions, assumption tests, PRDs, product discovery, or implementing work that should trace to product intent. This skill tells agents how to use `oe` to inspect, create, validate, and contextualize product graph structure before doing product or delivery work.
+description: Use this skill whenever a repository has an Outcome Engineering product graph, the `oe` CLI, the `outcome-engineering` Python package, or the user asks about product vision, strategy, ICPs (ideal customer profiles), outcomes, opportunities, solutions, assumption tests, PRDs, product discovery, or implementing work that should trace to product intent. This skill tells agents how to use `oe` to inspect, create, validate, and contextualize product graph structure before doing product or delivery work.
 ---
 
 # Outcome Engineering
@@ -28,6 +28,9 @@ The graph convention is:
 product/
   VISION.md
   STRATEGY.md
+  icps/
+    <icp>/
+      ICP.md
   outcomes/
     <outcome>/
       OUTCOME.md
@@ -48,6 +51,18 @@ product/
 ```
 
 Assumption tests are the unified concept for the assumptions a solution depends on and the work done to test them (following Continuous Discovery Habits, which does not model experiments separately). They live under solutions. Do not create assumption tests directly under opportunities.
+
+An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more. ICPs are not part of the outcome → opportunity → solution trace chain, so they do not nest under another node; they live in the top-level `icps/` collection. Outcomes and opportunities declare which ICPs they serve by listing icp ids in their yaml block:
+
+```yaml
+type: outcome
+id: outcome.<slug>
+icps:
+  - icp.<slug>
+status: draft
+```
+
+`oe context` resolves these references and surfaces the ICPs a node serves, including ones inherited from outcome or opportunity ancestors.
 
 ## When To Use
 
@@ -97,6 +112,7 @@ uv run oe validate product
 Create graph nodes through `oe new` instead of hand-rolling directories.
 
 ```sh
+uv run oe new icp <slug> --root product
 uv run oe new outcome <slug> --root product
 uv run oe new opportunity <slug> --root product --under outcome.<slug>
 uv run oe new solution <slug> --root product --under opportunity.<slug>

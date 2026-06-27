@@ -12,6 +12,7 @@ from outcome_engineering.graph import (
     find_nodes_by_kind,
     marker_content,
     node_ancestors,
+    related_icps,
     supporting_files,
     validate as validate_graph,
 )
@@ -203,6 +204,7 @@ def context(
     """Print deterministic context around a node for an agent."""
     node = load_valid_node(root, selector)
     ancestors = node_ancestors(node)
+    icps = related_icps(root.resolve(), node, ancestors)
 
     typer.echo(f"# Context: {node.id}")
     typer.echo("")
@@ -210,6 +212,12 @@ def context(
     for ancestor in ancestors:
         typer.echo(f"- {ancestor.id} ({ancestor.marker_file})")
     typer.echo(f"- {node.id} ({node.marker_file})")
+
+    if icps:
+        typer.echo("")
+        typer.echo("## ICPs")
+        for icp in icps:
+            typer.echo(f"- {icp.id} ({icp.marker_file})")
 
     if node.children:
         typer.echo("")
@@ -232,6 +240,15 @@ def context(
             typer.echo(f"### {ancestor.id}")
             typer.echo("")
             typer.echo(marker_content(ancestor).rstrip())
+
+    if icps:
+        typer.echo("")
+        typer.echo("## ICP Content")
+        for icp in icps:
+            typer.echo("")
+            typer.echo(f"### {icp.id}")
+            typer.echo("")
+            typer.echo(marker_content(icp).rstrip())
 
     typer.echo("")
     typer.echo("## Node Content")

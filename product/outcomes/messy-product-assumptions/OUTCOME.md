@@ -3,6 +3,8 @@
 ```yaml
 type: outcome
 id: outcome.messy-product-assumptions
+icps:
+  - icp.agent-native-builder
 status: draft
 ```
 
