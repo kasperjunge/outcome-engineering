@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>__GRAPH_TITLE__ · product graph</title>
+<title>product graph</title>
 <style>
   :root {
     --bg: #0f1115;
@@ -13,6 +13,8 @@
     --text: #e6e9ef;
     --muted: #97a0b0;
     --accent: #5b8def;
+    --danger: #e5544b;
+    --ok: #3fb37f;
     --icp: #b07cf0;
     --outcome: #4f8cf7;
     --opportunity: #2bb3a3;
@@ -45,6 +47,9 @@
   }
   button.btn:hover { border-color: var(--accent); }
   button.btn:disabled { opacity: .4; cursor: default; }
+  button.btn.primary { border-color: var(--accent); color: #fff; background: #27406e; }
+  button.btn.danger { border-color: var(--danger); color: #f3b4b0; }
+  button.btn.danger:hover { background: #3a2120; }
   #main { flex: 1; display: flex; min-height: 0; }
   #canvas-wrap { position: relative; flex: 1; min-width: 0; }
   svg { width: 100%; height: 100%; display: block; cursor: grab; }
@@ -62,6 +67,15 @@
     font-size: 12px; background: rgba(23,26,33,.85); padding: 5px 9px;
     border: 1px solid var(--line); border-radius: 8px;
   }
+  #toast {
+    position: absolute; left: 50%; top: 12px; transform: translateX(-50%);
+    max-width: 70%; padding: 8px 14px; border-radius: 9px; font-size: 13px;
+    border: 1px solid var(--line); background: var(--panel-2); display: none; z-index: 5;
+    box-shadow: 0 6px 22px rgba(0,0,0,.4);
+  }
+  #toast.show { display: block; }
+  #toast.error { border-color: var(--danger); color: #f3b4b0; }
+  #toast.ok { border-color: var(--ok); color: #b6e8cf; }
   /* graph nodes */
   .node { cursor: pointer; }
   .node rect.box { stroke-width: 2; fill: var(--panel-2); }
@@ -80,7 +94,7 @@
   .band-label { fill: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
   /* detail panel */
   #detail {
-    flex: 0 0 380px; border-left: 1px solid var(--line); background: var(--panel);
+    flex: 0 0 400px; border-left: 1px solid var(--line); background: var(--panel);
     overflow-y: auto; padding: 16px 18px;
   }
   #detail.empty { color: var(--muted); }
@@ -96,6 +110,7 @@
     border-radius: 99px; background: var(--panel-2); border: 1px solid var(--line); cursor: pointer;
   }
   #detail .served .chip:hover { border-color: var(--icp); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   .md { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
   .md h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 16px 0 6px; }
   .md h3 { font-size: 13px; margin: 12px 0 4px; }
@@ -105,14 +120,32 @@
   .md code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
   .md pre { background: var(--panel-2); padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
   .md pre code { background: none; padding: 0; }
+  /* editor + forms */
+  .editor { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .editor label, .form label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 10px 0 4px; }
+  textarea.marker {
+    width: 100%; min-height: 320px; resize: vertical; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px;
+    font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.5;
+  }
+  .form { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .form input, .form select {
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 9px; font-size: 13px;
+  }
+  .form .slug-preview { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; margin-top: 4px; }
+  .issues { margin-top: 12px; border: 1px solid var(--danger); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #f3b4b0; }
+  .issues .head { color: var(--danger); text-transform: uppercase; letter-spacing: .05em; font-size: 10px; margin-bottom: 4px; }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <span class="title">__GRAPH_TITLE__</span>
+    <span class="title" id="root-title">product graph</span>
     <span class="crumbs" id="crumbs"></span>
     <span class="spacer"></span>
+    <button class="btn" id="btn-add-outcome">+ Outcome</button>
+    <button class="btn" id="btn-add-icp">+ ICP</button>
     <button class="btn" id="btn-vision">Vision</button>
     <button class="btn" id="btn-strategy">Strategy</button>
     <button class="btn" id="btn-overview">Overview</button>
@@ -123,13 +156,12 @@
       <svg id="svg"><g id="viewport"></g></svg>
       <div class="legend" id="legend"></div>
       <div class="hint">scroll to zoom · drag to pan · click an outcome to focus</div>
+      <div id="toast"></div>
     </div>
     <div id="detail" class="empty">Select a node to see its content.</div>
   </div>
 </div>
-<script id="graph-data" type="application/json">__GRAPH_DATA__</script>
 <script>
-const GRAPH = JSON.parse(document.getElementById("graph-data").textContent);
 const KINDS = ["icp", "outcome", "opportunity", "solution", "assumption-test", "prd"];
 const KIND_COLOR = {
   "icp": "#b07cf0", "outcome": "#4f8cf7", "opportunity": "#2bb3a3",
@@ -137,19 +169,25 @@ const KIND_COLOR = {
 };
 const NODE_W = 168, NODE_H = 46, ROW_H = 118, COL_W = 196;
 
-const byId = new Map(GRAPH.nodes.map(n => [n.id, n]));
-const childrenOf = new Map();
-GRAPH.nodes.forEach(n => childrenOf.set(n.id, []));
-GRAPH.nodes.forEach(n => { if (n.parent && childrenOf.has(n.parent)) childrenOf.get(n.parent).push(n); });
-const outcomes = GRAPH.nodes.filter(n => n.kind === "outcome");
-const icps = GRAPH.nodes.filter(n => n.kind === "icp");
+let GRAPH = { nodes: [], edges: [], schema: { childKinds: {} } };
+let byId = new Map(), childrenOf = new Map(), outcomes = [], icps = [];
+
+function buildIndexes() {
+  byId = new Map(GRAPH.nodes.map(n => [n.id, n]));
+  childrenOf = new Map();
+  GRAPH.nodes.forEach(n => childrenOf.set(n.id, []));
+  GRAPH.nodes.forEach(n => { if (n.parent && childrenOf.has(n.parent)) childrenOf.get(n.parent).push(n); });
+  outcomes = GRAPH.nodes.filter(n => n.kind === "outcome");
+  icps = GRAPH.nodes.filter(n => n.kind === "icp");
+}
+function childKinds(kind) { return (GRAPH.schema && GRAPH.schema.childKinds && GRAPH.schema.childKinds[kind]) || []; }
 
 // Union of ICP ids referenced anywhere in a node's subtree (incl. itself).
 function subtreeIcps(node) {
   const seen = new Set();
   (function walk(n) {
     (n.icps || []).forEach(i => seen.add(i));
-    childrenOf.get(n.id).forEach(walk);
+    (childrenOf.get(n.id) || []).forEach(walk);
   })(node);
   return [...seen];
 }
@@ -158,7 +196,7 @@ function referrersOf(outcome, icpId) {
   const out = [];
   (function walk(n) {
     if ((n.icps || []).includes(icpId)) out.push(n);
-    childrenOf.get(n.id).forEach(walk);
+    (childrenOf.get(n.id) || []).forEach(walk);
   })(outcome);
   return out;
 }
@@ -225,7 +263,7 @@ function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
 // ---- overview (strategic) layout -------------------------------------------
 function renderOverview() {
   clear(viewport);
-  const usedIcps = icps.filter(icp => outcomes.some(o => subtreeIcps(o).includes(icp.id)) || true);
+  const usedIcps = icps.slice();
   const icpX = spread(usedIcps.length, COL_W);
   const outX = spread(outcomes.length, COL_W * 1.15);
   const icpY = 0, outY = ROW_H * 1.4;
@@ -242,7 +280,7 @@ function renderOverview() {
     });
   });
   if (usedIcps.length) addBandLabel("ideal customer profiles", icpX, icpY);
-  addBandLabel("outcomes", outX, outY);
+  if (outcomes.length) addBandLabel("outcomes", outX, outY);
   usedIcps.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
   outcomes.forEach(o => drawNode(o, pos.get(o.id).x, pos.get(o.id).y));
   fit();
@@ -265,10 +303,11 @@ function spread(count, gap) {
 function renderFocus(outcomeId) {
   clear(viewport);
   const root = byId.get(outcomeId);
+  if (!root) { goOverview(); return; }
   let cursor = 0;
   const pos = new Map();
   (function layout(n, depth) {
-    const kids = state.collapsed.has(n.id) ? [] : childrenOf.get(n.id).filter(c => !state.hiddenKinds.has(c.kind));
+    const kids = state.collapsed.has(n.id) ? [] : (childrenOf.get(n.id) || []).filter(c => !state.hiddenKinds.has(c.kind));
     const y = depth * ROW_H;
     if (kids.length === 0) {
       pos.set(n.id, { x: cursor * COL_W, y });
@@ -289,7 +328,7 @@ function renderFocus(outcomeId) {
   // structural edges
   (function edges(n) {
     if (state.collapsed.has(n.id)) return;
-    childrenOf.get(n.id).filter(c => !state.hiddenKinds.has(c.kind)).forEach(c => {
+    (childrenOf.get(n.id) || []).filter(c => !state.hiddenKinds.has(c.kind)).forEach(c => {
       viewport.appendChild(edgePath(pos.get(n.id), pos.get(c.id), "structural"));
       edges(c);
     });
@@ -305,7 +344,7 @@ function renderFocus(outcomeId) {
   served.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
   (function nodes(n) {
     const p = pos.get(n.id);
-    const kids = childrenOf.get(n.id).filter(c => !state.hiddenKinds.has(c.kind));
+    const kids = (childrenOf.get(n.id) || []).filter(c => !state.hiddenKinds.has(c.kind));
     drawNode(n, p.x, p.y, { toggle: kids.length > 0 });
     if (!state.collapsed.has(n.id)) kids.forEach(nodes);
   })(root);
@@ -395,9 +434,154 @@ function showDetail(n) {
     });
     d.appendChild(wrap);
   }
+
+  // action buttons: edit, add child (legal kinds only), delete
+  const actions = document.createElement("div"); actions.className = "actions";
+  const editBtn = document.createElement("button"); editBtn.className = "btn primary"; editBtn.textContent = "Edit";
+  editBtn.onclick = () => showEditor(n);
+  actions.appendChild(editBtn);
+  childKinds(n.kind).forEach(ck => {
+    const b = document.createElement("button"); b.className = "btn"; b.textContent = "+ " + ck;
+    b.onclick = () => showCreateForm(ck, n.id);
+    actions.appendChild(b);
+  });
+  const delBtn = document.createElement("button"); delBtn.className = "btn danger"; delBtn.textContent = "Delete";
+  delBtn.onclick = () => deleteNode(n);
+  actions.appendChild(delBtn);
+  d.appendChild(actions);
+
   const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(stripFrontHeading(n.body));
   d.appendChild(md);
 }
+
+// ---- editing / creating / deleting -----------------------------------------
+function showEditor(n) {
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const h = document.createElement("h1"); h.textContent = "Edit " + n.title; d.appendChild(h);
+  const sub = document.createElement("div"); sub.className = "id"; sub.textContent = n.marker || n.id; d.appendChild(sub);
+
+  const ed = document.createElement("div"); ed.className = "editor";
+  const lbl = document.createElement("label"); lbl.textContent = "Marker file"; ed.appendChild(lbl);
+  const ta = document.createElement("textarea"); ta.className = "marker"; ta.value = n.body + "\n"; ed.appendChild(ta);
+  const actions = document.createElement("div"); actions.className = "actions";
+  const save = document.createElement("button"); save.className = "btn primary"; save.textContent = "Save";
+  save.onclick = async () => {
+    save.disabled = true;
+    const res = await api("PUT", "/api/nodes/" + encodeURIComponent(n.id), { content: ta.value });
+    if (res.ok) { toast("Saved", "ok"); await reload(n.id); reportIssues(res.data.issues); }
+    else { save.disabled = false; toast(res.error || "Save failed", "error"); }
+  };
+  const cancel = document.createElement("button"); cancel.className = "btn"; cancel.textContent = "Cancel";
+  cancel.onclick = () => { const t = byId.get(n.id); if (t) showDetail(t); else clearDetail(); };
+  actions.appendChild(save); actions.appendChild(cancel);
+  ed.appendChild(actions);
+  d.appendChild(ed);
+  ta.focus();
+}
+
+function showCreateForm(kind, under) {
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const h = document.createElement("h1"); h.textContent = "New " + kind; d.appendChild(h);
+  if (under) { const sub = document.createElement("div"); sub.className = "id"; sub.textContent = "under " + under; d.appendChild(sub); }
+
+  const form = document.createElement("div"); form.className = "form";
+  const tlbl = document.createElement("label"); tlbl.textContent = "Title"; form.appendChild(tlbl);
+  const title = document.createElement("input"); title.placeholder = kind + " title"; form.appendChild(title);
+  const slugPreview = document.createElement("div"); slugPreview.className = "slug-preview"; form.appendChild(slugPreview);
+  title.oninput = () => { slugPreview.textContent = title.value ? "slug: " + slugify(title.value) : ""; };
+
+  const actions = document.createElement("div"); actions.className = "actions";
+  const create = document.createElement("button"); create.className = "btn primary"; create.textContent = "Create";
+  create.onclick = async () => {
+    const slug = slugify(title.value);
+    if (!slug) { toast("Enter a title", "error"); return; }
+    create.disabled = true;
+    const res = await api("POST", "/api/nodes", { kind, slug, title: title.value, under: under || null });
+    if (res.ok) {
+      toast("Created " + res.data.id, "ok");
+      const newId = res.data.id;
+      const parent = under ? byId.get(under) : null;
+      await reload(newId);
+      // focus the relevant outcome subtree so the new node is visible
+      const created = byId.get(newId);
+      if (created && created.kind !== "outcome" && created.kind !== "icp") {
+        const oc = outcomeAncestor(created);
+        if (oc) enterFocus(oc.id);
+      }
+      if (created) { state.selected = created.id; showDetail(created); }
+      reportIssues(res.data.issues);
+    } else { create.disabled = false; toast(res.error || "Create failed", "error"); }
+  };
+  const cancel = document.createElement("button"); cancel.className = "btn"; cancel.textContent = "Cancel";
+  cancel.onclick = () => { const t = under ? byId.get(under) : null; if (t) showDetail(t); else clearDetail(); };
+  actions.appendChild(create); actions.appendChild(cancel);
+  form.appendChild(actions);
+  d.appendChild(form);
+  title.focus();
+}
+
+async function deleteNode(n) {
+  const kids = childrenOf.get(n.id) || [];
+  let cascade = false;
+  if (kids.length) {
+    if (!confirm(`${n.title} has ${kids.length} child node(s). Delete it and its entire subtree?`)) return;
+    cascade = true;
+  } else if (!confirm(`Delete ${n.title}?`)) {
+    return;
+  }
+  const path = "/api/nodes/" + encodeURIComponent(n.id) + (cascade ? "?cascade=true" : "");
+  const res = await api("DELETE", path);
+  if (res.ok) {
+    toast("Deleted " + n.id, "ok");
+    if (state.focus === n.id) { state.mode = "overview"; state.focus = null; }
+    state.selected = null;
+    await reload();
+    clearDetail();
+    reportIssues(res.data.issues);
+  } else { toast(res.error || "Delete failed", "error"); }
+}
+
+function outcomeAncestor(node) {
+  let cur = node;
+  while (cur) {
+    if (cur.kind === "outcome") return cur;
+    cur = cur.parent ? byId.get(cur.parent) : null;
+  }
+  return null;
+}
+function slugify(t) { return t.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
+
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: { "Content-Type": "application/json" } };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(path, opts);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: data.error, data };
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+let toastTimer = null;
+function toast(msg, kind) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "show" + (kind ? " " + kind : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ""; }, 3200);
+}
+function reportIssues(issues) {
+  if (!issues || !issues.length) return;
+  const d = document.getElementById("detail");
+  const box = document.createElement("div"); box.className = "issues";
+  const head = document.createElement("div"); head.className = "head"; head.textContent = "Validation issues"; box.appendChild(head);
+  issues.forEach(i => { const p = document.createElement("div"); p.textContent = i.message; box.appendChild(p); });
+  d.appendChild(box);
+}
+
 // drop the leading "# Title" and the fenced yaml block from the node body
 function stripFrontHeading(body) {
   return body.replace(/^#\s+.*\n/, "").replace(/```yaml[\s\S]*?```/, "").trim();
@@ -471,11 +655,28 @@ svg.addEventListener("click", () => { state.selected = null; render(); });
 // ---- buttons ----------------------------------------------------------------
 document.getElementById("btn-overview").onclick = goOverview;
 document.getElementById("btn-fit").onclick = fit;
+document.getElementById("btn-add-outcome").onclick = () => showCreateForm("outcome", null);
+document.getElementById("btn-add-icp").onclick = () => showCreateForm("icp", null);
 document.getElementById("btn-vision").onclick = () => { state.selected = null; render(); showDoc("Vision", stripFrontHeading(GRAPH.vision || "_No vision recorded._")); };
 document.getElementById("btn-strategy").onclick = () => { state.selected = null; render(); showDoc("Strategy", stripFrontHeading(GRAPH.strategy || "_No strategy recorded._")); };
 window.addEventListener("resize", () => applyView());
 
-render();
+// ---- data loading -----------------------------------------------------------
+async function reload(selectId) {
+  const res = await api("GET", "/api/graph");
+  if (!res.ok) { toast("Failed to load graph", "error"); return; }
+  GRAPH = res.data;
+  buildIndexes();
+  document.getElementById("root-title").textContent = GRAPH.root || "product graph";
+  document.title = (GRAPH.root || "product") + " · product graph";
+  // drop stale selection / focus
+  if (state.focus && !byId.has(state.focus)) { state.mode = "overview"; state.focus = null; }
+  if (state.selected && !byId.has(state.selected)) state.selected = null;
+  render();
+  if (selectId && byId.has(selectId)) { state.selected = selectId; }
+}
+
+reload();
 </script>
 </body>
 </html>
