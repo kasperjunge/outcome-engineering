@@ -154,8 +154,7 @@ def render_template(kind: str, slug: str, title: str) -> str:
         "outcome": "## Measures\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
         "opportunity": "## Evidence\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
         "solution": "## Product Risks\n\n- Value: TODO\n- Usability: TODO\n- Feasibility: TODO\n- Viability: TODO\n\n## Assumptions\n\n- TODO\n",
-        "assumption": "## Risk Type\n\nTODO\n\n## How This Could Be False\n\nTODO\n",
-        "experiment": "## Tests Assumption\n\nTODO\n\n## Success / Failure Signal\n\nTODO\n\n## Decision It Informs\n\nTODO\n",
+        "assumption-test": "## Assumption\n\nTODO\n\n## Risk Type\n\nTODO\n\n## Test\n\nTODO\n\n## Success / Failure Signal\n\nTODO\n\n## Decision It Informs\n\nTODO\n",
         "prd": "## Problem\n\nTODO\n\n## User Stories\n\n- TODO\n\n## Acceptance Criteria\n\n- TODO\n",
     }
     body = sections[kind]
@@ -235,7 +234,7 @@ def validate(root: Path) -> list[ValidationIssue]:
             if parent_info is None:
                 issues.append(ValidationIssue(path, "node is not inside a valid relationship directory"))
                 continue
-            parent_path, relationship = parent_info
+            _parent_path, relationship = parent_info
             expected_kinds = RELATIONSHIP_TO_CHILD_KIND[relationship]
             if kind not in expected_kinds:
                 issues.append(
@@ -244,11 +243,6 @@ def validate(root: Path) -> list[ValidationIssue]:
                         f"{marker.name} is not valid under {relationship}/; expected {', '.join(sorted(expected_kinds))}",
                     )
                 )
-            if relationship == "experiments":
-                parent_markers = marker_files_in(parent_path)
-                parent_kind = MARKER_FILES[parent_markers[0].name] if len(parent_markers) == 1 else "unknown"
-                if parent_kind != "assumption":
-                    issues.append(ValidationIssue(path, "experiments can only live under an assumption"))
 
     for path in sorted([root, *[p for p in root.rglob("*") if p.is_dir()]]):
         markers = marker_files_in(path)
