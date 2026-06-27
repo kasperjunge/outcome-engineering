@@ -4,6 +4,8 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from outcome_engineering.model import KIND_TO_MARKER_FILE
+
 
 @dataclass(frozen=True)
 class ExampleNode:
@@ -16,7 +18,7 @@ class ExampleNode:
 
     @property
     def marker_file(self) -> str:
-        return f"{self.kind.upper()}.md"
+        return KIND_TO_MARKER_FILE[self.kind]
 
 
 def write_file(path: Path, content: str) -> None:
@@ -91,24 +93,6 @@ Example evidence placeholder. In a real product graph this would link to intervi
 """,
                     },
                     children={
-                        "assumptions": [
-                            ExampleNode(
-                                slug="delegation-pain-is-frequent",
-                                kind="assumption",
-                                title="Delegation Pain Is Frequent",
-                                body="""Users run into this uncertainty often enough that solving it would materially increase delegation confidence.""",
-                                children={
-                                    "experiments": [
-                                        ExampleNode(
-                                            slug="frequency-interviews",
-                                            kind="experiment",
-                                            title="Frequency Interviews",
-                                            body="""Interview users about recent work and count how often they wanted to delegate something but could not identify a concrete agent-ready task.""",
-                                        )
-                                    ]
-                                },
-                            )
-                        ],
                         "opportunities": [
                             ExampleNode(
                                 slug="recurring-work-is-hard-to-describe",
@@ -123,22 +107,14 @@ Example evidence placeholder. In a real product graph this would link to intervi
                                             title="Delegation Interview",
                                             body="""An agent-guided interview helps the user describe one concrete task, then expands outward to map related work.""",
                                             children={
-                                                "assumptions": [
+                                                "assumption-tests": [
                                                     ExampleNode(
                                                         slug="interview-produces-better-task-descriptions",
-                                                        kind="assumption",
+                                                        kind="assumption-test",
                                                         title="Interview Produces Better Task Descriptions",
-                                                        body="""If an agent interviews the user about a concrete recent task, the resulting task description will be more actionable than a blank-form prompt.""",
-                                                        children={
-                                                            "experiments": [
-                                                                ExampleNode(
-                                                                    slug="compare-blank-form-vs-interview",
-                                                                    kind="experiment",
-                                                                    title="Compare Blank Form Vs Interview",
-                                                                    body="""Ask users to describe the same delegation candidate through a blank form and through an interview. Compare completeness, confidence, and agent execution quality.""",
-                                                                )
-                                                            ]
-                                                        },
+                                                        body="""Assumption: if an agent interviews the user about a concrete recent task, the resulting task description will be more actionable than a blank-form prompt.
+
+Test: ask users to describe the same delegation candidate through a blank form and through an interview. Compare completeness, confidence, and agent execution quality.""",
                                                     )
                                                 ],
                                                 "prds": [
@@ -176,28 +152,22 @@ Example evidence placeholder. In a real product graph this would link to intervi
                                 title="Agent Central",
                                 body="""A capability platform where administrators configure and publish safe operations that agents can discover and execute through a small MCP surface.""",
                                 children={
-                                    "assumptions": [
+                                    "assumption-tests": [
                                         ExampleNode(
                                             slug="operation-discovery-reduces-tool-overload",
-                                            kind="assumption",
+                                            kind="assumption-test",
                                             title="Operation Discovery Reduces Tool Overload",
-                                            body="""Agents will perform better when they can search and describe operations instead of receiving a very large static tool list.""",
-                                            children={
-                                                "experiments": [
-                                                    ExampleNode(
-                                                        slug="fake-connector-prototype",
-                                                        kind="experiment",
-                                                        title="Fake Connector Prototype",
-                                                        body="""Build an in-memory connector prototype and observe whether agents can discover, describe, and execute the right operation without needing one MCP tool per capability.""",
-                                                    )
-                                                ]
-                                            },
+                                            body="""Assumption: agents will perform better when they can search and describe operations instead of receiving a very large static tool list.
+
+Test: build an in-memory connector prototype and observe whether agents can discover, describe, and execute the right operation without needing one MCP tool per capability.""",
                                         ),
                                         ExampleNode(
                                             slug="admins-will-curate-agent-capabilities",
-                                            kind="assumption",
+                                            kind="assumption-test",
                                             title="Admins Will Curate Agent Capabilities",
-                                            body="""Organizations will assign someone to configure, publish, and govern the operations made available to agents.""",
+                                            body="""Assumption: organizations will assign someone to configure, publish, and govern the operations made available to agents.
+
+Test: not yet designed. Identify whether early-access organizations name an owner for agent capability curation.""",
                                         ),
                                     ],
                                     "prds": [

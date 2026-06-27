@@ -10,8 +10,7 @@ MARKER_FILES = {
     "OUTCOME.md": "outcome",
     "OPPORTUNITY.md": "opportunity",
     "SOLUTION.md": "solution",
-    "ASSUMPTION.md": "assumption",
-    "EXPERIMENT.md": "experiment",
+    "ASSUMPTION_TEST.md": "assumption-test",
     "PRD.md": "prd",
 }
 
@@ -19,12 +18,11 @@ RELATIONSHIP_TO_CHILD_KIND = {
     "outcomes": {"outcome"},
     "opportunities": {"opportunity"},
     "solutions": {"solution"},
-    "assumptions": {"assumption"},
-    "experiments": {"experiment"},
+    "assumption-tests": {"assumption-test"},
     "prds": {"prd"},
 }
 
-RELATIONSHIP_ORDER = ("outcomes", "opportunities", "assumptions", "solutions", "experiments", "prds")
+RELATIONSHIP_ORDER = ("outcomes", "opportunities", "solutions", "assumption-tests", "prds")
 
 KIND_TO_MARKER_FILE = {kind: marker for marker, kind in MARKER_FILES.items()}
 
@@ -32,17 +30,15 @@ KIND_TO_RELATIONSHIP = {
     "outcome": "outcomes",
     "opportunity": "opportunities",
     "solution": "solutions",
-    "assumption": "assumptions",
-    "experiment": "experiments",
+    "assumption-test": "assumption-tests",
     "prd": "prds",
 }
 
 PARENT_KIND_TO_CHILD_KIND = {
     "root": {"outcome"},
     "outcome": {"opportunity"},
-    "opportunity": {"opportunity", "assumption", "solution"},
-    "solution": {"assumption", "prd"},
-    "assumption": {"experiment"},
+    "opportunity": {"opportunity", "solution"},
+    "solution": {"assumption-test", "prd"},
 }
 
 ALLOWED_CHILD_RELATIONSHIPS = {
@@ -50,10 +46,9 @@ ALLOWED_CHILD_RELATIONSHIPS = {
     "vision": set(),
     "strategy": set(),
     "outcome": {"opportunities"},
-    "opportunity": {"opportunities", "assumptions", "solutions"},
-    "solution": {"assumptions", "prds"},
-    "assumption": {"experiments"},
-    "experiment": set(),
+    "opportunity": {"opportunities", "solutions"},
+    "solution": {"assumption-tests", "prds"},
+    "assumption-test": set(),
     "prd": set(),
 }
 

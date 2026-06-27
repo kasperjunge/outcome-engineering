@@ -22,22 +22,17 @@ def test_example_graph_is_valid(tmp_path: Path) -> None:
     assert validate(root) == []
 
 
-def test_experiments_must_belong_to_assumptions(tmp_path: Path) -> None:
+def test_assumption_tests_must_belong_to_solutions(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    experiment = root / "outcomes" / "activation" / "opportunities" / "setup" / "solutions" / "wizard" / "experiments" / "test"
-    experiment.mkdir(parents=True)
-    (root / "outcomes" / "activation").mkdir(parents=True, exist_ok=True)
+    assumption_test = root / "outcomes" / "activation" / "opportunities" / "setup" / "assumption-tests" / "test"
+    assumption_test.mkdir(parents=True)
     (root / "outcomes" / "activation" / "OUTCOME.md").write_text("# Activation\n", encoding="utf-8")
-    (root / "outcomes" / "activation" / "opportunities" / "setup").mkdir(parents=True, exist_ok=True)
     (root / "outcomes" / "activation" / "opportunities" / "setup" / "OPPORTUNITY.md").write_text("# Setup\n", encoding="utf-8")
-    (root / "outcomes" / "activation" / "opportunities" / "setup" / "solutions" / "wizard").mkdir(parents=True, exist_ok=True)
-    (root / "outcomes" / "activation" / "opportunities" / "setup" / "solutions" / "wizard" / "SOLUTION.md").write_text("# Wizard\n", encoding="utf-8")
-    (experiment / "EXPERIMENT.md").write_text("# Test\n", encoding="utf-8")
+    (assumption_test / "ASSUMPTION_TEST.md").write_text("# Test\n", encoding="utf-8")
 
     issues = validate(root)
 
-    assert any("experiments/ is not allowed under solution" in issue.message for issue in issues)
-    assert any("experiments can only live under an assumption" in issue.message for issue in issues)
+    assert any("assumption-tests/ is not allowed under opportunity" in issue.message for issue in issues)
 
 
 def test_create_node_builds_valid_graph(tmp_path: Path) -> None:
@@ -46,29 +41,23 @@ def test_create_node_builds_valid_graph(tmp_path: Path) -> None:
 
     outcome = create_node(root, kind="outcome", slug="activation", title=None, under=None)
     opportunity = create_node(root, kind="opportunity", slug="setup-is-confusing", title=None, under=outcome.id)
-    opportunity_assumption = create_node(root, kind="assumption", slug="setup-pain-is-frequent", title=None, under=opportunity.id)
-    opportunity_experiment = create_node(root, kind="experiment", slug="interview-setup-pain", title=None, under=opportunity_assumption.id)
     solution = create_node(root, kind="solution", slug="setup-wizard", title=None, under=opportunity.id)
-    assumption = create_node(root, kind="assumption", slug="wizard-reduces-confusion", title=None, under=solution.id)
-    experiment = create_node(root, kind="experiment", slug="prototype-test", title=None, under=assumption.id)
+    assumption_test = create_node(root, kind="assumption-test", slug="wizard-reduces-confusion", title=None, under=solution.id)
     prd = create_node(root, kind="prd", slug="setup-wizard-mvp", title=None, under=solution.id)
 
     assert validate(root) == []
     assert outcome.marker_file == root / "outcomes" / "activation" / "OUTCOME.md"
-    assert opportunity_assumption.marker_file == opportunity.path / "assumptions" / "setup-pain-is-frequent" / "ASSUMPTION.md"
-    assert opportunity_experiment.marker_file == opportunity_assumption.path / "experiments" / "interview-setup-pain" / "EXPERIMENT.md"
-    assert experiment.marker_file == assumption.path / "experiments" / "prototype-test" / "EXPERIMENT.md"
+    assert assumption_test.marker_file == solution.path / "assumption-tests" / "wizard-reduces-confusion" / "ASSUMPTION_TEST.md"
     assert prd.marker_file == solution.path / "prds" / "setup-wizard-mvp" / "PRD.md"
 
 
-def test_opportunity_children_are_ordered_for_problem_then_learning_then_solution(tmp_path: Path) -> None:
+def test_opportunity_children_are_ordered_problem_then_solution(tmp_path: Path) -> None:
     root = tmp_path / "product"
     root.mkdir()
 
     outcome = create_node(root, kind="outcome", slug="activation", title=None, under=None)
     opportunity = create_node(root, kind="opportunity", slug="setup-is-confusing", title=None, under=outcome.id)
     create_node(root, kind="solution", slug="setup-wizard", title=None, under=opportunity.id)
-    create_node(root, kind="assumption", slug="setup-pain-is-frequent", title=None, under=opportunity.id)
     create_node(root, kind="opportunity", slug="unclear-first-step", title=None, under=opportunity.id)
 
     node = find_node(root, opportunity.id)
@@ -76,23 +65,21 @@ def test_opportunity_children_are_ordered_for_problem_then_learning_then_solutio
     assert node is not None
     assert [(child.kind, child.slug) for child in node.children] == [
         ("opportunity", "unclear-first-step"),
-        ("assumption", "setup-pain-is-frequent"),
         ("solution", "setup-wizard"),
     ]
 
 
-def test_create_experiment_requires_assumption_parent(tmp_path: Path) -> None:
+def test_create_assumption_test_requires_solution_parent(tmp_path: Path) -> None:
     root = tmp_path / "product"
     root.mkdir()
 
     outcome = create_node(root, kind="outcome", slug="activation", title=None, under=None)
     opportunity = create_node(root, kind="opportunity", slug="setup-is-confusing", title=None, under=outcome.id)
-    solution = create_node(root, kind="solution", slug="setup-wizard", title=None, under=opportunity.id)
 
     try:
-        create_node(root, kind="experiment", slug="prototype-test", title=None, under=solution.id)
+        create_node(root, kind="assumption-test", slug="setup-pain-is-frequent", title=None, under=opportunity.id)
     except ValueError as error:
-        assert "cannot create experiment under solution" in str(error)
+        assert "cannot create assumption-test under opportunity" in str(error)
     else:
         raise AssertionError("expected ValueError")
 
