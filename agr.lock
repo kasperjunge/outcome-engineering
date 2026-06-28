@@ -12,15 +12,3 @@ installed-name = "agr-cli"
 [[skill]]
 path = "./skills/oe-cli"
 installed-name = "oe-cli"
-
-[[skill]]
-path = "./skills/challenge-assumptions"
-installed-name = "challenge-assumptions"
-
-[[skill]]
-path = "./skills/challenge-product-intent"
-installed-name = "challenge-product-intent"
-
-[[skill]]
-path = "./skills/craft-vision-strategy"
-installed-name = "craft-vision-strategy"

@@ -9,7 +9,7 @@ Use the `oe` CLI to work with repo-native product graphs.
 
 The Python package is `outcome-engineering`. The command is `oe`.
 
-Install the bundled skills for agent tools:
+Install the bundled skill for agent tools:
 
 ```sh
 uvx outcome-engineering install --skills
@@ -106,6 +106,22 @@ After changing graph structure, validate:
 ```sh
 uv run oe validate product
 ```
+
+## CLI Commands
+
+Keep this section in sync with `uv run oe --help` and `src/outcome_engineering/cli.py`.
+
+- `uv run oe validate [product]` validates a product graph root.
+- `uv run oe tree [product]` prints the graph tree.
+- `uv run oe serve [product] --host 127.0.0.1 --port 8000 --open/--no-open` serves the editable local web UI for adding, editing, removing, and visualizing graph nodes.
+- `uv run oe list [kind] --root product` lists graph nodes, optionally by kind.
+- `uv run oe show <node-id-or-slug> --root product` prints a node's marker file.
+- `uv run oe trace <node-id-or-slug> --root product` shows where a node sits in the graph.
+- `uv run oe context <node-id-or-slug> --root product` prints deterministic agent context, including trace, ICPs, children, supporting files, ancestor content, ICP content, and node content.
+- `uv run oe new <kind> <slug> --root product --under <parent> --title <title>` creates a node in a valid graph location.
+- `uv run oe create-example --output examples/delegation-product-graph --force` creates the bundled example graph.
+- `uv run oe install --skills` or `uv run oe install --skills=agents` installs bundled assets through the legacy install command.
+- `uv run oe install-skill --agent codex|claude|all --target <dir> --force` installs the bundled Outcome Engineering agent skill.
 
 ## Creating Nodes
 

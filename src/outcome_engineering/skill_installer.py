@@ -7,12 +7,7 @@ from pathlib import Path
 
 
 SKILL_NAME = "oe-cli"
-SKILL_NAMES = (
-    "oe-cli",
-    "challenge-assumptions",
-    "craft-vision-strategy",
-    "challenge-product-intent",
-)
+SKILL_NAMES = (SKILL_NAME,)
 
 
 def skill_target(agent: str) -> Path:

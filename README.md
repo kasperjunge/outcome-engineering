@@ -37,4 +37,3 @@ An ICP (ideal customer profile) is the "who" the graph serves. A graph can have 
 
 - [product/VISION.md](product/VISION.md)
 - [product/STRATEGY.md](product/STRATEGY.md)
-- [docs/agent-entry-points.md](docs/agent-entry-points.md)

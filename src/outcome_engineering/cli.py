@@ -34,7 +34,7 @@ def install(
     ctx: typer.Context,
     force: bool = typer.Option(False, "--force", help="Replace the target skill directory if it already exists."),
 ) -> None:
-    """Install bundled assets, including Outcome Engineering skills."""
+    """Install bundled assets, including the Outcome Engineering skill."""
     try:
         skill_value = parse_skills_option(ctx.args)
         installed_paths = install_project_skills(skill_value, force=force)
@@ -127,7 +127,7 @@ def install_skill_command(
     target: Path | None = typer.Option(None, "--target", "-t", help="Exact skill install directory. Overrides --agent."),
     force: bool = typer.Option(False, "--force", help="Replace the target skill directory if it already exists."),
 ) -> None:
-    """Install the bundled Outcome Engineering agent skills."""
+    """Install the bundled Outcome Engineering agent skill."""
     try:
         installed_paths = [install_skill(target=target, force=force)] if target is not None else install_skills_for_agent(agent, force=force)
     except (FileExistsError, ValueError) as error:

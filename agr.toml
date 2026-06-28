@@ -22,9 +22,6 @@ default_repo = "skills"
 dependencies = [
     {handle = "computerlovetech/agr/agr-cli", type = "skill"},
     {path = "./skills/oe-cli", type = "skill"},
-    {path = "./skills/challenge-assumptions", type = "skill"},
-    {path = "./skills/challenge-product-intent", type = "skill"},
-    {path = "./skills/craft-vision-strategy", type = "skill"},
 ]
 
 [[source]]
