@@ -22,7 +22,7 @@ from outcome_engineering.skill_installer import (
     install_skill,
     install_skills_for_agent,
 )
-from outcome_engineering.viz import build_graph_payload, render_html
+from outcome_engineering.serve import serve as serve_graph
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
 
@@ -84,17 +84,14 @@ def tree_command(
         print_node(node, prefix="", is_last=index == len(top_level) - 1)
 
 
-@app.command("viz")
-def viz_command(
-    path: Path = typer.Argument(Path("product"), help="Product graph root to visualize."),
-    output: Path = typer.Option(
-        Path("product-graph.html"),
-        "--output",
-        "-o",
-        help="HTML file to write. Use '-' to print to stdout.",
-    ),
+@app.command("serve")
+def serve_command(
+    path: Path = typer.Argument(Path("product"), help="Product graph root to serve."),
+    host: str = typer.Option("127.0.0.1", "--host", help="Interface to bind. Defaults to loopback."),
+    port: int = typer.Option(8000, "--port", "-p", help="Port to listen on."),
+    open_browser: bool = typer.Option(True, "--open/--no-open", help="Open the UI in a browser on start."),
 ) -> None:
-    """Generate a single self-contained HTML view of the product graph."""
+    """Serve an editable web UI of the product graph: add, edit, remove, visualize."""
     issues = validate_graph(path)
     if issues:
         typer.echo(f"Invalid product graph: {path}")
@@ -102,12 +99,7 @@ def viz_command(
             typer.echo(f"- {issue.path}: {issue.message}")
         raise typer.Exit(code=1)
 
-    html = render_html(build_graph_payload(path))
-    if str(output) == "-":
-        typer.echo(html)
-        return
-    output.write_text(html, encoding="utf-8")
-    typer.echo(f"Wrote {output}")
+    serve_graph(path, host=host, port=port, open_browser=open_browser)
 
 
 @app.command("create-example")

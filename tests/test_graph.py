@@ -5,6 +5,7 @@ from pathlib import Path
 from outcome_engineering.example import create_example
 from outcome_engineering.graph import (
     create_node,
+    delete_node,
     find_node,
     find_nodes_by_kind,
     marker_content,
@@ -14,8 +15,9 @@ from outcome_engineering.graph import (
     related_icps,
     supporting_files,
     validate,
+    write_marker,
 )
-from outcome_engineering.viz import build_graph_payload, render_html
+from outcome_engineering.serve import build_graph_payload, make_server
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
     SKILL_NAMES,
@@ -313,16 +315,139 @@ def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) 
     assert icp_node["servedBy"] == ["outcome.delegation-confidence"]
 
 
-def test_render_html_is_self_contained(tmp_path: Path) -> None:
+def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
     root = tmp_path / "product"
     create_example(root, force=False)
 
-    html = render_html(build_graph_payload(root))
+    schema = build_graph_payload(root)["schema"]["childKinds"]
 
-    assert "__GRAPH_DATA__" not in html
-    assert "__GRAPH_TITLE__" not in html
-    assert "Delegation Confidence" in html
-    # no external dependencies: nothing fetched over the network
-    assert "http://" not in html.replace("http://www.w3.org/2000/svg", "")
-    assert "https://" not in html
-    assert "src=" not in html
+    assert schema["root"] == ["icp", "outcome"]
+    assert schema["outcome"] == ["opportunity"]
+    assert schema["solution"] == ["assumption-test", "prd"]
+
+
+def test_write_marker_overwrites_node_content(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    outcome = create_node(root, kind="outcome", slug="activation", title=None, under=None)
+
+    node = write_marker(root, outcome.id, "# Activation\n\nEdited body.")
+
+    assert node.id == outcome.id
+    assert marker_content(node) == "# Activation\n\nEdited body.\n"
+
+
+def test_write_marker_unknown_selector_raises(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+
+    try:
+        write_marker(root, "outcome.missing", "# X\n")
+    except ValueError as error:
+        assert "not found" in str(error)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_delete_node_removes_leaf(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    outcome = create_node(root, kind="outcome", slug="activation", title=None, under=None)
+    opportunity = create_node(root, kind="opportunity", slug="setup", title=None, under=outcome.id)
+
+    delete_node(root, opportunity.id)
+
+    assert not opportunity.path.exists()
+    assert find_node(root, outcome.id) is not None
+    assert validate(root) == []
+
+
+def test_delete_node_with_children_requires_cascade(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    outcome = create_node(root, kind="outcome", slug="activation", title=None, under=None)
+    create_node(root, kind="opportunity", slug="setup", title=None, under=outcome.id)
+
+    try:
+        delete_node(root, outcome.id)
+    except ValueError as error:
+        assert "has children" in str(error)
+    else:
+        raise AssertionError("expected ValueError")
+
+    delete_node(root, outcome.id, cascade=True)
+    assert not outcome.path.exists()
+
+
+def test_server_serves_ui_and_graph_api(tmp_path: Path) -> None:
+    import json
+    import threading
+    from urllib.request import urlopen
+
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    server = make_server(root, host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        page = urlopen(base + "/").read().decode("utf-8")
+        assert "/api/graph" in page  # the UI fetches its data live
+
+        payload = json.loads(urlopen(base + "/api/graph").read().decode("utf-8"))
+        ids = {node["id"] for node in payload["nodes"]}
+        assert "outcome.delegation-confidence" in ids
+        assert payload["schema"]["childKinds"]["root"] == ["icp", "outcome"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_server_create_edit_delete_round_trip(tmp_path: Path) -> None:
+    import json
+    import threading
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
+
+    root = tmp_path / "product"
+    root.mkdir()
+
+    server = make_server(root, host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = f"http://127.0.0.1:{server.server_address[1]}"
+
+    def call(method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
+        data = json.dumps(body).encode("utf-8") if body is not None else None
+        req = Request(base + path, data=data, method=method, headers={"Content-Type": "application/json"})
+        try:
+            with urlopen(req) as resp:
+                return resp.status, json.loads(resp.read().decode("utf-8"))
+        except HTTPError as error:
+            return error.code, json.loads(error.read().decode("utf-8"))
+
+    try:
+        status, created = call("POST", "/api/nodes", {"kind": "outcome", "slug": "activation", "title": "Activation"})
+        assert status == 201 and created["id"] == "outcome.activation"
+
+        # illegal placement is rejected, graph untouched
+        status, err = call("POST", "/api/nodes", {"kind": "prd", "slug": "x", "under": "outcome.activation"})
+        assert status == 400 and "cannot create prd under outcome" in err["error"]
+
+        status, edited = call("PUT", "/api/nodes/outcome.activation", {"content": "# Activation\n\nNew body.\n"})
+        assert status == 200 and edited["issues"] == []
+        assert "New body." in (root / "outcomes" / "activation" / "OUTCOME.md").read_text(encoding="utf-8")
+
+        call("POST", "/api/nodes", {"kind": "opportunity", "slug": "setup", "under": "outcome.activation"})
+        status, err = call("DELETE", "/api/nodes/outcome.activation")
+        assert status == 400 and "has children" in err["error"]
+
+        status, _ = call("DELETE", "/api/nodes/outcome.activation?cascade=true")
+        assert status == 200
+        assert not (root / "outcomes" / "activation").exists()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)

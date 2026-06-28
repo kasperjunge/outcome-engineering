@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 from outcome_engineering.model import (
@@ -154,6 +155,40 @@ def create_node(root: Path, kind: str, slug: str, title: str | None, under: str 
         relationship=relationship,
         children=[],
     )
+
+
+def write_marker(root: Path, selector: str, content: str) -> ProductNode:
+    """Overwrite a node's marker file with new content.
+
+    The graph is the filesystem, so editing a node is editing its marker file.
+    Callers are expected to re-validate afterward; freeform markdown edits are
+    not rejected here so a mid-edit typo never loses the user's work.
+    """
+    node = find_node(root, selector)
+    if node is None:
+        raise ValueError(f"node not found or ambiguous: {selector}")
+    if not content.endswith("\n"):
+        content += "\n"
+    node.marker_file.write_text(content, encoding="utf-8")
+    return node
+
+
+def delete_node(root: Path, selector: str, cascade: bool = False) -> ProductNode:
+    """Remove a node directory from the graph.
+
+    A node with descendants is refused unless ``cascade`` is set, so an outcome's
+    whole trace subtree can never be removed by a single accidental click.
+    """
+    node = find_node(root, selector)
+    if node is None:
+        raise ValueError(f"node not found or ambiguous: {selector}")
+    if node.path == root.resolve():
+        raise ValueError("cannot delete the graph root")
+    if node.children and not cascade:
+        kinds = ", ".join(sorted({child.kind for child in node.children}))
+        raise ValueError(f"{node.id} has children ({kinds}); pass cascade to remove the subtree")
+    shutil.rmtree(node.path)
+    return node
 
 
 def render_template(kind: str, slug: str, title: str) -> str:
