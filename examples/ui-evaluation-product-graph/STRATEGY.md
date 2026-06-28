@@ -3,7 +3,6 @@
 ```yaml
 starts: 2026-06-01
 ends: 2026-09-30
-status: example
 ```
 
 Use the visual graph editor as the adoption wedge, while keeping the filesystem graph and CLI deterministic enough for agent-native workflows.

@@ -1178,7 +1178,6 @@ Outcome Engineering helps teams turn product complexity into a traceable graph t
 ```yaml
 starts: 2026-06-01
 ends: 2026-09-30
-status: example
 ```
 
 Use the visual graph editor as the adoption wedge, while keeping the filesystem graph and CLI deterministic enough for agent-native workflows.
@@ -2346,7 +2345,6 @@ This is a simulated product graph based only on public product research. It is m
 ```yaml
 starts: 2026-07-01
 ends: 2026-12-31
-status: simulated
 ```
 
 Use Boligsiden's public strengths in listing search, housing-market data, and broker connection to become the most trusted decision surface for Danish buyers and sellers.
