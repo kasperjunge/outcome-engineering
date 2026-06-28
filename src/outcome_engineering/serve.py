@@ -167,6 +167,10 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/":
             self._send_html(_page())
+        elif path == "/favicon.ico":
+            self.send_response(204)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
         elif path == "/api/graph":
             self._send_json(200, build_graph_payload(self.root))
         else:

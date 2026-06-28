@@ -17,13 +17,15 @@ def parse_args() -> argparse.Namespace:
         default=Path("examples/delegation-product-graph"),
         help="Directory to create. Defaults to examples/delegation-product-graph.",
     )
+    parser.add_argument("--comprehensive", action="store_true", help="Create a larger UI evaluation graph.")
+    parser.add_argument("--boligsiden", action="store_true", help="Create a simulated Boligsiden product graph.")
     parser.add_argument("--force", action="store_true", help="Replace the output directory if it already exists.")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    create_example(args.output, args.force)
+    create_example(args.output, args.force, comprehensive=args.comprehensive, boligsiden=args.boligsiden)
     print(f"Created example product graph at {args.output}")
 
 

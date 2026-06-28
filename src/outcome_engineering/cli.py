@@ -99,7 +99,11 @@ def serve_command(
             typer.echo(f"- {issue.path}: {issue.message}")
         raise typer.Exit(code=1)
 
-    serve_graph(path, host=host, port=port, open_browser=open_browser)
+    try:
+        serve_graph(path, host=host, port=port, open_browser=open_browser)
+    except OSError as error:
+        typer.echo(f"Could not bind {host}:{port}: {error}")
+        raise typer.Exit(code=1) from error
 
 
 @app.command("create-example")
@@ -110,12 +114,14 @@ def create_example_command(
         "-o",
         help="Directory to create.",
     ),
+    comprehensive: bool = typer.Option(False, "--comprehensive", help="Create a larger UI evaluation graph."),
+    boligsiden: bool = typer.Option(False, "--boligsiden", help="Create a simulated Boligsiden product graph."),
     force: bool = typer.Option(False, "--force", help="Replace output directory if it already exists."),
 ) -> None:
     """Create an example product graph."""
     try:
-        create_example(output, force=force)
-    except FileExistsError as error:
+        create_example(output, force=force, comprehensive=comprehensive, boligsiden=boligsiden)
+    except (FileExistsError, ValueError) as error:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
     typer.echo(f"Created example product graph at {output}")

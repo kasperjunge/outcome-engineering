@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from importlib import resources
 from pathlib import Path
 
+from typer.testing import CliRunner
+
+from outcome_engineering import cli
 from outcome_engineering.example import create_example
 from outcome_engineering.graph import (
     create_node,
@@ -34,6 +38,62 @@ def test_example_graph_is_valid(tmp_path: Path) -> None:
     create_example(root, force=False)
 
     assert validate(root) == []
+
+
+def test_comprehensive_example_graph_is_valid(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False, comprehensive=True)
+
+    assert validate(root) == []
+
+
+def test_comprehensive_example_exercises_ui_payload(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False, comprehensive=True)
+
+    payload = build_graph_payload(root)
+    ids = {node["id"] for node in payload["nodes"]}
+    statuses = {node["status"] for node in payload["nodes"]}
+    icp_edges = [edge for edge in payload["edges"] if edge["type"] == "icp"]
+    structural_edges = [edge for edge in payload["edges"] if edge["type"] == "structural"]
+
+    assert len(payload["nodes"]) >= 40
+    assert "icp.enterprise-product-ops" in ids
+    assert "outcome.agent-legible-product-memory" in ids
+    assert "prd.traceable-prd-panel-mvp" in ids
+    assert {"active", "planned", "shipped", "blocked"} <= statuses
+    assert len(icp_edges) >= 6
+    assert len(structural_edges) >= 30
+    assert payload["vision"] and payload["strategy"]
+
+
+def test_boligsiden_example_graph_is_valid(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False, boligsiden=True)
+
+    assert validate(root) == []
+
+
+def test_boligsiden_example_exercises_marketplace_payload(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False, boligsiden=True)
+
+    payload = build_graph_payload(root)
+    ids = {node["id"] for node in payload["nodes"]}
+    icp_edges = [edge for edge in payload["edges"] if edge["type"] == "icp"]
+    structural_edges = [edge for edge in payload["edges"] if edge["type"] == "structural"]
+
+    assert len(payload["nodes"]) >= 45
+    assert "icp.active-home-buyer" in ids
+    assert "icp.estate-agent" in ids
+    assert "outcome.buyer-search-confidence" in ids
+    assert "outcome.seller-market-readiness" in ids
+    assert "outcome.market-transparency-trust" in ids
+    assert "prd.smart-alerts-mvp" in ids
+    assert "prd.agent-fit-comparison-mvp" in ids
+    assert len(icp_edges) >= 5
+    assert len(structural_edges) >= 35
+    assert "simulated" in payload["strategy"]
 
 
 def test_assumption_tests_must_belong_to_solutions(tmp_path: Path) -> None:
@@ -403,6 +463,58 @@ def test_server_serves_ui_and_graph_api(tmp_path: Path) -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_server_handles_favicon_without_browser_console_404(tmp_path: Path) -> None:
+    import threading
+    from urllib.request import urlopen
+
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    server = make_server(root, host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        response = urlopen(base + "/favicon.ico")
+
+        assert response.status == 204
+        assert response.read() == b""
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_graph_template_keeps_focus_toggles_attached_to_nodes() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert 'class: "toggle", transform: `translate(${x},${y + NODE_H / 2 + 12})`' in page
+
+
+def test_graph_template_keeps_invalid_edits_recoverable() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert "if (res.data.issues && res.data.issues.length)" in page
+    assert "save.disabled = false;" in page
+    assert "clearIssues();" in page
+
+
+def test_serve_command_reports_bind_failure_without_traceback(tmp_path: Path, monkeypatch) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    def fail_bind(*args, **kwargs) -> None:
+        raise OSError(48, "Address already in use")
+
+    monkeypatch.setattr(cli, "serve_graph", fail_bind)
+
+    result = CliRunner().invoke(cli.app, ["serve", str(root), "--host", "127.0.0.1", "--port", "8765", "--no-open"])
+
+    assert result.exit_code == 1
+    assert "Could not bind 127.0.0.1:8765" in result.output
+    assert "Traceback" not in result.output
 
 
 def test_server_create_edit_delete_round_trip(tmp_path: Path) -> None:
