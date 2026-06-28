@@ -1,0 +1,21 @@
+# Freshness And Source Badges
+
+```yaml
+type: solution
+id: solution.freshness-and-source-badges
+status: simulated
+```
+
+Show clear update timestamps, source explanations, and confidence states on listings and market-data modules.
+
+## Product Risks
+
+- Value: users may not notice freshness details.
+- Usability: badges can add noise.
+- Feasibility: source and update semantics may vary by data type.
+- Viability: visible trust signals can defend brand credibility.
+
+## Assumptions
+
+- Freshness indicators increase trust on high-intent pages.
+- Users prefer transparent uncertainty to silent missing data.

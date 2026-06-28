@@ -242,7 +242,7 @@ function drawNode(n, x, y, opts = {}) {
   viewport.appendChild(g);
   // collapse / expand toggle
   if (opts.toggle) {
-    const t = el("g", { class: "toggle", transform: `translate(0,${NODE_H / 2 + 12})` });
+    const t = el("g", { class: "toggle", transform: `translate(${x},${y + NODE_H / 2 + 12})` });
     t.appendChild(el("circle", { r: 10 }));
     const sign = el("text", {});
     sign.textContent = state.collapsed.has(n.id) ? "+" : "−";
@@ -468,8 +468,19 @@ function showEditor(n) {
   const save = document.createElement("button"); save.className = "btn primary"; save.textContent = "Save";
   save.onclick = async () => {
     save.disabled = true;
+    clearIssues();
     const res = await api("PUT", "/api/nodes/" + encodeURIComponent(n.id), { content: ta.value });
-    if (res.ok) { toast("Saved", "ok"); await reload(n.id); reportIssues(res.data.issues); }
+    if (res.ok) {
+      toast("Saved", "ok");
+      await reload(n.id);
+      if (res.data.issues && res.data.issues.length) {
+        save.disabled = false;
+        reportIssues(res.data.issues);
+      } else {
+        const updated = byId.get(res.data.id) || byId.get(n.id);
+        if (updated) showDetail(updated);
+      }
+    }
     else { save.disabled = false; toast(res.error || "Save failed", "error"); }
   };
   const cancel = document.createElement("button"); cancel.className = "btn"; cancel.textContent = "Cancel";
@@ -575,11 +586,15 @@ function toast(msg, kind) {
 }
 function reportIssues(issues) {
   if (!issues || !issues.length) return;
+  clearIssues();
   const d = document.getElementById("detail");
   const box = document.createElement("div"); box.className = "issues";
   const head = document.createElement("div"); head.className = "head"; head.textContent = "Validation issues"; box.appendChild(head);
   issues.forEach(i => { const p = document.createElement("div"); p.textContent = i.message; box.appendChild(p); });
   d.appendChild(box);
+}
+function clearIssues() {
+  document.querySelectorAll("#detail .issues").forEach(node => node.remove());
 }
 
 // drop the leading "# Title" and the fenced yaml block from the node body
