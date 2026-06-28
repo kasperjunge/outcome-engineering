@@ -99,6 +99,53 @@ The server process needs to remain running in the active session, so it should n
 
 Open `http://127.0.0.1:8765/` and inspect overview density, focused outcome navigation, ICP edge rendering, status display, and side-panel markdown for long node content.
 
+## Step 3: Inventory and harden oe serve UI
+
+**Author:** main
+
+### Prompt Context
+
+**Verbatim prompt:** Do this ONLY for the outcome-engineering, focus on the ui in oe serve and use-playwright-cli to do it. Also, do it in a worktree.
+
+Task:
+Build sanitized, production-scale local data under production-like settings. Inventory every user-facing feature, role, route, button, input, modal, state, and workflow; define documented acceptance criteria and finite risk-based edge cases for each. Test as a real user, logging every bug with reproduction evidence. Review findings for shared causes and dependencies; implement coherent fixes with regression tests, then rerun the full inventory. Stop at a clean pass or blocked handoff. Ask before production, sensitive data, or destructive actions.
+**Interpretation:** Use the comprehensive graph worktree to exercise `oe serve` as a real local user, document the UI inventory and acceptance criteria, fix any coherent defects found, and prove the rerun is clean.
+**Inferred intent:** Make the local visual graph editor reliable under production-scale fixture data before promoting the comprehensive fixture and UI changes back to the main checkout.
+
+### What I did
+
+I used the existing `/examples/ui-evaluation-product-graph` fixture, validated it with `uv run oe validate examples/ui-evaluation-product-graph`, and served it with `uv run oe serve examples/ui-evaluation-product-graph --host 127.0.0.1 --port 18878 --no-open`. I tested the UI with `playwright-cli` across overview, focus mode, Vision and Strategy panels, legend filters, Fit, invalid edit recovery, create/delete confirmation, cascade confirmation, desktop layout, and a 390px mobile viewport.
+
+I fixed five issues: focus-mode collapse toggles were all rendered at `translate(0,35)`, invalid marker saves left the Save button disabled, `/favicon.ico` caused a browser console 404, occupied serve ports printed a traceback, and the fixed 400px detail panel overflowed on mobile. The code changes are in `/src/outcome_engineering/templates/graph.html`, `/src/outcome_engineering/serve.py`, and `/src/outcome_engineering/cli.py`. I added regression coverage in `/tests/test_graph.py` and documented the inventory, acceptance criteria, edge cases, bug log, and clean-pass evidence in `/docs/oe-serve-ui-inventory.md`.
+
+### Why
+
+The comprehensive graph fixture only proves value if the UI can handle it as a user-facing workflow, not just as valid filesystem data. The fixes address shared reliability causes: coordinate-space mistakes in SVG rendering, recoverability after validation failures, noisy browser/server error handling, and fixed desktop layout assumptions leaking into mobile.
+
+### What worked
+
+`playwright-cli` snapshots and `run-code` checks were effective for verifying real DOM state. The comprehensive graph covered enough scale to expose focus-mode and responsive bugs while staying sanitized and local. The existing Python HTTP tests made it straightforward to add server and CLI regressions without adding dependencies.
+
+### What didn't work
+
+Starting `uv run oe serve examples/ui-evaluation-product-graph --host 127.0.0.1 --port 8765 --no-open` failed with `OSError: [Errno 48] Address already in use`, and `8767` was also occupied. That became the reproduction for the clearer bind-failure fix. One Playwright mutation script assumed the UI returned to read mode after an invalid save; the actual state showed `Edit Playwright Smoke Outcome...SaveCancelValidation issues...` with Save disabled, which exposed the recoverability bug. A dialog automation attempt left a browser confirm open; I handled it with `playwright-cli dialog-accept` and then verified the cascade confirmation preserved the graph.
+
+### What I learned
+
+The UI has one local graph-operator role; there are no separate auth or team roles in `oe serve`. The browser requests `/favicon.ico` even though the app does not expose a visible favicon feature, so local tools should still handle that route cleanly. Validation-breaking marker edits are expected to persist and report issues, so the editor must remain usable after a 200 response with issues.
+
+### What was tricky
+
+The main sharp edge was separating test-script assumptions from real UI defects. A disabled Overview button after opening Vision/Strategy was correct because the graph was still in overview mode. The mobile overflow was not obvious from desktop testing because the detail panel looked correct at normal widths.
+
+### What warrants review
+
+Review `/src/outcome_engineering/templates/graph.html` for the SVG toggle coordinate fix, invalid-save control flow, and mobile media query. Review `/src/outcome_engineering/cli.py` for the broad `OSError` handling around server startup. Validate with `uv run pytest`, `uv run oe validate examples/ui-evaluation-product-graph`, and the Playwright evidence summarized in `/docs/oe-serve-ui-inventory.md`.
+
+### Future work
+
+The next useful improvement would be a browser-level regression test harness for the HTML template rather than static template assertions for JavaScript behavior. That would make layout and interaction regressions easier to prove in CI.
+
 ### Future work
 
 If UI review reveals layout blind spots, add targeted fixture branches that reproduce them.
