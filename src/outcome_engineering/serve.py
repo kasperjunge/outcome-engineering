@@ -18,9 +18,9 @@ from outcome_engineering.graph import (
 )
 from outcome_engineering.model import PARENT_KIND_TO_CHILD_KIND
 
-# Kinds that are rendered as graph nodes. vision/strategy are prose context, not
-# nodes in the node-link graph, so they are surfaced as panel content instead.
-NODE_KINDS = ("icp", "outcome", "opportunity", "solution", "assumption-test", "prd")
+# Kinds that are rendered as graph nodes. Vision and strategy are top-level
+# product context, but the UI still renders them as nodes in the overview.
+NODE_KINDS = ("vision", "strategy", "icp", "outcome", "opportunity", "solution", "assumption-test", "prd")
 
 
 def _title_from_body(text: str, fallback: str) -> str:
@@ -66,8 +66,7 @@ def build_graph_payload(root: Path) -> dict:
     """Serialize the discovered product graph into a render-ready payload.
 
     The payload separates the two edge meanings the model defines: structural
-    parent->child trace edges, and many-to-many ICP reference edges. vision and
-    strategy are returned as prose context rather than nodes.
+    parent->child trace edges, and many-to-many ICP reference edges.
     """
     root = root.resolve()
     discovered = discover_nodes(root)
@@ -91,6 +90,7 @@ def build_graph_payload(root: Path) -> dict:
                 "parent": node.parent.id if node.parent is not None else None,
                 "icps": icp_refs,
                 "body": body,
+                "deletable": node.path != root,
             }
         )
         if node.parent is not None:

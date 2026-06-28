@@ -23,16 +23,16 @@ uv run oe create-example --boligsiden --output examples/boligsiden-product-graph
 Use `product/` as the graph root.
 
 `oe serve` starts a local web UI for visualizing **and editing** the graph as a
-team. It opens on a strategic overview (ICPs and outcomes); clicking an outcome
-focuses into its full trace subtree (opportunities → solutions → assumption
-tests / PRDs) with collapsible branches and node content in a side panel. From
-the side panel you can edit a node's marker file, add child nodes (the UI only
-offers placements the model allows), and delete nodes (a node with descendants
-needs an explicit cascade). Every change writes straight back to the marker
-files on disk, so collaboration happens through git like everything else in the
-repo. The server is dependency-free (Python stdlib) and binds to loopback by
-default; use `--host`/`--port` to change that and `--no-open` to skip launching
-a browser.
+team. It opens on an Excalidraw-like strategic overview with vision, strategy,
+ICPs, and outcomes as visible nodes; clicking an outcome focuses into its full
+trace subtree (opportunities → solutions → assumption tests / PRDs) with
+collapsible branches and node content in a side panel. From the side panel you
+can edit a node's marker file, add child nodes (the UI only offers placements
+the model allows), and delete nodes (a node with descendants needs an explicit
+cascade). Every change writes straight back to the marker files on disk, so
+collaboration happens through git like everything else in the repo. The server
+is dependency-free (Python stdlib) and binds to loopback by default; use
+`--host`/`--port` to change that and `--no-open` to skip launching a browser.
 
 An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more, and they live in the top-level `product/icps/` collection. ICPs are not part of the outcome → opportunity → solution trace chain; instead outcomes and opportunities reference the ICPs they serve by listing `icp.<slug>` ids in their yaml block.
 

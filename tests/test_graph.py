@@ -451,8 +451,10 @@ def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) 
     ids = {node["id"] for node in payload["nodes"]}
     assert "outcome.delegation-confidence" in ids
     assert "icp.solo-knowledge-worker" in ids
-    # vision/strategy are prose context, not nodes
-    assert all(node["kind"] != "vision" and node["kind"] != "strategy" for node in payload["nodes"])
+    assert "vision.product" in ids
+    assert "strategy.product" in ids
+    assert any(node["kind"] == "vision" for node in payload["nodes"])
+    assert any(node["kind"] == "strategy" for node in payload["nodes"])
     assert payload["vision"] and payload["strategy"]
 
     structural = {(e["source"], e["target"]) for e in payload["edges"] if e["type"] == "structural"}
@@ -462,6 +464,8 @@ def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) 
 
     icp_node = next(node for node in payload["nodes"] if node["id"] == "icp.solo-knowledge-worker")
     assert icp_node["servedBy"] == ["outcome.delegation-confidence"]
+    vision_node = next(node for node in payload["nodes"] if node["id"] == "vision.product")
+    assert vision_node["deletable"] is False
 
 
 def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
@@ -470,7 +474,7 @@ def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
 
     schema = build_graph_payload(root)["schema"]["childKinds"]
 
-    assert schema["root"] == ["icp", "outcome"]
+    assert schema["root"] == ["icp", "outcome", "strategy"]
     assert schema["outcome"] == ["opportunity"]
     assert schema["solution"] == ["assumption-test", "prd"]
 
@@ -547,7 +551,7 @@ def test_server_serves_ui_and_graph_api(tmp_path: Path) -> None:
         payload = json.loads(urlopen(base + "/api/graph").read().decode("utf-8"))
         ids = {node["id"] for node in payload["nodes"]}
         assert "outcome.delegation-confidence" in ids
-        assert payload["schema"]["childKinds"]["root"] == ["icp", "outcome"]
+        assert payload["schema"]["childKinds"]["root"] == ["icp", "outcome", "strategy"]
     finally:
         server.shutdown()
         server.server_close()
@@ -596,6 +600,24 @@ def test_graph_template_has_mobile_layout_for_detail_panel() -> None:
     assert "@media (max-width: 720px)" in page
     assert "#main { flex-direction: column;" in page
     assert "#detail { flex: 1 1 auto; width: 100%;" in page
+
+
+def test_graph_template_uses_sketch_canvas_style() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert 'filter id="sketch"' in page
+    assert "radial-gradient(circle at 1px 1px" in page
+    assert "function sketchOffset(a, b)" in page
+    assert '"edge" + (type === "icp" ? " icp" : "")' in page
+
+
+def test_graph_template_preserves_viewport_on_selection() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert "function render({ fitView = false } = {})" in page
+    assert "if (fitView) fit();" in page
+    assert "else applyView();" in page
+    assert "render({ fitView: true });" in page
 
 
 def test_serve_command_reports_bind_failure_without_traceback(tmp_path: Path, monkeypatch) -> None:
