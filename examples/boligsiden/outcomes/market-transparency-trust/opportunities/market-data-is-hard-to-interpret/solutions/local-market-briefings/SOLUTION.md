@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.local-market-briefings
-status: simulated
+status: planned
 ```
 
 Personalized local market briefings for a municipality, postal code, or saved-search area.

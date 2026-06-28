@@ -7,7 +7,7 @@ icps:
   - icp.market-follower
   - icp.active-home-buyer
   - icp.future-home-seller
-status: simulated
+status: active
 ```
 
 Consumers and market followers trust Boligsiden as a clear, current, and explainable source for Danish housing-market insight.
@@ -22,4 +22,4 @@ Consumers and market followers trust Boligsiden as a clear, current, and explain
 
 - Known: Boligsiden publicly presents housing-market statistics and news.
 - Unknown: which market-insight formats drive product actions versus passive readership.
-- Simulated: this outcome assumes transparency is both a brand and conversion lever.
+- Working estimate: transparency is both a brand and conversion lever.

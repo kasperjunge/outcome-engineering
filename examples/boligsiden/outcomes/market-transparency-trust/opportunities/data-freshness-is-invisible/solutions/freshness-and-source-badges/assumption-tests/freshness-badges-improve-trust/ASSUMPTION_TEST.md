@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.freshness-badges-improve-trust
-status: simulated
+status: planned
 ```
 
 ## Assumption

@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.data-freshness-indicators
-status: simulated
+status: draft
 ```
 
 ## Problem

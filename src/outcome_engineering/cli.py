@@ -115,7 +115,7 @@ def create_example_command(
         help="Directory to create.",
     ),
     comprehensive: bool = typer.Option(False, "--comprehensive", help="Create a larger UI evaluation graph."),
-    boligsiden: bool = typer.Option(False, "--boligsiden", help="Create a simulated Boligsiden product graph."),
+    boligsiden: bool = typer.Option(False, "--boligsiden", help="Create a Boligsiden-style product graph."),
     force: bool = typer.Option(False, "--force", help="Replace output directory if it already exists."),
 ) -> None:
     """Create an example product graph."""

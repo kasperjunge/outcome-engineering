@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.insight-to-action-modules
-status: simulated
+status: planned
 ```
 
 Contextual next-step modules on articles and market-stat pages, such as follow this area, view homes, estimate sale readiness, or compare agents.

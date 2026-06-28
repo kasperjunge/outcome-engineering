@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.seller-prep-checklist
-status: simulated
+status: draft
 ```
 
 ## Problem

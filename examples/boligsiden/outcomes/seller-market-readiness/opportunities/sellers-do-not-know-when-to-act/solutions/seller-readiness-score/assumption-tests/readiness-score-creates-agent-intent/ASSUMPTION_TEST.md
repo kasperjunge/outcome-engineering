@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.readiness-score-creates-agent-intent
-status: simulated
+status: planned
 ```
 
 ## Assumption

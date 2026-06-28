@@ -3,7 +3,7 @@
 ```yaml
 type: icp
 id: icp.estate-agent
-status: simulated
+status: active
 ```
 
 ## Who They Are

@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.saved-home-comparison
-status: simulated
+status: draft
 ```
 
 ## Problem

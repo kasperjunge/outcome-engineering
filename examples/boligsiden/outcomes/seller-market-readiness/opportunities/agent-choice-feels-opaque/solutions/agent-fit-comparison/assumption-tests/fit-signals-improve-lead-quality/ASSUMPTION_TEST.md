@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.fit-signals-improve-lead-quality
-status: simulated
+status: planned
 ```
 
 ## Assumption

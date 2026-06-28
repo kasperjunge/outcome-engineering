@@ -3,7 +3,7 @@
 ```yaml
 type: icp
 id: icp.future-home-seller
-status: simulated
+status: active
 ```
 
 ## Who They Are

@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.explainable-alerts-increase-clicks
-status: simulated
+status: planned
 ```
 
 ## Assumption

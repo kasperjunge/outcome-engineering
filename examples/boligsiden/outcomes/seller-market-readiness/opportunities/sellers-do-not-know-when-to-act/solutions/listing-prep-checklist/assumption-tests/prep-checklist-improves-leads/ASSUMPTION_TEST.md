@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.prep-checklist-improves-leads
-status: simulated
+status: planned
 ```
 
 ## Assumption

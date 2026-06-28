@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.property-local-context
-status: simulated
+status: draft
 ```
 
 ## Problem

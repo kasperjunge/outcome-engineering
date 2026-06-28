@@ -16,7 +16,7 @@ Use Boligsiden's public strengths in listing search, housing-market data, and br
 
 ## Research Boundary
 
-This graph is inferred from public Boligsiden surfaces and general housing-market product logic. All metrics, opportunity sizing, priorities, and solution economics are simulated.
+This graph is based on public Boligsiden surfaces and housing-market product analysis. Metrics, opportunity sizing, priorities, and solution economics should be validated with analytics, customer research, and partner feedback.
 
 ## Not Now
 

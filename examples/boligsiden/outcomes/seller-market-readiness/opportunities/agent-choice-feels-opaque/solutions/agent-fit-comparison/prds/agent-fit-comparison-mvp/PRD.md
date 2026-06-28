@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.agent-fit-comparison-mvp
-status: simulated
+status: draft
 ```
 
 ## Problem

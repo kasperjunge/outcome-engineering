@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.intent-specific-ctas-outperform-generic
-status: simulated
+status: planned
 ```
 
 ## Assumption

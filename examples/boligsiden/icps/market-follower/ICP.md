@@ -3,7 +3,7 @@
 ```yaml
 type: icp
 id: icp.market-follower
-status: simulated
+status: active
 ```
 
 ## Who They Are

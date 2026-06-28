@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.sold-comps-build-price-confidence
-status: simulated
+status: planned
 ```
 
 ## Assumption

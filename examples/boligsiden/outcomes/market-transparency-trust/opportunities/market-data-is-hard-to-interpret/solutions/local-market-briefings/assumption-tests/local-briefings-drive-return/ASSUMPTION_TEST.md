@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.local-briefings-drive-return
-status: simulated
+status: planned
 ```
 
 ## Assumption

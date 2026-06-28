@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.area-watchlists-capture-early-buyers
-status: simulated
+status: planned
 ```
 
 ## Assumption

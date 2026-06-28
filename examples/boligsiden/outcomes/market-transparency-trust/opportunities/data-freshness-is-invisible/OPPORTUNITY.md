@@ -3,7 +3,7 @@
 ```yaml
 type: opportunity
 id: opportunity.data-freshness-is-invisible
-status: simulated
+status: discovery
 ```
 
 Users may not know when listings, price changes, sold data, or statistics were last updated, which can reduce trust in a fast-moving market.

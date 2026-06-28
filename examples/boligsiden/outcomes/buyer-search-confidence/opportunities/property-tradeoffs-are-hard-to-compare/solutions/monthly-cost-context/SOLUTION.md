@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.monthly-cost-context
-status: simulated
+status: planned
 ```
 
 Show estimated monthly cost ranges and affordability notes beside listing price.

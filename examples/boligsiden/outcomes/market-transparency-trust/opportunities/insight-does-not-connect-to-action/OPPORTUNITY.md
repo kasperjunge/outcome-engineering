@@ -3,7 +3,7 @@
 ```yaml
 type: opportunity
 id: opportunity.insight-does-not-connect-to-action
-status: simulated
+status: discovery
 ```
 
 A user may read a market article or statistic but not understand what to do next as a buyer, seller, or observer.

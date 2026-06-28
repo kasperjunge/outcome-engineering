@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.local-market-briefing-mvp
-status: simulated
+status: draft
 ```
 
 ## Problem

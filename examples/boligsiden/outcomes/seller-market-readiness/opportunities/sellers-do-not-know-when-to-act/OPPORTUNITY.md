@@ -3,7 +3,7 @@
 ```yaml
 type: opportunity
 id: opportunity.sellers-do-not-know-when-to-act
-status: simulated
+status: discovery
 ```
 
 Potential sellers struggle to judge whether local demand, price movement, and inventory make it a good time to sell.

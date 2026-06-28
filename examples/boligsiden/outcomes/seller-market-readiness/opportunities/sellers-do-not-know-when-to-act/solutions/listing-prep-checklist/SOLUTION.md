@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.listing-prep-checklist
-status: simulated
+status: planned
 ```
 
 A seller checklist that helps homeowners prepare core information before requesting agent advice.

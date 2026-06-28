@@ -1207,7 +1207,7 @@ def boligsiden_icps() -> list[ExampleNode]:
             slug="active-home-buyer",
             kind="icp",
             title="Active Home Buyer",
-            status="simulated",
+            status="active",
             body="""## Who They Are
 
 A Danish home buyer searching across apartments, villas, holiday homes, cooperative homes, and building plots.
@@ -1230,7 +1230,7 @@ A Danish home buyer searching across apartments, villas, holiday homes, cooperat
             slug="future-home-seller",
             kind="icp",
             title="Future Home Seller",
-            status="simulated",
+            status="active",
             body="""## Who They Are
 
 A homeowner considering whether, when, and how to sell a Danish property.
@@ -1253,7 +1253,7 @@ A homeowner considering whether, when, and how to sell a Danish property.
             slug="market-follower",
             kind="icp",
             title="Market Follower",
-            status="simulated",
+            status="active",
             body="""## Who They Are
 
 A homeowner, buyer, journalist, analyst, or curious citizen tracking Danish housing-market movement.
@@ -1276,7 +1276,7 @@ A homeowner, buyer, journalist, analyst, or curious citizen tracking Danish hous
             slug="estate-agent",
             kind="icp",
             title="Estate Agent",
-            status="simulated",
+            status="active",
             body="""## Who They Are
 
 A Danish real-estate professional or chain using Boligsiden as a distribution, lead, visibility, and market-insight channel.
@@ -1304,7 +1304,7 @@ def boligsiden_graphs() -> list[ExampleNode]:
             slug="buyer-search-confidence",
             kind="outcome",
             title="Buyer Search Confidence",
-            status="simulated",
+            status="active",
             icps=["icp.active-home-buyer"],
             body="""Home buyers trust Boligsiden enough to use it as their primary home-search workflow.
 
@@ -1318,13 +1318,13 @@ def boligsiden_graphs() -> list[ExampleNode]:
 
 - Known: Boligsiden exposes listing search, map/list browsing, property detail pages, alerts, and saved homes.
 - Unknown: exact conversion rates, alert performance, and which property attributes most predict contact intent.
-- Simulated: all measures and opportunity sizing in this graph are estimated for UI and product-thinking evaluation.""",
+- Working estimate: measures and opportunity sizing should be validated against analytics, interviews, support data, and broker feedback.""",
             files={
                 "research/source-notes.md": """# Source Notes
 
 This graph is inferred from public Boligsiden surfaces: listing search, property detail pages, market/news content, app/search flows, and broker/contact surfaces.
 
-Assumptions are simulated. Treat every metric and prioritization statement as a placeholder until validated with analytics, interviews, support data, and broker feedback.
+Metrics and prioritization should be validated with analytics, interviews, support data, and broker feedback.
 """,
             },
             children={
@@ -1333,7 +1333,7 @@ Assumptions are simulated. Treat every metric and prioritization statement as a 
                         slug="relevant-homes-are-easy-to-miss",
                         kind="opportunity",
                         title="Relevant Homes Are Easy To Miss",
-                        status="simulated",
+                        status="discovery",
                         body="""Buyers can miss suitable homes because geography, budget, property type, condition, open-house timing, and price changes do not fit neatly into one search.
 
 ## Evidence
@@ -1351,7 +1351,7 @@ Assumptions are simulated. Treat every metric and prioritization statement as a 
                                     slug="smart-search-alerts",
                                     kind="solution",
                                     title="Smart Search Alerts",
-                                    status="simulated",
+                                    status="planned",
                                     body="""A saved-search alert system that explains why a listing matches, highlights changed listings, and suggests safe filter expansions.
 
 ## Product Risks
@@ -1371,7 +1371,7 @@ Assumptions are simulated. Treat every metric and prioritization statement as a 
                                                 slug="explainable-alerts-increase-clicks",
                                                 kind="assumption-test",
                                                 title="Explainable Alerts Increase Clicks",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Alerts that explain the match reason get more qualified clicks than generic new-listing alerts.
@@ -1396,7 +1396,7 @@ Whether to invest in personalization and match explanations.""",
                                                 slug="filter-expansions-recover-missed-homes",
                                                 kind="assumption-test",
                                                 title="Filter Expansions Recover Missed Homes",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Suggesting nearby areas, flexible price bands, and adjacent property types helps buyers discover viable homes they would otherwise miss.
@@ -1423,7 +1423,7 @@ How aggressive the search-assist experience should be.""",
                                                 slug="smart-alerts-mvp",
                                                 kind="prd",
                                                 title="Smart Alerts MVP",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Buyers need to know quickly when a relevant home appears or changes, but broad searches create noise and narrow searches miss homes.
@@ -1448,7 +1448,7 @@ Buyers need to know quickly when a relevant home appears or changes, but broad s
                                     slug="neighborhood-watchlist",
                                     kind="solution",
                                     title="Neighborhood Watchlist",
-                                    status="simulated",
+                                    status="planned",
                                     body="""Let buyers follow neighborhoods or postal codes before they are ready to define a precise property search.
 
 ## Product Risks
@@ -1468,7 +1468,7 @@ Buyers need to know quickly when a relevant home appears or changes, but broad s
                                                 slug="area-watchlists-capture-early-buyers",
                                                 kind="assumption-test",
                                                 title="Area Watchlists Capture Early Buyers",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Area watchlists attract buyers earlier than saved property searches.
@@ -1495,7 +1495,7 @@ Whether Boligsiden should invest in pre-search buyer journeys.""",
                                                 slug="neighborhood-watchlist-mvp",
                                                 kind="prd",
                                                 title="Neighborhood Watchlist MVP",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Buyers often care about an area before they know exact property criteria, but listing alerts require defined searches.
@@ -1523,7 +1523,7 @@ Buyers often care about an area before they know exact property criteria, but li
                         slug="property-tradeoffs-are-hard-to-compare",
                         kind="opportunity",
                         title="Property Tradeoffs Are Hard To Compare",
-                        status="simulated",
+                        status="discovery",
                         body="""Buyers compare homes across price, square meters, energy, location, days on market, price changes, and subjective fit, but listings are often evaluated one at a time.
 
 ## Evidence
@@ -1541,7 +1541,7 @@ Buyers often care about an area before they know exact property criteria, but li
                                     slug="shortlist-comparison-board",
                                     kind="solution",
                                     title="Shortlist Comparison Board",
-                                    status="simulated",
+                                    status="planned",
                                     body="""A saved-home comparison view that shows property attributes, local context, price movement, and next action side by side.
 
 ## Product Risks
@@ -1561,7 +1561,7 @@ Buyers often care about an area before they know exact property criteria, but li
                                                 slug="comparison-increases-return-visits",
                                                 kind="assumption-test",
                                                 title="Comparison Increases Return Visits",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Buyers who can compare saved homes return more often and contact agents with more confidence.
@@ -1588,7 +1588,7 @@ Whether comparison should be a core buyer workflow.""",
                                                 slug="saved-home-comparison",
                                                 kind="prd",
                                                 title="Saved Home Comparison",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Buyers need a simple way to compare saved homes and decide which properties deserve action.
@@ -1613,7 +1613,7 @@ Buyers need a simple way to compare saved homes and decide which properties dese
                                     slug="monthly-cost-context",
                                     kind="solution",
                                     title="Monthly Cost Context",
-                                    status="simulated",
+                                    status="planned",
                                     body="""Show estimated monthly cost ranges and affordability notes beside listing price.
 
 ## Product Risks
@@ -1635,7 +1635,7 @@ Buyers need a simple way to compare saved homes and decide which properties dese
                         slug="local-area-confidence-is-fragile",
                         kind="opportunity",
                         title="Local Area Confidence Is Fragile",
-                        status="simulated",
+                        status="discovery",
                         body="""Buyers need to understand neighborhoods, commute, schools, noise, prices, and local market movement before acting on a home.
 
 ## Evidence
@@ -1653,7 +1653,7 @@ Buyers need a simple way to compare saved homes and decide which properties dese
                                     slug="local-context-panel",
                                     kind="solution",
                                     title="Local Context Panel",
-                                    status="simulated",
+                                    status="planned",
                                     body="""A property-detail module that combines local sales prices, inventory, time-on-market, transport, and similar homes.
 
 ## Product Risks
@@ -1673,7 +1673,7 @@ Buyers need a simple way to compare saved homes and decide which properties dese
                                                 slug="sold-comps-build-price-confidence",
                                                 kind="assumption-test",
                                                 title="Sold Comparables Build Price Confidence",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Showing relevant sold comparables makes buyers more confident about whether the asking price is reasonable.
@@ -1700,7 +1700,7 @@ Whether sold comparables should be prominent on listing pages.""",
                                                 slug="property-local-context",
                                                 kind="prd",
                                                 title="Property Local Context",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Buyers cannot easily tell whether a home's price and location make sense relative to the local market.
@@ -1731,7 +1731,7 @@ Buyers cannot easily tell whether a home's price and location make sense relativ
             slug="seller-market-readiness",
             kind="outcome",
             title="Seller Market Readiness",
-            status="simulated",
+            status="active",
             icps=["icp.future-home-seller", "icp.estate-agent"],
             body="""Homeowners use Boligsiden to understand their sale opportunity and take the next step toward a qualified agent conversation.
 
@@ -1745,14 +1745,14 @@ Buyers cannot easily tell whether a home's price and location make sense relativ
 
 - Known: Boligsiden has public surfaces around agents and market data.
 - Unknown: the commercial model and exact seller lead flows.
-- Simulated: this outcome assumes seller readiness is strategically valuable because it bridges consumer data and broker demand.""",
+- Working estimate: seller readiness is strategically valuable because it bridges consumer data and broker demand.""",
             children={
                 "opportunities": [
                     ExampleNode(
                         slug="sellers-do-not-know-when-to-act",
                         kind="opportunity",
                         title="Sellers Do Not Know When To Act",
-                        status="simulated",
+                        status="discovery",
                         body="""Potential sellers struggle to judge whether local demand, price movement, and inventory make it a good time to sell.
 
 ## Evidence
@@ -1770,7 +1770,7 @@ Buyers cannot easily tell whether a home's price and location make sense relativ
                                     slug="seller-readiness-score",
                                     kind="solution",
                                     title="Seller Readiness Score",
-                                    status="simulated",
+                                    status="planned",
                                     body="""A local-market readiness summary that combines recent sales, price trends, active supply, time-on-market, and demand indicators for the seller's area and property type.
 
 ## Product Risks
@@ -1790,7 +1790,7 @@ Buyers cannot easily tell whether a home's price and location make sense relativ
                                                 slug="readiness-score-creates-agent-intent",
                                                 kind="assumption-test",
                                                 title="Readiness Score Creates Agent Intent",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Sellers who receive a local readiness explanation are more likely to request agent contact.
@@ -1817,7 +1817,7 @@ Whether to build seller guidance as a conversion path.""",
                                                 slug="seller-readiness-mvp",
                                                 kind="prd",
                                                 title="Seller Readiness MVP",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Potential sellers need a clear first read on local market conditions before they are ready to contact an agent.
@@ -1842,7 +1842,7 @@ Potential sellers need a clear first read on local market conditions before they
                                     slug="listing-prep-checklist",
                                     kind="solution",
                                     title="Listing Prep Checklist",
-                                    status="simulated",
+                                    status="planned",
                                     body="""A seller checklist that helps homeowners prepare core information before requesting agent advice.
 
 ## Product Risks
@@ -1862,7 +1862,7 @@ Potential sellers need a clear first read on local market conditions before they
                                                 slug="prep-checklist-improves-leads",
                                                 kind="assumption-test",
                                                 title="Prep Checklist Improves Leads",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Seller leads with prep checklist context are more valuable to estate agents than bare contact requests.
@@ -1889,7 +1889,7 @@ Whether seller preparation should sit before or after agent contact.""",
                                                 slug="seller-prep-checklist",
                                                 kind="prd",
                                                 title="Seller Prep Checklist",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Sellers and agents need better context before the first valuation or advice conversation.
@@ -1917,7 +1917,7 @@ Sellers and agents need better context before the first valuation or advice conv
                         slug="agent-choice-feels-opaque",
                         kind="opportunity",
                         title="Agent Choice Feels Opaque",
-                        status="simulated",
+                        status="discovery",
                         body="""Sellers need to choose an estate agent, but may not know how to compare local experience, fit, and likely sale strategy.
 
 ## Evidence
@@ -1935,7 +1935,7 @@ Sellers and agents need better context before the first valuation or advice conv
                                     slug="agent-fit-comparison",
                                     kind="solution",
                                     title="Agent Fit Comparison",
-                                    status="simulated",
+                                    status="planned",
                                     body="""A seller-facing comparison of local agents by recent nearby activity, property-type experience, customer signals, and next available consultation.
 
 ## Product Risks
@@ -1955,7 +1955,7 @@ Sellers and agents need better context before the first valuation or advice conv
                                                 slug="fit-signals-improve-lead-quality",
                                                 kind="assumption-test",
                                                 title="Fit Signals Improve Lead Quality",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Showing why an agent is a good fit increases seller lead quality and broker acceptance.
@@ -1982,7 +1982,7 @@ How transparent the agent comparison product should become.""",
                                                 slug="agent-fit-comparison-mvp",
                                                 kind="prd",
                                                 title="Agent Fit Comparison MVP",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Sellers need to compare local estate agents before asking for valuation or sales advice.
@@ -2013,7 +2013,7 @@ Sellers need to compare local estate agents before asking for valuation or sales
             slug="market-transparency-trust",
             kind="outcome",
             title="Market Transparency Trust",
-            status="simulated",
+            status="active",
             icps=["icp.market-follower", "icp.active-home-buyer", "icp.future-home-seller"],
             body="""Consumers and market followers trust Boligsiden as a clear, current, and explainable source for Danish housing-market insight.
 
@@ -2027,7 +2027,7 @@ Sellers need to compare local estate agents before asking for valuation or sales
 
 - Known: Boligsiden publicly presents housing-market statistics and news.
 - Unknown: which market-insight formats drive product actions versus passive readership.
-- Simulated: this outcome assumes transparency is both a brand and conversion lever.""",
+- Working estimate: transparency is both a brand and conversion lever.""",
             files={
                 "research/public-product-observations.md": """# Public Product Observations
 
@@ -2042,7 +2042,7 @@ Sellers need to compare local estate agents before asking for valuation or sales
                         slug="market-data-is-hard-to-interpret",
                         kind="opportunity",
                         title="Market Data Is Hard To Interpret",
-                        status="simulated",
+                        status="discovery",
                         body="""Raw housing-market numbers can be difficult for consumers to translate into decisions about buying, selling, or waiting.
 
 ## Evidence
@@ -2060,7 +2060,7 @@ Sellers need to compare local estate agents before asking for valuation or sales
                                     slug="local-market-briefings",
                                     kind="solution",
                                     title="Local Market Briefings",
-                                    status="simulated",
+                                    status="planned",
                                     body="""Personalized local market briefings for a municipality, postal code, or saved-search area.
 
 ## Product Risks
@@ -2080,7 +2080,7 @@ Sellers need to compare local estate agents before asking for valuation or sales
                                                 slug="local-briefings-drive-return",
                                                 kind="assumption-test",
                                                 title="Local Briefings Drive Return",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Users who subscribe to local market briefings return more often and perform more buyer or seller actions.
@@ -2107,7 +2107,7 @@ Whether market insight should become personalized and subscription-based.""",
                                                 slug="local-market-briefing-mvp",
                                                 kind="prd",
                                                 title="Local Market Briefing MVP",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Users need housing-market interpretation for the specific areas and property types they care about.
@@ -2135,7 +2135,7 @@ Users need housing-market interpretation for the specific areas and property typ
                         slug="data-freshness-is-invisible",
                         kind="opportunity",
                         title="Data Freshness Is Invisible",
-                        status="simulated",
+                        status="discovery",
                         body="""Users may not know when listings, price changes, sold data, or statistics were last updated, which can reduce trust in a fast-moving market.
 
 ## Evidence
@@ -2153,7 +2153,7 @@ Users need housing-market interpretation for the specific areas and property typ
                                     slug="freshness-and-source-badges",
                                     kind="solution",
                                     title="Freshness And Source Badges",
-                                    status="simulated",
+                                    status="planned",
                                     body="""Show clear update timestamps, source explanations, and confidence states on listings and market-data modules.
 
 ## Product Risks
@@ -2173,7 +2173,7 @@ Users need housing-market interpretation for the specific areas and property typ
                                                 slug="freshness-badges-improve-trust",
                                                 kind="assumption-test",
                                                 title="Freshness Badges Improve Trust",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Visible data freshness and source badges increase user trust without reducing task completion.
@@ -2200,7 +2200,7 @@ How explicit source and freshness metadata should be in the UI.""",
                                                 slug="data-freshness-indicators",
                                                 kind="prd",
                                                 title="Data Freshness Indicators",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Users need to know how current listing and market data is before acting on it.
@@ -2228,7 +2228,7 @@ Users need to know how current listing and market data is before acting on it.
                         slug="insight-does-not-connect-to-action",
                         kind="opportunity",
                         title="Insight Does Not Connect To Action",
-                        status="simulated",
+                        status="discovery",
                         body="""A user may read a market article or statistic but not understand what to do next as a buyer, seller, or observer.
 
 ## Evidence
@@ -2246,7 +2246,7 @@ Users need to know how current listing and market data is before acting on it.
                                     slug="insight-to-action-modules",
                                     kind="solution",
                                     title="Insight To Action Modules",
-                                    status="simulated",
+                                    status="planned",
                                     body="""Contextual next-step modules on articles and market-stat pages, such as follow this area, view homes, estimate sale readiness, or compare agents.
 
 ## Product Risks
@@ -2266,7 +2266,7 @@ Users need to know how current listing and market data is before acting on it.
                                                 slug="intent-specific-ctas-outperform-generic",
                                                 kind="assumption-test",
                                                 title="Intent-Specific CTAs Outperform Generic",
-                                                status="simulated",
+                                                status="planned",
                                                 body="""## Assumption
 
 Buyer, seller, and market-follower CTAs tailored to article context outperform generic search prompts.
@@ -2293,7 +2293,7 @@ Whether market content should become a product acquisition surface.""",
                                                 slug="market-insight-next-actions",
                                                 kind="prd",
                                                 title="Market Insight Next Actions",
-                                                status="simulated",
+                                                status="draft",
                                                 body="""## Problem
 
 Market readers need clear, relevant next actions after learning something about an area or market condition.
@@ -2334,8 +2334,6 @@ def create_boligsiden_example(root: Path, force: bool) -> None:
         """# Vision
 
 Boligsiden helps people make confident Danish housing decisions by connecting property search, market transparency, seller guidance, and estate-agent discovery.
-
-This is a simulated product graph based only on public product research. It is meant for UI evaluation and product-thinking practice, not as a claim about Boligsiden's actual internal strategy.
 """,
     )
     write_file(
@@ -2358,7 +2356,7 @@ Use Boligsiden's public strengths in listing search, housing-market data, and br
 
 ## Research Boundary
 
-This graph is inferred from public Boligsiden surfaces and general housing-market product logic. All metrics, opportunity sizing, priorities, and solution economics are simulated.
+This graph is based on public Boligsiden surfaces and housing-market product analysis. Metrics, opportunity sizing, priorities, and solution economics should be validated with analytics, customer research, and partner feedback.
 
 ## Not Now
 

@@ -3,7 +3,7 @@
 ```yaml
 type: opportunity
 id: opportunity.local-area-confidence-is-fragile
-status: simulated
+status: discovery
 ```
 
 Buyers need to understand neighborhoods, commute, schools, noise, prices, and local market movement before acting on a home.

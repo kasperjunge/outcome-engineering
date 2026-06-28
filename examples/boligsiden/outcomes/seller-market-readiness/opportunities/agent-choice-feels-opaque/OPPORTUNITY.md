@@ -3,7 +3,7 @@
 ```yaml
 type: opportunity
 id: opportunity.agent-choice-feels-opaque
-status: simulated
+status: discovery
 ```
 
 Sellers need to choose an estate agent, but may not know how to compare local experience, fit, and likely sale strategy.

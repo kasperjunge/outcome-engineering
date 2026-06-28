@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.smart-alerts-mvp
-status: simulated
+status: draft
 ```
 
 ## Problem

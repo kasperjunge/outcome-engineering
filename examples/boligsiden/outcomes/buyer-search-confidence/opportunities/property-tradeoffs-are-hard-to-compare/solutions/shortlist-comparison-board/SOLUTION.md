@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.shortlist-comparison-board
-status: simulated
+status: planned
 ```
 
 A saved-home comparison view that shows property attributes, local context, price movement, and next action side by side.

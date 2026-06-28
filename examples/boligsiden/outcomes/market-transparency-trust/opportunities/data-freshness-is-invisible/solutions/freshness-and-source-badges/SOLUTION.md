@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.freshness-and-source-badges
-status: simulated
+status: planned
 ```
 
 Show clear update timestamps, source explanations, and confidence states on listings and market-data modules.

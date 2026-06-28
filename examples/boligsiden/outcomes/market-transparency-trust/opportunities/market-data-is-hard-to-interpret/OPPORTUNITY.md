@@ -3,7 +3,7 @@
 ```yaml
 type: opportunity
 id: opportunity.market-data-is-hard-to-interpret
-status: simulated
+status: discovery
 ```
 
 Raw housing-market numbers can be difficult for consumers to translate into decisions about buying, selling, or waiting.

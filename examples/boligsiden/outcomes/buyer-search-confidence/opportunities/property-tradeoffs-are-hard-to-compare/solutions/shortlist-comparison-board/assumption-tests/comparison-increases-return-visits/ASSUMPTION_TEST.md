@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.comparison-increases-return-visits
-status: simulated
+status: planned
 ```
 
 ## Assumption

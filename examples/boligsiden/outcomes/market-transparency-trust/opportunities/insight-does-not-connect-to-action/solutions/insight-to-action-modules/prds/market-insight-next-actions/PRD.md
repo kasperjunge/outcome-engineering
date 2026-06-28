@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.market-insight-next-actions
-status: simulated
+status: draft
 ```
 
 ## Problem

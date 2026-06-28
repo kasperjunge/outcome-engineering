@@ -3,7 +3,7 @@
 ```yaml
 type: prd
 id: prd.neighborhood-watchlist-mvp
-status: simulated
+status: draft
 ```
 
 ## Problem

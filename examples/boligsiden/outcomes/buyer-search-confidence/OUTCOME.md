@@ -5,7 +5,7 @@ type: outcome
 id: outcome.buyer-search-confidence
 icps:
   - icp.active-home-buyer
-status: simulated
+status: active
 ```
 
 Home buyers trust Boligsiden enough to use it as their primary home-search workflow.
@@ -20,4 +20,4 @@ Home buyers trust Boligsiden enough to use it as their primary home-search workf
 
 - Known: Boligsiden exposes listing search, map/list browsing, property detail pages, alerts, and saved homes.
 - Unknown: exact conversion rates, alert performance, and which property attributes most predict contact intent.
-- Simulated: all measures and opportunity sizing in this graph are estimated for UI and product-thinking evaluation.
+- Working estimate: measures and opportunity sizing should be validated against analytics, interviews, support data, and broker feedback.

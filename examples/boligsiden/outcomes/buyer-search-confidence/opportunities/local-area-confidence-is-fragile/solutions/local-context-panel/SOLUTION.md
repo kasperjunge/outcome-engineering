@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.local-context-panel
-status: simulated
+status: planned
 ```
 
 A property-detail module that combines local sales prices, inventory, time-on-market, transport, and similar homes.

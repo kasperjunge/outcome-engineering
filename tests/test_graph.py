@@ -93,7 +93,8 @@ def test_boligsiden_example_exercises_marketplace_payload(tmp_path: Path) -> Non
     assert "prd.agent-fit-comparison-mvp" in ids
     assert len(icp_edges) >= 5
     assert len(structural_edges) >= 35
-    assert "simulated" in payload["strategy"]
+    assert "public Boligsiden surfaces" in payload["strategy"]
+    assert "validated with analytics" in payload["strategy"]
 
 
 def test_assumption_tests_must_belong_to_solutions(tmp_path: Path) -> None:

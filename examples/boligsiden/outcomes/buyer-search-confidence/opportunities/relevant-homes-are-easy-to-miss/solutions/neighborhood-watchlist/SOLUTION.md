@@ -3,7 +3,7 @@
 ```yaml
 type: solution
 id: solution.neighborhood-watchlist
-status: simulated
+status: planned
 ```
 
 Let buyers follow neighborhoods or postal codes before they are ready to define a precise property search.

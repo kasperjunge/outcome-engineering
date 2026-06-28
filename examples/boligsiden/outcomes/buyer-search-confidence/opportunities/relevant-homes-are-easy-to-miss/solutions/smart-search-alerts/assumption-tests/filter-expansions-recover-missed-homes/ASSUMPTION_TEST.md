@@ -3,7 +3,7 @@
 ```yaml
 type: assumption-test
 id: assumption-test.filter-expansions-recover-missed-homes
-status: simulated
+status: planned
 ```
 
 ## Assumption
