@@ -501,6 +501,14 @@ def test_graph_template_keeps_invalid_edits_recoverable() -> None:
     assert "clearIssues();" in page
 
 
+def test_graph_template_has_mobile_layout_for_detail_panel() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert "@media (max-width: 720px)" in page
+    assert "#main { flex-direction: column;" in page
+    assert "#detail { flex: 1 1 auto; width: 100%;" in page
+
+
 def test_serve_command_reports_bind_failure_without_traceback(tmp_path: Path, monkeypatch) -> None:
     root = tmp_path / "product"
     create_example(root, force=False)
