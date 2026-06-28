@@ -16,6 +16,7 @@ MARKER_FILES = {
 }
 
 RELATIONSHIP_TO_CHILD_KIND = {
+    "strategies": {"strategy"},
     "outcomes": {"outcome"},
     "opportunities": {"opportunity"},
     "solutions": {"solution"},
@@ -23,7 +24,7 @@ RELATIONSHIP_TO_CHILD_KIND = {
     "prds": {"prd"},
 }
 
-RELATIONSHIP_ORDER = ("outcomes", "opportunities", "solutions", "assumption-tests", "prds")
+RELATIONSHIP_ORDER = ("strategies", "outcomes", "opportunities", "solutions", "assumption-tests", "prds")
 
 # An ICP (Ideal Customer Profile) is the "who" the graph serves. It is not a step
 # in the outcome -> opportunity -> solution trace chain, so it does not nest under
@@ -35,13 +36,16 @@ ICP_COLLECTION = "icps"
 ICP_KIND = "icp"
 ICP_REFERENCE_FIELD = "icps"
 ICP_REFERRING_KINDS = {"outcome", "opportunity"}
+STRATEGY_COLLECTION = "strategies"
+STRATEGY_KIND = "strategy"
 
 # Node kinds that live directly under the graph root rather than under a parent node.
-ROOT_KINDS = {"outcome", "icp"}
+ROOT_KINDS = {"strategy", "outcome", "icp"}
 
 KIND_TO_MARKER_FILE = {kind: marker for marker, kind in MARKER_FILES.items()}
 
 KIND_TO_RELATIONSHIP = {
+    "strategy": "strategies",
     "icp": "icps",
     "outcome": "outcomes",
     "opportunity": "opportunities",
@@ -51,14 +55,14 @@ KIND_TO_RELATIONSHIP = {
 }
 
 PARENT_KIND_TO_CHILD_KIND = {
-    "root": {"outcome", "icp"},
+    "root": {"strategy", "outcome", "icp"},
     "outcome": {"opportunity"},
     "opportunity": {"opportunity", "solution"},
     "solution": {"assumption-test", "prd"},
 }
 
 ALLOWED_CHILD_RELATIONSHIPS = {
-    "root": {"outcomes"},
+    "root": {"strategies", "outcomes"},
     "vision": set(),
     "strategy": set(),
     "icp": set(),

@@ -28,6 +28,9 @@ The graph convention is:
 product/
   VISION.md
   STRATEGY.md
+  strategies/
+    <strategy>/
+      STRATEGY.md
   icps/
     <icp>/
       ICP.md
@@ -49,6 +52,8 @@ product/
                 <prd>/
                   PRD.md
 ```
+
+Strategies are top-level product context. The simple graph may use `product/STRATEGY.md`; historical or planned strategies may live under `product/strategies/<slug>/STRATEGY.md`. A strategy must declare `starts` and `ends` dates in its fenced yaml block, and status is derived from those dates rather than written. Strategy periods must not overlap.
 
 Assumption tests are the unified concept for the assumptions a solution depends on and the work done to test them (following Continuous Discovery Habits, which does not model experiments separately). They live under solutions. Do not create assumption tests directly under opportunities.
 
@@ -129,6 +134,7 @@ Create graph nodes through `oe new` instead of hand-rolling directories.
 
 ```sh
 uv run oe new icp <slug> --root product
+uv run oe new strategy <slug> --root product
 uv run oe new outcome <slug> --root product
 uv run oe new opportunity <slug> --root product --under outcome.<slug>
 uv run oe new solution <slug> --root product --under opportunity.<slug>

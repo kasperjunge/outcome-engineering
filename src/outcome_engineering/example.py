@@ -243,6 +243,13 @@ Enable knowledge workers to securely and effectively delegate work to AI agents.
         root / "STRATEGY.md",
         """# Strategy
 
+```yaml
+type: strategy
+id: strategy.example
+starts: 2026-01-01
+ends: 2026-03-31
+```
+
 Focus on recurring knowledge work where better task framing and safer tool access can make delegation feel trustworthy.
 """,
     )

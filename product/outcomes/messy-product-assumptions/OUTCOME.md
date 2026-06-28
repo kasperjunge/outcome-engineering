@@ -16,7 +16,7 @@ status: draft
 
 ## Known / Unknown
 
-- Known: the strategy prioritizes agent-native entry points before full graph completeness.
-- Known: challenge assumptions is the clearest wedge for helping users avoid building too long without validation.
-- Unknown: whether the current skill reliably improves product judgment on real messy inputs.
-- Unknown: which prompt flow, graph context, or output shape makes the workflow feel valuable enough to repeat.
+- Known: the strategy prioritizes a visual, repo-native graph as the shared product artifact.
+- Known: `oe-grill` is the first agent wedge for turning messy product conversations into graph updates.
+- Unknown: whether users return to the visual graph as shared product memory.
+- Unknown: which conversation flow makes `oe-grill` useful enough to repeat.

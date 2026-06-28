@@ -1,5 +1,12 @@
 # Strategy
 
+```yaml
+type: strategy
+id: strategy.visual-graph-wedge
+starts: 2026-06-28
+ends: 2026-09-30
+```
+
 Outcome Engineering should win first as a visual, repo-native product graph that helps teams understand, structure, and maintain their product thinking.
 
 The core strategic shape is to teach a practical framework for structuring product work, make that framework usable through a shared visual editor, and keep the underlying graph legible enough that agents can help teams build, review, and act on it.

@@ -228,6 +228,95 @@ def test_misplaced_icp_marker_is_invalid(tmp_path: Path) -> None:
     assert any("only valid directly under icps/" in issue.message for issue in issues)
 
 
+def test_strategy_requires_starts_and_ends(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    (root / "STRATEGY.md").write_text(
+        """# Strategy
+
+```yaml
+type: strategy
+id: strategy.current
+```
+""",
+        encoding="utf-8",
+    )
+
+    issues = validate(root)
+
+    assert any("strategy must declare starts" in issue.message for issue in issues)
+    assert any("strategy must declare ends" in issue.message for issue in issues)
+
+
+def test_strategy_rejects_status_and_invalid_date_range(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    (root / "STRATEGY.md").write_text(
+        """# Strategy
+
+```yaml
+type: strategy
+id: strategy.current
+starts: 2026-10-01
+ends: 2026-09-30
+status: active
+```
+""",
+        encoding="utf-8",
+    )
+
+    issues = validate(root)
+
+    assert any("strategy status is derived" in issue.message for issue in issues)
+    assert any("strategy starts must be on or before ends" in issue.message for issue in issues)
+
+
+def test_strategy_periods_must_not_overlap(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    strategy_dir = root / "strategies" / "next"
+    strategy_dir.mkdir(parents=True)
+    (root / "STRATEGY.md").write_text(
+        """# Strategy
+
+```yaml
+type: strategy
+id: strategy.current
+starts: 2026-07-01
+ends: 2026-09-30
+```
+""",
+        encoding="utf-8",
+    )
+    (strategy_dir / "STRATEGY.md").write_text(
+        """# Strategy
+
+```yaml
+type: strategy
+id: strategy.next
+starts: 2026-09-15
+ends: 2026-12-31
+```
+""",
+        encoding="utf-8",
+    )
+
+    issues = validate(root)
+
+    assert any("strategy period overlaps" in issue.message for issue in issues)
+
+
+def test_strategy_can_live_under_top_level_strategies_collection(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    strategy = create_node(root, kind="strategy", slug="visual-graph-wedge", title=None, under=None)
+    strategy.marker_file.write_text(
+        marker_content(strategy).replace("YYYY-MM-DD", "2026-07-01", 1).replace("YYYY-MM-DD", "2026-09-30", 1),
+        encoding="utf-8",
+    )
+
+    assert strategy.marker_file == root / "strategies" / "visual-graph-wedge" / "STRATEGY.md"
+    assert validate(root) == []
+
+
 def test_install_skill(tmp_path: Path) -> None:
     target = tmp_path / "skills" / "oe-cli"
 

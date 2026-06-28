@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import date
 import shutil
 from pathlib import Path
 
@@ -17,8 +19,17 @@ from outcome_engineering.model import (
     RELATIONSHIP_TO_CHILD_KIND,
     ROOT_KINDS,
     ProductNode,
+    STRATEGY_COLLECTION,
+    STRATEGY_KIND,
     ValidationIssue,
 )
+
+
+@dataclass(frozen=True)
+class StrategyPeriod:
+    marker: Path
+    starts: date
+    ends: date
 
 
 def marker_files_in(path: Path) -> list[Path]:
@@ -59,7 +70,7 @@ def discover_nodes(root: Path) -> list[ProductNode]:
     for child in sorted(root.iterdir()):
         if not child.is_dir():
             continue
-        if child.name == ICP_COLLECTION or child.name in RELATIONSHIP_TO_CHILD_KIND:
+        if child.name in {ICP_COLLECTION, STRATEGY_COLLECTION} or child.name in RELATIONSHIP_TO_CHILD_KIND:
             for node_dir in sorted(grandchild for grandchild in child.iterdir() if grandchild.is_dir()):
                 visit_node_dir(node_dir, None, child.name)
 
@@ -193,6 +204,7 @@ def delete_node(root: Path, selector: str, cascade: bool = False) -> ProductNode
 
 def render_template(kind: str, slug: str, title: str) -> str:
     sections = {
+        "strategy": "## Strategic Pillars\n\n- TODO\n\n## Adoption\n\nTODO\n\n## Not Now\n\n- TODO\n\n## Near-Term Outcome\n\nTODO\n",
         "icp": "## Who They Are\n\nTODO\n\n## Jobs / Pains\n\n- TODO\n\n## Why They Choose Us\n\n- TODO\n\n## Where They Are Not A Fit\n\n- TODO\n",
         "outcome": "## Measures\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
         "opportunity": "## Evidence\n\n- TODO\n\n## Known / Unknown\n\n- Known: TODO\n- Unknown: TODO\n",
@@ -201,6 +213,18 @@ def render_template(kind: str, slug: str, title: str) -> str:
         "prd": "## Problem\n\nTODO\n\n## User Stories\n\n- TODO\n\n## Acceptance Criteria\n\n- TODO\n",
     }
     body = sections[kind]
+    if kind == STRATEGY_KIND:
+        return f"""# {title}
+
+```yaml
+type: {kind}
+id: {kind}.{slug}
+starts: YYYY-MM-DD
+ends: YYYY-MM-DD
+```
+
+{body}
+"""
     return f"""# {title}
 
 ```yaml
@@ -248,6 +272,16 @@ def parse_icp_references(text: str) -> list[str]:
                 continue
         index += 1
     return [ref for ref in (_strip_quotes(ref) for ref in references) if ref]
+
+
+def parse_yaml_scalar(text: str, field: str) -> str | None:
+    prefix = f"{field}:"
+    for line in _yaml_block_lines(text):
+        stripped = line.strip()
+        if stripped.startswith(prefix):
+            value = stripped[len(prefix) :].strip()
+            return _strip_quotes(value) if value else ""
+    return None
 
 
 def node_icp_references(node: ProductNode) -> list[str]:
@@ -330,6 +364,7 @@ def validate(root: Path) -> list[ValidationIssue]:
         return [ValidationIssue(root, "path is not a directory")]
 
     seen_ids: dict[str, Path] = {}
+    strategy_periods: list[StrategyPeriod] = []
 
     for path in sorted([root, *[p for p in root.rglob("*") if p.is_dir()]]):
         markers = marker_files_in(path)
@@ -350,6 +385,17 @@ def validate(root: Path) -> list[ValidationIssue]:
                 issues.append(ValidationIssue(path, f"duplicate node id {node_id}; first seen at {seen_ids[node_id]}"))
             else:
                 seen_ids[node_id] = path
+
+            if kind == STRATEGY_KIND:
+                _validate_strategy_marker(marker, issues, strategy_periods)
+                if path.parent.name != STRATEGY_COLLECTION or path.parent.parent != root:
+                    issues.append(
+                        ValidationIssue(
+                            path,
+                            f"{marker.name} is only valid at the graph root or directly under {STRATEGY_COLLECTION}/ at the graph root",
+                        )
+                    )
+                continue
 
             if kind == ICP_KIND:
                 if path.parent.name != ICP_COLLECTION or path.parent.parent != root:
@@ -414,7 +460,57 @@ def validate(root: Path) -> list[ValidationIssue]:
             elif reference not in icp_ids:
                 issues.append(ValidationIssue(markers[0], f"icp reference {reference!r} does not resolve to a known ICP"))
 
+    root_strategy = root / "STRATEGY.md"
+    if root_strategy.is_file():
+        _validate_strategy_marker(root_strategy, issues, strategy_periods)
+    _validate_strategy_periods_do_not_overlap(strategy_periods, issues)
+
     return issues
+
+
+def _validate_strategy_marker(marker: Path, issues: list[ValidationIssue], strategy_periods: list[StrategyPeriod]) -> None:
+    content = marker.read_text(encoding="utf-8")
+    status = parse_yaml_scalar(content, "status")
+    if status is not None:
+        issues.append(ValidationIssue(marker, "strategy status is derived from starts/ends; remove status"))
+
+    starts_text = parse_yaml_scalar(content, "starts")
+    ends_text = parse_yaml_scalar(content, "ends")
+    if starts_text is None:
+        issues.append(ValidationIssue(marker, "strategy must declare starts: YYYY-MM-DD"))
+    if ends_text is None:
+        issues.append(ValidationIssue(marker, "strategy must declare ends: YYYY-MM-DD"))
+    if starts_text is None or ends_text is None:
+        return
+
+    starts = _parse_iso_date(starts_text, marker, "starts", issues)
+    ends = _parse_iso_date(ends_text, marker, "ends", issues)
+    if starts is None or ends is None:
+        return
+    if starts > ends:
+        issues.append(ValidationIssue(marker, "strategy starts must be on or before ends"))
+        return
+    strategy_periods.append(StrategyPeriod(marker=marker, starts=starts, ends=ends))
+
+
+def _parse_iso_date(value: str, marker: Path, field: str, issues: list[ValidationIssue]) -> date | None:
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        issues.append(ValidationIssue(marker, f"strategy {field} must be a date in YYYY-MM-DD format"))
+        return None
+
+
+def _validate_strategy_periods_do_not_overlap(strategy_periods: list[StrategyPeriod], issues: list[ValidationIssue]) -> None:
+    for index, current in enumerate(sorted(strategy_periods, key=lambda period: (period.starts, period.ends, str(period.marker)))):
+        for other in strategy_periods[index + 1 :]:
+            if current.starts <= other.ends and other.starts <= current.ends:
+                issues.append(
+                    ValidationIssue(
+                        other.marker,
+                        f"strategy period overlaps with {current.marker}: {other.starts.isoformat()}..{other.ends.isoformat()} overlaps {current.starts.isoformat()}..{current.ends.isoformat()}",
+                    )
+                )
 
 
 def parent_node_and_relationship(root: Path, path: Path) -> tuple[Path, str] | None:

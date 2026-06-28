@@ -54,7 +54,12 @@ def _root_marker_text(nodes: list, kind: str) -> str:
 
 def _schema() -> dict:
     """The model's placement rules, so the UI only ever offers legal moves."""
-    return {"childKinds": {parent: sorted(children) for parent, children in PARENT_KIND_TO_CHILD_KIND.items()}}
+    return {
+        "childKinds": {
+            parent: sorted(child for child in children if child in NODE_KINDS)
+            for parent, children in PARENT_KIND_TO_CHILD_KIND.items()
+        }
+    }
 
 
 def build_graph_payload(root: Path) -> dict:
