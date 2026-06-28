@@ -27,15 +27,3 @@ The primary product surface should be a visual editor for the product graph. Tea
 ### Make the graph agent-legible
 
 The graph should be structured so agents can inspect it, help build it, suggest updates, review current work against product intent, and answer practical questions like what to clarify, test, or build next. The CLI primarily exists as the agent and automation interface to this graph.
-
-## Adoption
-
-The adoption wedge should be the visual graph editor, because it makes product complexity concrete and gives teams a shared object to discuss. The first agent wedge should be `oe-grill`, a conversational skill that lets users talk naturally about their product, then incrementally turns that thinking into graph updates.
-
-## Not Now
-
-For now, Outcome Engineering should deprioritize full project management, roadmap planning, analytics dashboards, automatic graph mutation, and perfect graph completeness. Useful partial graphs and repeated team conversations matter more than exhaustive modeling.
-
-## Near-Term Outcome
-
-People use Outcome Engineering to create and discuss a visual product graph, feel the framework making their work clearer, and return to the graph as shared product memory. Some power users begin using agents to build, critique, and maintain the graph as part of everyday product work.

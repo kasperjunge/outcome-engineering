@@ -66,15 +66,6 @@
   }
   svg { width: 100%; height: 100%; display: block; cursor: grab; }
   svg.panning { cursor: grabbing; }
-  .legend {
-    position: absolute; left: 12px; bottom: 12px; background: rgba(255, 253, 247, .94);
-    border: 1.6px solid var(--line); border-radius: 7px 4px 8px 5px; padding: 8px 10px;
-    display: flex; flex-direction: column; gap: 5px; font-size: 12px; max-width: 190px;
-    box-shadow: 2px 2px 0 var(--shadow);
-  }
-  .legend .item { display: flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
-  .legend .item.off { opacity: .35; }
-  .legend .swatch { width: 12px; height: 12px; border: 1px solid var(--line); border-radius: 3px 5px 4px 2px; flex: 0 0 auto; }
   .hint {
     position: absolute; right: 12px; bottom: 12px; color: var(--muted);
     font-size: 12px; background: rgba(255, 253, 247, .88); padding: 5px 9px;
@@ -97,13 +88,10 @@
   .node .kind { font-size: 9px; letter-spacing: .04em; text-transform: uppercase; fill: var(--muted); }
   .node .label { font-size: 12px; font-weight: 600; fill: var(--text); }
   .node .status { font-size: 9px; fill: var(--muted); }
-  .node.dim { opacity: .2; }
   .node .fill { opacity: .14; }
   .node .stripe { opacity: .82; }
   .edge { fill: none; stroke: var(--line); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-  .edge.sketch-back { opacity: .24; stroke-width: 3.4; }
   .edge.icp { stroke: var(--icp); stroke-dasharray: 7 6; stroke-width: 1.7; opacity: .8; }
-  .edge.icp.sketch-back { stroke-dasharray: none; opacity: .16; }
   .edge.dim { opacity: .08; }
   .toggle { cursor: pointer; }
   .toggle circle { fill: #fffdf7; stroke: var(--line); stroke-width: 1.5; filter: url(#sketch); }
@@ -173,8 +161,6 @@
     <span class="spacer"></span>
     <button class="btn" id="btn-add-outcome">+ Outcome</button>
     <button class="btn" id="btn-add-icp">+ ICP</button>
-    <button class="btn" id="btn-vision">Vision</button>
-    <button class="btn" id="btn-strategy">Strategy</button>
     <button class="btn" id="btn-overview">Overview</button>
     <button class="btn" id="btn-fit">Fit</button>
   </header>
@@ -189,7 +175,6 @@
         </defs>
         <g id="viewport"></g>
       </svg>
-      <div class="legend" id="legend"></div>
       <div class="hint">scroll to zoom · drag to pan · click an outcome to focus</div>
       <div id="toast"></div>
     </div>
@@ -203,7 +188,8 @@ const KIND_COLOR = {
   "icp": "#b07cf0", "outcome": "#4f8cf7", "opportunity": "#2bb3a3",
   "solution": "#f0913a", "assumption-test": "#e6c34a", "prd": "#8a94a6",
 };
-const NODE_W = 168, NODE_H = 46, ROW_H = 118, COL_W = 196;
+const NODE_W = 240, NODE_MIN_H = 58, ROW_H = 142, COL_W = 284;
+const TITLE_CHARS_PER_LINE = 24, TITLE_LINE_H = 14;
 
 let GRAPH = { nodes: [], edges: [], schema: { childKinds: {} } };
 let byId = new Map(), childrenOf = new Map(), visions = [], strategies = [], outcomes = [], icps = [];
@@ -247,7 +233,6 @@ const state = {
   focus: null,        // outcome id when focused
   collapsed: new Set(),
   selected: null,
-  hiddenKinds: new Set(),
   view: { x: 0, y: 0, k: 1 },
 };
 
@@ -260,20 +245,48 @@ function el(tag, attrs = {}, children = []) {
 function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
 
 // ---- node + edge primitives -------------------------------------------------
+function wrapTitle(title) {
+  const words = String(title || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+  words.forEach(word => {
+    while (word.length > TITLE_CHARS_PER_LINE) {
+      if (line) { lines.push(line); line = ""; }
+      lines.push(word.slice(0, TITLE_CHARS_PER_LINE));
+      word = word.slice(TITLE_CHARS_PER_LINE);
+    }
+    if (!line) { line = word; return; }
+    if ((line + " " + word).length <= TITLE_CHARS_PER_LINE) line += " " + word;
+    else { lines.push(line); line = word; }
+  });
+  if (line) lines.push(line);
+  return lines.length ? lines : [""];
+}
+function nodeHeight(n) {
+  const contentH = 32 + wrapTitle(n.title).length * TITLE_LINE_H + (n.status ? 12 : 0);
+  return Math.max(NODE_MIN_H, contentH);
+}
 function drawNode(n, x, y, opts = {}) {
   const color = KIND_COLOR[n.kind] || "#888";
-  const g = el("g", { class: "node" + (state.selected === n.id ? " selected" : "") + (state.hiddenKinds.has(n.kind) ? " dim" : ""), transform: `translate(${x},${y})` });
-  g.appendChild(el("rect", { class: "fill", x: -NODE_W / 2 + 2, y: -NODE_H / 2 + 2, width: NODE_W - 4, height: NODE_H - 4, rx: 6, fill: color }));
-  g.appendChild(el("rect", { class: "box", x: -NODE_W / 2, y: -NODE_H / 2, width: NODE_W, height: NODE_H, rx: 7, stroke: color }));
-  g.appendChild(el("path", { class: "stripe", d: `M ${-NODE_W / 2 + 8} ${-NODE_H / 2 + 6} L ${-NODE_W / 2 + 8} ${NODE_H / 2 - 7}`, stroke: color, "stroke-width": 5, "stroke-linecap": "round" }));
-  const kindText = el("text", { class: "kind", x: -NODE_W / 2 + 14, y: -NODE_H / 2 + 14 });
+  const h = nodeHeight(n);
+  const top = -h / 2;
+  const left = -NODE_W / 2;
+  const g = el("g", { class: "node" + (state.selected === n.id ? " selected" : ""), transform: `translate(${x},${y})` });
+  g.appendChild(el("rect", { class: "fill", x: left + 2, y: top + 2, width: NODE_W - 4, height: h - 4, rx: 6, fill: color }));
+  g.appendChild(el("rect", { class: "box", x: left, y: top, width: NODE_W, height: h, rx: 7, stroke: color }));
+  g.appendChild(el("path", { class: "stripe", d: `M ${left + 8} ${top + 6} L ${left + 8} ${h / 2 - 7}`, stroke: color, "stroke-width": 5, "stroke-linecap": "round" }));
+  const kindText = el("text", { class: "kind", x: left + 16, y: top + 15 });
   kindText.textContent = n.kind;
   g.appendChild(kindText);
-  const label = el("text", { class: "label", x: -NODE_W / 2 + 14, y: 6 });
-  label.textContent = truncate(n.title, 22);
+  const label = el("text", { class: "label", x: left + 16, y: top + 34 });
+  wrapTitle(n.title).forEach((line, i) => {
+    const tspan = el("tspan", { x: left + 16, dy: i === 0 ? 0 : TITLE_LINE_H });
+    tspan.textContent = line;
+    label.appendChild(tspan);
+  });
   g.appendChild(label);
   if (n.status) {
-    const s = el("text", { class: "status", x: -NODE_W / 2 + 14, y: NODE_H / 2 - 7 });
+    const s = el("text", { class: "status", x: left + 16, y: h / 2 - 8 });
     s.textContent = n.status;
     g.appendChild(s);
   }
@@ -281,7 +294,7 @@ function drawNode(n, x, y, opts = {}) {
   viewport.appendChild(g);
   // collapse / expand toggle
   if (opts.toggle) {
-    const t = el("g", { class: "toggle", transform: `translate(${x},${y + NODE_H / 2 + 12})` });
+    const t = el("g", { class: "toggle", transform: `translate(${x},${y + h / 2 + 12})` });
     t.appendChild(el("circle", { r: 10 }));
     const sign = el("text", {});
     sign.textContent = state.collapsed.has(n.id) ? "+" : "−";
@@ -295,13 +308,9 @@ function drawNode(n, x, y, opts = {}) {
 function edgePath(a, b, type) {
   const my = (a.y + b.y) / 2;
   const wobble = sketchOffset(a, b);
-  const d = `M ${a.x} ${a.y + NODE_H / 2} C ${a.x + wobble.a} ${my + wobble.b}, ${b.x + wobble.c} ${my - wobble.a}, ${b.x} ${b.y - NODE_H / 2}`;
-  const dBack = `M ${a.x + wobble.b} ${a.y + NODE_H / 2 + wobble.a} C ${a.x + wobble.c} ${my - wobble.b}, ${b.x - wobble.b} ${my + wobble.c}, ${b.x + wobble.a} ${b.y - NODE_H / 2 - wobble.b}`;
+  const d = `M ${a.x} ${a.y + (a.h || NODE_MIN_H) / 2} C ${a.x + wobble.a} ${my + wobble.b}, ${b.x + wobble.c} ${my - wobble.a}, ${b.x} ${b.y - (b.h || NODE_MIN_H) / 2}`;
   const cls = "edge" + (type === "icp" ? " icp" : "");
-  return el("g", {}, [
-    el("path", { class: cls + " sketch-back", d: dBack }),
-    el("path", { class: cls, d }),
-  ]);
+  return el("path", { class: cls, d });
 }
 function sketchOffset(a, b) {
   const seed = Math.sin((a.x * 12.9898) + (a.y * 78.233) + (b.x * 37.719) + (b.y * 11.131)) * 43758.5453;
@@ -312,8 +321,6 @@ function sketchOffset(a, b) {
     c: ((f * 13) % 1 - .5) * 14,
   };
 }
-function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
-
 // ---- overview (strategic) layout -------------------------------------------
 function renderOverview() {
   clear(viewport);
@@ -326,32 +333,27 @@ function renderOverview() {
   const outX = spread(outcomes.length, COL_W * 1.15);
   const visionY = 0, strategyY = ROW_H * 1.15, icpY = ROW_H * 2.3, outY = ROW_H * 3.7;
   const pos = new Map();
-  usedVisions.forEach((vision, i) => pos.set(vision.id, { x: visionX[i], y: visionY }));
-  usedStrategies.forEach((strategy, i) => pos.set(strategy.id, { x: strategyX[i], y: strategyY }));
-  usedIcps.forEach((icp, i) => pos.set(icp.id, { x: icpX[i], y: icpY }));
-  outcomes.forEach((o, i) => pos.set(o.id, { x: outX[i], y: outY }));
+  usedVisions.forEach((vision, i) => pos.set(vision.id, { x: visionX[i], y: visionY, h: nodeHeight(vision) }));
+  usedStrategies.forEach((strategy, i) => pos.set(strategy.id, { x: strategyX[i], y: strategyY, h: nodeHeight(strategy) }));
+  usedIcps.forEach((icp, i) => pos.set(icp.id, { x: icpX[i], y: icpY, h: nodeHeight(icp) }));
+  outcomes.forEach((o, i) => pos.set(o.id, { x: outX[i], y: outY, h: nodeHeight(o) }));
 
   // top-level strategic context edges
-  if (!state.hiddenKinds.has("vision")) {
-    usedVisions.forEach(vision => {
-      const targets = usedStrategies.length && !state.hiddenKinds.has("strategy") ? usedStrategies : outcomes;
-      targets.forEach(target => {
-        if (pos.has(target.id) && !state.hiddenKinds.has(target.kind)) viewport.appendChild(edgePath(pos.get(vision.id), pos.get(target.id), "structural"));
-      });
+  usedVisions.forEach(vision => {
+    const targets = usedStrategies.length ? usedStrategies : outcomes;
+    targets.forEach(target => {
+      if (pos.has(target.id)) viewport.appendChild(edgePath(pos.get(vision.id), pos.get(target.id), "structural"));
     });
-  }
-  if (!state.hiddenKinds.has("strategy")) {
-    usedStrategies.forEach(strategy => {
-      outcomes.forEach(o => {
-        if (!state.hiddenKinds.has("outcome")) viewport.appendChild(edgePath(pos.get(strategy.id), pos.get(o.id), "structural"));
-      });
+  });
+  usedStrategies.forEach(strategy => {
+    outcomes.forEach(o => {
+      viewport.appendChild(edgePath(pos.get(strategy.id), pos.get(o.id), "structural"));
     });
-  }
+  });
   // edges: outcome serves icp (aggregated over its subtree)
   outcomes.forEach(o => {
-    if (state.hiddenKinds.has("outcome")) return;
     subtreeIcps(o).forEach(icpId => {
-      if (!pos.has(icpId) || state.hiddenKinds.has("icp")) return;
+      if (!pos.has(icpId)) return;
       viewport.appendChild(edgePath(pos.get(o.id), pos.get(icpId), "icp"));
     });
   });
@@ -367,7 +369,7 @@ function renderOverview() {
 
 function addBandLabel(text, xs, y) {
   if (!xs.length) return;
-  const t = el("text", { class: "band-label", x: Math.min(...xs) - NODE_W / 2, y: y - NODE_H / 2 - 14 });
+  const t = el("text", { class: "band-label", x: Math.min(...xs) - NODE_W / 2, y: y - NODE_MIN_H / 2 - 18 });
   t.textContent = text;
   viewport.appendChild(t);
 }
@@ -386,15 +388,15 @@ function renderFocus(outcomeId) {
   let cursor = 0;
   const pos = new Map();
   (function layout(n, depth) {
-    const kids = state.collapsed.has(n.id) ? [] : (childrenOf.get(n.id) || []).filter(c => !state.hiddenKinds.has(c.kind));
+    const kids = state.collapsed.has(n.id) ? [] : (childrenOf.get(n.id) || []);
     const y = depth * ROW_H;
     if (kids.length === 0) {
-      pos.set(n.id, { x: cursor * COL_W, y });
+      pos.set(n.id, { x: cursor * COL_W, y, h: nodeHeight(n) });
       cursor++;
     } else {
       kids.forEach(c => layout(c, depth + 1));
       const xs = kids.map(c => pos.get(c.id).x);
-      pos.set(n.id, { x: (Math.min(...xs) + Math.max(...xs)) / 2, y });
+      pos.set(n.id, { x: (Math.min(...xs) + Math.max(...xs)) / 2, y, h: nodeHeight(n) });
     }
   })(root, 1);
 
@@ -402,28 +404,26 @@ function renderFocus(outcomeId) {
   const served = subtreeIcps(root).map(id => byId.get(id)).filter(Boolean);
   const icpXs = spread(served.length, COL_W);
   const rootX = pos.get(root.id).x;
-  served.forEach((icp, i) => pos.set(icp.id, { x: rootX + icpXs[i], y: -ROW_H * 0.55 }));
+  served.forEach((icp, i) => pos.set(icp.id, { x: rootX + icpXs[i], y: -ROW_H * 0.55, h: nodeHeight(icp) }));
 
   // structural edges
   (function edges(n) {
     if (state.collapsed.has(n.id)) return;
-    (childrenOf.get(n.id) || []).filter(c => !state.hiddenKinds.has(c.kind)).forEach(c => {
+    (childrenOf.get(n.id) || []).forEach(c => {
       viewport.appendChild(edgePath(pos.get(n.id), pos.get(c.id), "structural"));
       edges(c);
     });
   })(root);
   // icp reference edges to the specific referrers
-  if (!state.hiddenKinds.has("icp")) {
-    served.forEach(icp => {
-      referrersOf(root, icp.id).forEach(ref => {
-        if (pos.has(ref.id)) viewport.appendChild(edgePath(pos.get(icp.id), pos.get(ref.id), "icp"));
-      });
+  served.forEach(icp => {
+    referrersOf(root, icp.id).forEach(ref => {
+      if (pos.has(ref.id)) viewport.appendChild(edgePath(pos.get(icp.id), pos.get(ref.id), "icp"));
     });
-  }
+  });
   served.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
   (function nodes(n) {
     const p = pos.get(n.id);
-    const kids = (childrenOf.get(n.id) || []).filter(c => !state.hiddenKinds.has(c.kind));
+    const kids = childrenOf.get(n.id) || [];
     drawNode(n, p.x, p.y, { toggle: kids.length > 0 });
     if (!state.collapsed.has(n.id)) kids.forEach(nodes);
   })(root);
@@ -444,7 +444,6 @@ function render({ fitView = false } = {}) {
   if (state.mode === "focus" && state.focus) renderFocus(state.focus);
   else renderOverview();
   renderCrumbs();
-  renderLegend();
   document.getElementById("btn-overview").disabled = state.mode === "overview";
   if (fitView) fit();
   else applyView();
@@ -461,22 +460,6 @@ function renderCrumbs() {
   c.appendChild(link);
   c.appendChild(document.createTextNode(" / " + (o ? o.title : state.focus)));
 }
-function renderLegend() {
-  const present = new Set(GRAPH.nodes.map(n => n.kind));
-  const wrap = document.getElementById("legend");
-  clearHtml(wrap);
-  KINDS.filter(k => present.has(k)).forEach(k => {
-    const item = document.createElement("div");
-    item.className = "item" + (state.hiddenKinds.has(k) ? " off" : "");
-    const sw = document.createElement("span");
-    sw.className = "swatch"; sw.style.background = KIND_COLOR[k];
-    const lab = document.createElement("span"); lab.textContent = k;
-    item.appendChild(sw); item.appendChild(lab);
-    item.onclick = () => { state.hiddenKinds.has(k) ? state.hiddenKinds.delete(k) : state.hiddenKinds.add(k); render({ fitView: true }); };
-    wrap.appendChild(item);
-  });
-}
-
 // ---- detail panel -----------------------------------------------------------
 function clearHtml(node) { while (node.firstChild) node.removeChild(node.firstChild); }
 function clearDetail() {
@@ -754,25 +737,9 @@ document.getElementById("btn-overview").onclick = goOverview;
 document.getElementById("btn-fit").onclick = fit;
 document.getElementById("btn-add-outcome").onclick = () => showCreateForm("outcome", null);
 document.getElementById("btn-add-icp").onclick = () => showCreateForm("icp", null);
-document.getElementById("btn-vision").onclick = () => selectFirstNode("vision", "Vision", GRAPH.vision);
-document.getElementById("btn-strategy").onclick = () => selectFirstNode("strategy", "Strategy", GRAPH.strategy);
 window.addEventListener("resize", () => applyView());
 
 // ---- data loading -----------------------------------------------------------
-function selectFirstNode(kind, title, fallbackBody) {
-  const node = GRAPH.nodes.find(n => n.kind === kind);
-  if (node) {
-    state.mode = "overview";
-    state.focus = null;
-    state.selected = node.id;
-    render({ fitView: true });
-    showDetail(node);
-  } else {
-    state.selected = null;
-    render({ fitView: true });
-    showDoc(title, stripFrontHeading(fallbackBody || "_No content recorded._"));
-  }
-}
 async function reload(selectId) {
   const res = await api("GET", "/api/graph");
   if (!res.ok) { toast("Failed to load graph", "error"); return; }
