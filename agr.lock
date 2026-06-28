@@ -12,3 +12,7 @@ installed-name = "agr-cli"
 [[skill]]
 path = "./skills/oe-cli"
 installed-name = "oe-cli"
+
+[[skill]]
+path = "./skills/oe-grill"
+installed-name = "oe-grill"
