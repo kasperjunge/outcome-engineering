@@ -192,25 +192,25 @@ def test_marker_content_and_supporting_files(tmp_path: Path) -> None:
 
 
 def test_parse_icp_references_block_and_inline() -> None:
-    block = """# Outcome
-
-```yaml
+    block = """---
 type: outcome
 id: outcome.x
 icps:
   - icp.a
   - icp.b
 status: draft
-```
-"""
-    inline = """# Outcome
+---
 
-```yaml
+# Outcome
+"""
+    inline = """---
 type: outcome
 id: outcome.x
 icps: [icp.a, "icp.b"]
 status: draft
-```
+---
+
+# Outcome
 """
     assert parse_icp_references(block) == ["icp.a", "icp.b"]
     assert parse_icp_references(inline) == ["icp.a", "icp.b"]
@@ -293,12 +293,13 @@ def test_strategy_requires_starts_and_ends(tmp_path: Path) -> None:
     root = tmp_path / "product"
     root.mkdir()
     (root / "STRATEGY.md").write_text(
-        """# Strategy
-
-```yaml
+        """---
 type: strategy
 id: strategy.current
-```
+name: Current Strategy
+---
+
+# Strategy
 """,
         encoding="utf-8",
     )
@@ -309,19 +310,63 @@ id: strategy.current
     assert any("strategy must declare ends" in issue.message for issue in issues)
 
 
+def test_strategy_requires_name(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    (root / "STRATEGY.md").write_text(
+        """---
+type: strategy
+id: strategy.current
+starts: 2026-07-01
+ends: 2026-09-30
+---
+
+# Strategy
+""",
+        encoding="utf-8",
+    )
+
+    issues = validate(root)
+
+    assert any("strategy must declare name" in issue.message for issue in issues)
+
+
+def test_fenced_yaml_metadata_is_invalid(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    outcome = root / "outcomes" / "activation"
+    outcome.mkdir(parents=True)
+    (outcome / "OUTCOME.md").write_text(
+        """# Activation
+
+```yaml
+type: outcome
+id: outcome.activation
+status: draft
+```
+""",
+        encoding="utf-8",
+    )
+
+    issues = validate(root)
+
+    assert any("metadata must use frontmatter" in issue.message for issue in issues)
+
+
 def test_strategy_rejects_status_and_invalid_date_range(tmp_path: Path) -> None:
     root = tmp_path / "product"
     root.mkdir()
     (root / "STRATEGY.md").write_text(
-        """# Strategy
-
-```yaml
+        """---
 type: strategy
 id: strategy.current
+name: Current Strategy
 starts: 2026-10-01
 ends: 2026-09-30
 status: active
-```
+---
+
+# Strategy
 """,
         encoding="utf-8",
     )
@@ -337,26 +382,28 @@ def test_strategy_periods_must_not_overlap(tmp_path: Path) -> None:
     strategy_dir = root / "strategies" / "next"
     strategy_dir.mkdir(parents=True)
     (root / "STRATEGY.md").write_text(
-        """# Strategy
-
-```yaml
+        """---
 type: strategy
 id: strategy.current
+name: Current Strategy
 starts: 2026-07-01
 ends: 2026-09-30
-```
+---
+
+# Strategy
 """,
         encoding="utf-8",
     )
     (strategy_dir / "STRATEGY.md").write_text(
-        """# Strategy
-
-```yaml
+        """---
 type: strategy
 id: strategy.next
+name: Next Strategy
 starts: 2026-09-15
 ends: 2026-12-31
-```
+---
+
+# Strategy
 """,
         encoding="utf-8",
     )
@@ -584,7 +631,15 @@ def test_server_handles_favicon_without_browser_console_404(tmp_path: Path) -> N
 def test_graph_template_keeps_focus_toggles_attached_to_nodes() -> None:
     page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
 
-    assert 'class: "toggle", transform: `translate(${x},${y + NODE_H / 2 + 12})`' in page
+    assert 'class: "toggle", transform: `translate(${x},${y + h / 2 + 12})`' in page
+
+
+def test_graph_template_wraps_full_node_titles() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert "function wrapTitle(title)" in page
+    assert "wrapTitle(n.title).forEach" in page
+    assert "truncate(n.title" not in page
 
 
 def test_graph_template_keeps_invalid_edits_recoverable() -> None:

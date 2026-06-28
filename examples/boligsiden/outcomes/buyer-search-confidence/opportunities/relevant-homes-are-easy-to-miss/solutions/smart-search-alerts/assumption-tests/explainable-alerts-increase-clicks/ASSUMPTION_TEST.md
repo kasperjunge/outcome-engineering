@@ -1,10 +1,10 @@
-# Explainable Alerts Increase Clicks
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.explainable-alerts-increase-clicks
 status: planned
-```
+---
+
+# Explainable Alerts Increase Clicks
 
 ## Assumption
 

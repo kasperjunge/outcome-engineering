@@ -679,9 +679,9 @@ function clearIssues() {
   document.querySelectorAll("#detail .issues").forEach(node => node.remove());
 }
 
-// drop the leading "# Title" and the fenced yaml block from the node body
+// drop the document metadata and leading "# Title" from the node body
 function stripFrontHeading(body) {
-  return body.replace(/^#\s+.*\n/, "").replace(/```yaml[\s\S]*?```/, "").trim();
+  return body.replace(/^---\n[\s\S]*?\n---\n?/, "").replace(/^#\s+.*\n/, "").trim();
 }
 
 // minimal, safe markdown -> html (escapes first, then formats a known subset)

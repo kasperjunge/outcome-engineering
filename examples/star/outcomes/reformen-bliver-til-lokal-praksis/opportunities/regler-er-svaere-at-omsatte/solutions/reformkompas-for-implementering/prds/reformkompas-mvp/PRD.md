@@ -1,10 +1,10 @@
-# Reformkompas MVP
-
-```yaml
+---
 type: prd
 id: prd.reformkompas-mvp
 status: draft
-```
+---
+
+# Reformkompas MVP
 
 ## Problem
 

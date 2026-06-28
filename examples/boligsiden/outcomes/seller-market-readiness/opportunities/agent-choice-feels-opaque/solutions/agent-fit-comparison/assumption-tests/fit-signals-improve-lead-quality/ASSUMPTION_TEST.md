@@ -1,10 +1,10 @@
-# Fit Signals Improve Lead Quality
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.fit-signals-improve-lead-quality
 status: planned
-```
+---
+
+# Fit Signals Improve Lead Quality
 
 ## Assumption
 

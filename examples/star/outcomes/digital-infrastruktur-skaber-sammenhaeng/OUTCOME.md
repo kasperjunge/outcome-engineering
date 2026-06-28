@@ -1,6 +1,4 @@
-# Digital Infrastruktur Skaber Sammenhæng
-
-```yaml
+---
 type: outcome
 id: outcome.digital-infrastruktur-skaber-sammenhaeng
 icps:
@@ -8,7 +6,9 @@ icps:
   - icp.akasse-driftsleder
   - icp.beslutningstager-og-analytiker
 status: active
-```
+---
+
+# Digital Infrastruktur Skaber Sammenhæng
 
 Kommuner, a-kasser og STAR kan arbejde mere stabilt på tværs af digitale services, dataudveksling og support, så faglig drift ikke bremses af uklare system- eller datafejl.
 

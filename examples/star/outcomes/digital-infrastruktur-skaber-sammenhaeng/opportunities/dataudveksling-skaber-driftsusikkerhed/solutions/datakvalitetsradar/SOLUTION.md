@@ -1,10 +1,10 @@
-# Datakvalitetsradar
-
-```yaml
+---
 type: solution
 id: solution.datakvalitetsradar
 status: planned
-```
+---
+
+# Datakvalitetsradar
 
 Et internt og aktørrettet overblik over datakvalitetsindikatorer, kendte afvigelser, berørte systemer, dataejer og forventet opfølgning.
 

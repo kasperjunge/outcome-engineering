@@ -1,9 +1,10 @@
-# Strategi
-
-```yaml
+---
+name: Reformen Bliver Til Lokal Praksis
 starts: 2026-07-01
 ends: 2027-06-30
-```
+---
+
+# Strategi
 
 Brug STARs position på tværs af politikforberedelse, lovarbejde, implementering, viden og digitalisering til at gøre beskæftigelsesreformen lettere at forstå, styre og omsætte lokalt.
 

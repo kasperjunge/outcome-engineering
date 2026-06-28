@@ -1,10 +1,10 @@
-# Myndighedsvejviser
-
-```yaml
+---
 type: solution
 id: solution.myndighedsvejviser
 status: planned
-```
+---
+
+# Myndighedsvejviser
 
 En enkel vejviser for professionelle brugere, der hjælper med at afgøre, om et spørgsmål hører hjemme hos STAR, kommune, a-kasse, Jobnet support, borger.dk, virk.dk eller en anden myndighed.
 

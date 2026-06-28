@@ -1,10 +1,10 @@
-# Future Home Seller
-
-```yaml
+---
 type: icp
 id: icp.future-home-seller
 status: active
-```
+---
+
+# Future Home Seller
 
 ## Who They Are
 

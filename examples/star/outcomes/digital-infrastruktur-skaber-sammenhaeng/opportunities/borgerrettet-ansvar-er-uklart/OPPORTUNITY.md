@@ -1,10 +1,10 @@
-# Borgerrettet Ansvar Er Uklart
-
-```yaml
+---
 type: opportunity
 id: opportunity.borgerrettet-ansvar-er-uklart
 status: discovery
-```
+---
+
+# Borgerrettet Ansvar Er Uklart
 
 Borgere og virksomheder kan møde STARs indhold, Jobnet, borger.dk, virk.dk, kommune og a-kasse i samme problemforløb, og professionelle brugere skal kunne guide dem korrekt.
 

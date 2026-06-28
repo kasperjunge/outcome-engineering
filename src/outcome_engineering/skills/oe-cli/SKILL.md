@@ -53,18 +53,22 @@ product/
                   PRD.md
 ```
 
-Strategies are top-level product context. The simple graph may use `product/STRATEGY.md`; historical or planned strategies may live under `product/strategies/<slug>/STRATEGY.md`. A strategy must declare `starts` and `ends` dates in its fenced yaml block, and status is derived from those dates rather than written. Strategy periods must not overlap.
+Strategies are top-level product context. The simple graph may use `product/STRATEGY.md`; historical or planned strategies may live under `product/strategies/<slug>/STRATEGY.md`. A strategy must declare `name`, `starts`, and `ends` in frontmatter, and status is derived from those dates rather than written. Strategy periods must not overlap.
 
 Assumption tests are the unified concept for the assumptions a solution depends on and the work done to test them (following Continuous Discovery Habits, which does not model experiments separately). They live under solutions. Do not create assumption tests directly under opportunities.
 
-An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more. ICPs are not part of the outcome → opportunity → solution trace chain, so they do not nest under another node; they live in the top-level `icps/` collection. Outcomes and opportunities declare which ICPs they serve by listing icp ids in their yaml block:
+All graph metadata lives in Markdown frontmatter. Fenced YAML metadata blocks are invalid.
 
-```yaml
+An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more. ICPs are not part of the outcome → opportunity → solution trace chain, so they do not nest under another node; they live in the top-level `icps/` collection. Outcomes and opportunities declare which ICPs they serve by listing icp ids in frontmatter:
+
+```md
+---
 type: outcome
 id: outcome.<slug>
 icps:
   - icp.<slug>
 status: draft
+---
 ```
 
 `oe context` resolves these references and surfaces the ICPs a node serves, including ones inherited from outcome or opportunity ancestors.

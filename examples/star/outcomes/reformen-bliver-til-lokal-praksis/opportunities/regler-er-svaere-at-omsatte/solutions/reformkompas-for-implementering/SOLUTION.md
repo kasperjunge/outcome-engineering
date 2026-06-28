@@ -1,10 +1,10 @@
-# Reformkompas For Implementering
-
-```yaml
+---
 type: solution
 id: solution.reformkompas-for-implementering
 status: planned
-```
+---
+
+# Reformkompas For Implementering
 
 Et samlet implementeringskompas for hvert større reformelement med målgruppe, ikrafttrædelsesdato, lokale beslutninger, nødvendige arbejdsgange, ofte stillede spørgsmål, systempåvirkning og anbefalet ledelsesdialog.
 

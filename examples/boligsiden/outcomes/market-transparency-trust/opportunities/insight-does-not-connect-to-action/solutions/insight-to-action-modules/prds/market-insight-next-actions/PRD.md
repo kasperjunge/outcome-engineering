@@ -1,10 +1,10 @@
-# Market Insight Next Actions
-
-```yaml
+---
 type: prd
 id: prd.market-insight-next-actions
 status: draft
-```
+---
+
+# Market Insight Next Actions
 
 ## Problem
 

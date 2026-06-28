@@ -1,10 +1,10 @@
-# Property Tradeoffs Are Hard To Compare
-
-```yaml
+---
 type: opportunity
 id: opportunity.property-tradeoffs-are-hard-to-compare
 status: discovery
-```
+---
+
+# Property Tradeoffs Are Hard To Compare
 
 Buyers compare homes across price, square meters, energy, location, days on market, price changes, and subjective fit, but listings are often evaluated one at a time.
 

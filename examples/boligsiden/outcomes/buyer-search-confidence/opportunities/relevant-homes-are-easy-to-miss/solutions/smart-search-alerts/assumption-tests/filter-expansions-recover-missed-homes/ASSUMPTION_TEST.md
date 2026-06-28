@@ -1,10 +1,10 @@
-# Filter Expansions Recover Missed Homes
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.filter-expansions-recover-missed-homes
 status: planned
-```
+---
+
+# Filter Expansions Recover Missed Homes
 
 ## Assumption
 

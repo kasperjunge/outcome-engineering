@@ -1,10 +1,10 @@
-# Area Watchlists Capture Early Buyers
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.area-watchlists-capture-early-buyers
 status: planned
-```
+---
+
+# Area Watchlists Capture Early Buyers
 
 ## Assumption
 

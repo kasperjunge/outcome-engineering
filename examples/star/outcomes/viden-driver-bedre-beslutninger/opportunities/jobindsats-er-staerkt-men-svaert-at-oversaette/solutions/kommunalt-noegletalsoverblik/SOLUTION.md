@@ -1,10 +1,10 @@
-# Kommunalt Nøgletalsoverblik
-
-```yaml
+---
 type: solution
 id: solution.kommunalt-noegletalsoverblik
 status: planned
-```
+---
+
+# Kommunalt Nøgletalsoverblik
 
 Et forklarende overblik for kommunale ledere, der kombinerer få centrale Jobindsats-nøgletal med definitioner, sammenligning, udvikling over tid og anbefalede opfølgningsspørgsmål.
 

@@ -1,10 +1,10 @@
-# Active Home Buyer
-
-```yaml
+---
 type: icp
 id: icp.active-home-buyer
 status: active
-```
+---
+
+# Active Home Buyer
 
 ## Who They Are
 

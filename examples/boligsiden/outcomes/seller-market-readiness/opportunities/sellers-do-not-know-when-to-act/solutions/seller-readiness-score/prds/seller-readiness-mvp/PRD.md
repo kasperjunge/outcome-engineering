@@ -1,10 +1,10 @@
-# Seller Readiness MVP
-
-```yaml
+---
 type: prd
 id: prd.seller-readiness-mvp
 status: draft
-```
+---
+
+# Seller Readiness MVP
 
 ## Problem
 

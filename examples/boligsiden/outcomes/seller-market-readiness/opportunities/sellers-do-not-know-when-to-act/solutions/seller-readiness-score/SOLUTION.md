@@ -1,10 +1,10 @@
-# Seller Readiness Score
-
-```yaml
+---
 type: solution
 id: solution.seller-readiness-score
 status: planned
-```
+---
+
+# Seller Readiness Score
 
 A local-market readiness summary that combines recent sales, price trends, active supply, time-on-market, and demand indicators for the seller's area and property type.
 

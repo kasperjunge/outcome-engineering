@@ -1,10 +1,10 @@
-# Smart Alerts MVP
-
-```yaml
+---
 type: prd
 id: prd.smart-alerts-mvp
 status: draft
-```
+---
+
+# Smart Alerts MVP
 
 ## Problem
 

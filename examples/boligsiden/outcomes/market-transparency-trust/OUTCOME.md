@@ -1,6 +1,4 @@
-# Market Transparency Trust
-
-```yaml
+---
 type: outcome
 id: outcome.market-transparency-trust
 icps:
@@ -8,7 +6,9 @@ icps:
   - icp.active-home-buyer
   - icp.future-home-seller
 status: active
-```
+---
+
+# Market Transparency Trust
 
 Consumers and market followers trust Boligsiden as a clear, current, and explainable source for Danish housing-market insight.
 

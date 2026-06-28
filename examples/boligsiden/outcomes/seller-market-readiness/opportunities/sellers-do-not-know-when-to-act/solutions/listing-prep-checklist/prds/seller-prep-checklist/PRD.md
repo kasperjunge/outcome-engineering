@@ -1,10 +1,10 @@
-# Seller Prep Checklist
-
-```yaml
+---
 type: prd
 id: prd.seller-prep-checklist
 status: draft
-```
+---
+
+# Seller Prep Checklist
 
 ## Problem
 

@@ -1,10 +1,10 @@
-# Data Freshness Indicators
-
-```yaml
+---
 type: prd
 id: prd.data-freshness-indicators
 status: draft
-```
+---
+
+# Data Freshness Indicators
 
 ## Problem
 

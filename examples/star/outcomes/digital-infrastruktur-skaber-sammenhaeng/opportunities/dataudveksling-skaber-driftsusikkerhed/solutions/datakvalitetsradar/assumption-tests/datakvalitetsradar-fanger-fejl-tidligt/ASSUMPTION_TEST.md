@@ -1,10 +1,10 @@
-# Datakvalitetsradar Fanger Fejl Tidligt
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.datakvalitetsradar-fanger-fejl-tidligt
 status: planned
-```
+---
+
+# Datakvalitetsradar Fanger Fejl Tidligt
 
 ## Antagelse
 

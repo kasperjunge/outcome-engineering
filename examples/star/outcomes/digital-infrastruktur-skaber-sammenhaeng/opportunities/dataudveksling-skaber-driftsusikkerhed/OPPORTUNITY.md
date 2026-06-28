@@ -1,10 +1,10 @@
-# Dataudveksling Skaber Driftsusikkerhed
-
-```yaml
+---
 type: opportunity
 id: opportunity.dataudveksling-skaber-driftsusikkerhed
 status: discovery
-```
+---
+
+# Dataudveksling Skaber Driftsusikkerhed
 
 Når data flytter mellem statslige systemer, kommuner, a-kasser og eksterne løsninger, kan fejl og forsinkelser være svære at placere og prioritere.
 

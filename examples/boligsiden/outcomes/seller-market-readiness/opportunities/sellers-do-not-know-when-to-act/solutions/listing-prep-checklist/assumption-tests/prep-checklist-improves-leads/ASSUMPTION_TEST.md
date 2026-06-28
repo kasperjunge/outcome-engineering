@@ -1,10 +1,10 @@
-# Prep Checklist Improves Leads
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.prep-checklist-improves-leads
 status: planned
-```
+---
+
+# Prep Checklist Improves Leads
 
 ## Assumption
 

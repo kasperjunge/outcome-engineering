@@ -1,10 +1,10 @@
-# Insight To Action Modules
-
-```yaml
+---
 type: solution
 id: solution.insight-to-action-modules
 status: planned
-```
+---
+
+# Insight To Action Modules
 
 Contextual next-step modules on articles and market-stat pages, such as follow this area, view homes, estimate sale readiness, or compare agents.
 

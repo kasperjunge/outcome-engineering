@@ -1,11 +1,12 @@
-# Strategy
-
-```yaml
+---
 type: strategy
 id: strategy.visual-graph-wedge
+name: Outcome Engineering Adoption Wedge
 starts: 2026-06-28
 ends: 2026-09-30
-```
+---
+
+# Strategy
 
 Outcome Engineering should win first as a visual, repo-native product graph that helps teams understand, structure, and maintain their product thinking.
 

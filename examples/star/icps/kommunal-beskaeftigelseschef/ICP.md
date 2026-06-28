@@ -1,10 +1,10 @@
-# Kommunal Beskæftigelseschef
-
-```yaml
+---
 type: icp
 id: icp.kommunal-beskaeftigelseschef
 status: active
-```
+---
+
+# Kommunal Beskæftigelseschef
 
 ## Hvem De Er
 

@@ -1,10 +1,10 @@
-# Saved Home Comparison
-
-```yaml
+---
 type: prd
 id: prd.saved-home-comparison
 status: draft
-```
+---
+
+# Saved Home Comparison
 
 ## Problem
 

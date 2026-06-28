@@ -1,10 +1,10 @@
-# Regler Er Svære At Omsætte
-
-```yaml
+---
 type: opportunity
 id: opportunity.regler-er-svaere-at-omsatte
 status: discovery
-```
+---
+
+# Regler Er Svære At Omsætte
 
 Nye reformelementer kan være juridisk tydelige, men stadig svære at omsætte til daglige arbejdsgange, rollefordeling, borgerkommunikation og systemunderstøttelse.
 

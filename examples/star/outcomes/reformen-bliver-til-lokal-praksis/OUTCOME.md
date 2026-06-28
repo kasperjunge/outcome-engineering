@@ -1,6 +1,4 @@
-# Reformen Bliver Til Lokal Praksis
-
-```yaml
+---
 type: outcome
 id: outcome.reformen-bliver-til-lokal-praksis
 icps:
@@ -8,7 +6,9 @@ icps:
   - icp.jobcenter-fagkoordinator
   - icp.akasse-driftsleder
 status: active
-```
+---
+
+# Reformen Bliver Til Lokal Praksis
 
 Kommuner og a-kasser kan omsætte beskæftigelsesreformen til klare arbejdsgange, kompetencebehov og ledelsesbeslutninger uden langvarig usikkerhed.
 

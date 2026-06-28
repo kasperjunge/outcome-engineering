@@ -1,10 +1,10 @@
-# Smart Search Alerts
-
-```yaml
+---
 type: solution
 id: solution.smart-search-alerts
 status: planned
-```
+---
+
+# Smart Search Alerts
 
 A saved-search alert system that explains why a listing matches, highlights changed listings, and suggests safe filter expansions.
 

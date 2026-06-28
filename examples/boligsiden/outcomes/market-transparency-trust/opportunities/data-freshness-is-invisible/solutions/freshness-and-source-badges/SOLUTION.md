@@ -1,10 +1,10 @@
-# Freshness And Source Badges
-
-```yaml
+---
 type: solution
 id: solution.freshness-and-source-badges
 status: planned
-```
+---
+
+# Freshness And Source Badges
 
 Show clear update timestamps, source explanations, and confidence states on listings and market-data modules.
 

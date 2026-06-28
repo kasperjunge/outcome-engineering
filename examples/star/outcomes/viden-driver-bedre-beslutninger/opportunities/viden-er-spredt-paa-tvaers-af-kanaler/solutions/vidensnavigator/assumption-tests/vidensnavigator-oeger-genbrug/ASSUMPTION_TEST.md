@@ -1,10 +1,10 @@
-# Vidensnavigator Øger Genbrug
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.vidensnavigator-oeger-genbrug
 status: planned
-```
+---
+
+# Vidensnavigator Øger Genbrug
 
 ## Antagelse
 

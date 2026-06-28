@@ -1,10 +1,10 @@
-# Viden Er Spredt På Tværs Af Kanaler
-
-```yaml
+---
 type: opportunity
 id: opportunity.viden-er-spredt-paa-tvaers-af-kanaler
 status: discovery
-```
+---
+
+# Viden Er Spredt På Tværs Af Kanaler
 
 Fagpersoner skal ofte finde viden på tværs af artikler, rapporter, Jobindsats, Jobeffekter, webinarer, nyheder og lokale materialer, før de kan handle.
 

@@ -1,10 +1,10 @@
-# Datakvalitetsradar MVP
-
-```yaml
+---
 type: prd
 id: prd.datakvalitetsradar-mvp
 status: draft
-```
+---
+
+# Datakvalitetsradar MVP
 
 ## Problem
 

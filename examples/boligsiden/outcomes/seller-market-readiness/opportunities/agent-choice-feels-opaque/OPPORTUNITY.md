@@ -1,10 +1,10 @@
-# Agent Choice Feels Opaque
-
-```yaml
+---
 type: opportunity
 id: opportunity.agent-choice-feels-opaque
 status: discovery
-```
+---
+
+# Agent Choice Feels Opaque
 
 Sellers need to choose an estate agent, but may not know how to compare local experience, fit, and likely sale strategy.
 

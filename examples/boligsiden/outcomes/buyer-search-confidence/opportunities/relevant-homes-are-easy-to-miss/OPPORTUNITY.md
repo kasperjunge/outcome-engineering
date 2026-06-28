@@ -1,10 +1,10 @@
-# Relevant Homes Are Easy To Miss
-
-```yaml
+---
 type: opportunity
 id: opportunity.relevant-homes-are-easy-to-miss
 status: discovery
-```
+---
+
+# Relevant Homes Are Easy To Miss
 
 Buyers can miss suitable homes because geography, budget, property type, condition, open-house timing, and price changes do not fit neatly into one search.
 

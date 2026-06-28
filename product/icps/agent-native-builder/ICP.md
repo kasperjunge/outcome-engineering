@@ -1,10 +1,10 @@
-# Agent-Native Builder
-
-```yaml
+---
 type: icp
 id: icp.agent-native-builder
 status: draft
-```
+---
+
+# Agent-Native Builder
 
 ## Who They Are
 

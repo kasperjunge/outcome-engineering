@@ -1,10 +1,10 @@
-# Jobcenter Fagkoordinator
-
-```yaml
+---
 type: icp
 id: icp.jobcenter-fagkoordinator
 status: active
-```
+---
+
+# Jobcenter Fagkoordinator
 
 ## Hvem De Er
 

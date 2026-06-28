@@ -1,10 +1,10 @@
-# Estate Agent
-
-```yaml
+---
 type: icp
 id: icp.estate-agent
 status: active
-```
+---
+
+# Estate Agent
 
 ## Who They Are
 

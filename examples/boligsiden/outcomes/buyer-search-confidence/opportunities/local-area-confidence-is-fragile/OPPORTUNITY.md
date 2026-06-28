@@ -1,10 +1,10 @@
-# Local Area Confidence Is Fragile
-
-```yaml
+---
 type: opportunity
 id: opportunity.local-area-confidence-is-fragile
 status: discovery
-```
+---
+
+# Local Area Confidence Is Fragile
 
 Buyers need to understand neighborhoods, commute, schools, noise, prices, and local market movement before acting on a home.
 

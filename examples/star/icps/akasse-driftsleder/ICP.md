@@ -1,10 +1,10 @@
-# A-kasse Driftsleder
-
-```yaml
+---
 type: icp
 id: icp.akasse-driftsleder
 status: active
-```
+---
+
+# A-kasse Driftsleder
 
 ## Hvem De Er
 

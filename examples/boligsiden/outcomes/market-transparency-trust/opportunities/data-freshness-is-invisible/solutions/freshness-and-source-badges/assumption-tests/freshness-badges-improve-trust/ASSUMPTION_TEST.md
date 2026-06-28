@@ -1,10 +1,10 @@
-# Freshness Badges Improve Trust
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.freshness-badges-improve-trust
 status: planned
-```
+---
+
+# Freshness Badges Improve Trust
 
 ## Assumption
 

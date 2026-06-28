@@ -1,10 +1,10 @@
-# Beslutningstager Og Analytiker
-
-```yaml
+---
 type: icp
 id: icp.beslutningstager-og-analytiker
 status: active
-```
+---
+
+# Beslutningstager Og Analytiker
 
 ## Hvem De Er
 

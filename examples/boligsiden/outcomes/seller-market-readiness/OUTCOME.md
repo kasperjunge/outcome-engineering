@@ -1,13 +1,13 @@
-# Seller Market Readiness
-
-```yaml
+---
 type: outcome
 id: outcome.seller-market-readiness
 icps:
   - icp.future-home-seller
   - icp.estate-agent
 status: active
-```
+---
+
+# Seller Market Readiness
 
 Homeowners use Boligsiden to understand their sale opportunity and take the next step toward a qualified agent conversation.
 

@@ -1,10 +1,10 @@
-# Listing Prep Checklist
-
-```yaml
+---
 type: solution
 id: solution.listing-prep-checklist
 status: planned
-```
+---
+
+# Listing Prep Checklist
 
 A seller checklist that helps homeowners prepare core information before requesting agent advice.
 

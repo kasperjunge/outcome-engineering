@@ -1,6 +1,4 @@
-# Viden Driver Bedre Beslutninger
-
-```yaml
+---
 type: outcome
 id: outcome.viden-driver-bedre-beslutninger
 icps:
@@ -8,7 +6,9 @@ icps:
   - icp.jobcenter-fagkoordinator
   - icp.beslutningstager-og-analytiker
 status: active
-```
+---
+
+# Viden Driver Bedre Beslutninger
 
 Kommuner, a-kasser og beslutningstagere bruger STARs viden, analyser og Jobindsats-data aktivt til at vælge, justere og forklare beskæftigelsesindsatser.
 

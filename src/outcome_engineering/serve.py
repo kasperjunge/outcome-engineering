@@ -12,6 +12,7 @@ from outcome_engineering.graph import (
     delete_node,
     discover_nodes,
     marker_content,
+    parse_frontmatter_scalar,
     parse_icp_references,
     validate,
     write_marker,
@@ -24,6 +25,9 @@ NODE_KINDS = ("vision", "strategy", "icp", "outcome", "opportunity", "solution",
 
 
 def _title_from_body(text: str, fallback: str) -> str:
+    name = parse_frontmatter_scalar(text, "name")
+    if name:
+        return name
     for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("# "):
@@ -32,17 +36,7 @@ def _title_from_body(text: str, fallback: str) -> str:
 
 
 def _status_from_body(text: str) -> str | None:
-    inside = False
-    for line in text.splitlines():
-        marker = line.strip()
-        if marker.startswith("```"):
-            if inside:
-                break
-            inside = marker.startswith("```yaml")
-            continue
-        if inside and marker.startswith("status:"):
-            return marker[len("status:") :].strip() or None
-    return None
+    return parse_frontmatter_scalar(text, "status")
 
 
 def _root_marker_text(nodes: list, kind: str) -> str:

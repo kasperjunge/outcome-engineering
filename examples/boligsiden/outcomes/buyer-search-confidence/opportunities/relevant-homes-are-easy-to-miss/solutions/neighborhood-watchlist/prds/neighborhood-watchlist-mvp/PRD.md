@@ -1,10 +1,10 @@
-# Neighborhood Watchlist MVP
-
-```yaml
+---
 type: prd
 id: prd.neighborhood-watchlist-mvp
 status: draft
-```
+---
+
+# Neighborhood Watchlist MVP
 
 ## Problem
 

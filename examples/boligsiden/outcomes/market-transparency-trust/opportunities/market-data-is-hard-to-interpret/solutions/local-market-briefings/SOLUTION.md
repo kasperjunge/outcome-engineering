@@ -1,10 +1,10 @@
-# Local Market Briefings
-
-```yaml
+---
 type: solution
 id: solution.local-market-briefings
 status: planned
-```
+---
+
+# Local Market Briefings
 
 Personalized local market briefings for a municipality, postal code, or saved-search area.
 

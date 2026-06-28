@@ -1,9 +1,10 @@
-# Strategy
-
-```yaml
+---
+name: Trusted Housing Decisions
 starts: 2026-07-01
 ends: 2026-12-31
-```
+---
+
+# Strategy
 
 Use Boligsiden's public strengths in listing search, housing-market data, and broker connection to become the most trusted decision surface for Danish buyers and sellers.
 

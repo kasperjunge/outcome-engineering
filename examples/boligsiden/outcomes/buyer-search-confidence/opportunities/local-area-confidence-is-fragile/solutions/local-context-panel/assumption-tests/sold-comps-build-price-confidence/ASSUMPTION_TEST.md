@@ -1,10 +1,10 @@
-# Sold Comparables Build Price Confidence
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.sold-comps-build-price-confidence
 status: planned
-```
+---
+
+# Sold Comparables Build Price Confidence
 
 ## Assumption
 

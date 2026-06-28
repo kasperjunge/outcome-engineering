@@ -1,10 +1,10 @@
-# Monthly Cost Context
-
-```yaml
+---
 type: solution
 id: solution.monthly-cost-context
 status: planned
-```
+---
+
+# Monthly Cost Context
 
 Show estimated monthly cost ranges and affordability notes beside listing price.
 

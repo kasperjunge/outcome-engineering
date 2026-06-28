@@ -1,10 +1,10 @@
-# Readiness Score Creates Agent Intent
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.readiness-score-creates-agent-intent
 status: planned
-```
+---
+
+# Readiness Score Creates Agent Intent
 
 ## Assumption
 

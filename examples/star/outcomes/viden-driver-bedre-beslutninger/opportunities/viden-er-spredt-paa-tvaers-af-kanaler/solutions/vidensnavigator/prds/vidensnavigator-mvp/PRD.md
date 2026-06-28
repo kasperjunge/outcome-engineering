@@ -1,10 +1,10 @@
-# Vidensnavigator MVP
-
-```yaml
+---
 type: prd
 id: prd.vidensnavigator-mvp
 status: draft
-```
+---
+
+# Vidensnavigator MVP
 
 ## Problem
 

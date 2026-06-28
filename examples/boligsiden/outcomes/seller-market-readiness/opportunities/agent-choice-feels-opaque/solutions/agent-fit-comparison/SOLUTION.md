@@ -1,10 +1,10 @@
-# Agent Fit Comparison
-
-```yaml
+---
 type: solution
 id: solution.agent-fit-comparison
 status: planned
-```
+---
+
+# Agent Fit Comparison
 
 A seller-facing comparison of local agents by recent nearby activity, property-type experience, customer signals, and next available consultation.
 

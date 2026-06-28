@@ -1,10 +1,10 @@
-# Intent-Specific CTAs Outperform Generic
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.intent-specific-ctas-outperform-generic
 status: planned
-```
+---
+
+# Intent-Specific CTAs Outperform Generic
 
 ## Assumption
 

@@ -1,10 +1,10 @@
-# Property Local Context
-
-```yaml
+---
 type: prd
 id: prd.property-local-context
 status: draft
-```
+---
+
+# Property Local Context
 
 ## Problem
 

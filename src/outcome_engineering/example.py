@@ -32,13 +32,13 @@ def render_node(node: ExampleNode) -> str:
     icp_block = ""
     if node.icps:
         icp_block = "icps:\n" + "".join(f"  - {ref}\n" for ref in node.icps)
-    return f"""# {node.title}
-
-```yaml
+    return f"""---
 type: {node.kind}
 id: {node.kind}.{node.slug}
 {icp_block}status: {node.status}
-```
+---
+
+# {node.title}
 
 {node.body}
 """
@@ -1173,12 +1173,13 @@ Outcome Engineering helps teams turn product complexity into a traceable graph t
     )
     write_file(
         root / "STRATEGY.md",
-        """# Strategy
-
-```yaml
+        """---
+name: Visual Graph Adoption Wedge
 starts: 2026-06-01
 ends: 2026-09-30
-```
+---
+
+# Strategy
 
 Use the visual graph editor as the adoption wedge, while keeping the filesystem graph and CLI deterministic enough for agent-native workflows.
 
@@ -2338,12 +2339,13 @@ Boligsiden helps people make confident Danish housing decisions by connecting pr
     )
     write_file(
         root / "STRATEGY.md",
-        """# Strategy
-
-```yaml
+        """---
+name: Trusted Housing Decisions
 starts: 2026-07-01
 ends: 2026-12-31
-```
+---
+
+# Strategy
 
 Use Boligsiden's public strengths in listing search, housing-market data, and broker connection to become the most trusted decision surface for Danish buyers and sellers.
 
@@ -2409,14 +2411,15 @@ Enable knowledge workers to securely and effectively delegate work to AI agents.
     )
     write_file(
         root / "STRATEGY.md",
-        """# Strategy
-
-```yaml
+        """---
 type: strategy
 id: strategy.example
+name: Recurring Knowledge Work Delegation
 starts: 2026-01-01
 ends: 2026-03-31
-```
+---
+
+# Strategy
 
 Focus on recurring knowledge work where better task framing and safer tool access can make delegation feel trustworthy.
 """,

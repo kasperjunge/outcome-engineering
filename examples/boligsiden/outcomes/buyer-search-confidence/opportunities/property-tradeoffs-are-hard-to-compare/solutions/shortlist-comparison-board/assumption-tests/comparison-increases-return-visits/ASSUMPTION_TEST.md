@@ -1,10 +1,10 @@
-# Comparison Increases Return Visits
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.comparison-increases-return-visits
 status: planned
-```
+---
+
+# Comparison Increases Return Visits
 
 ## Assumption
 

@@ -1,10 +1,10 @@
-# Neighborhood Watchlist
-
-```yaml
+---
 type: solution
 id: solution.neighborhood-watchlist
 status: planned
-```
+---
+
+# Neighborhood Watchlist
 
 Let buyers follow neighborhoods or postal codes before they are ready to define a precise property search.
 

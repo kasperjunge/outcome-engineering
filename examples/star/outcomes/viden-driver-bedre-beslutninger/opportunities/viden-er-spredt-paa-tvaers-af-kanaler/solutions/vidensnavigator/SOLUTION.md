@@ -1,10 +1,10 @@
-# Vidensnavigator
-
-```yaml
+---
 type: solution
 id: solution.vidensnavigator
 status: planned
-```
+---
+
+# Vidensnavigator
 
 En rolle- og målgruppebaseret navigator, der forbinder evidens, analyser, data, webinarer og implementeringsmaterialer ud fra spørgsmålet: "Hvad skal jeg beslutte eller gøre?"
 

@@ -1,10 +1,10 @@
-# Local Context Panel
-
-```yaml
+---
 type: solution
 id: solution.local-context-panel
 status: planned
-```
+---
+
+# Local Context Panel
 
 A property-detail module that combines local sales prices, inventory, time-on-market, transport, and similar homes.
 

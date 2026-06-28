@@ -214,24 +214,25 @@ def render_template(kind: str, slug: str, title: str) -> str:
     }
     body = sections[kind]
     if kind == STRATEGY_KIND:
-        return f"""# {title}
-
-```yaml
+        return f"""---
 type: {kind}
 id: {kind}.{slug}
+name: {title}
 starts: YYYY-MM-DD
 ends: YYYY-MM-DD
-```
+---
+
+# {title}
 
 {body}
 """
-    return f"""# {title}
-
-```yaml
+    return f"""---
 type: {kind}
 id: {kind}.{slug}
 status: draft
-```
+---
+
+# {title}
 
 {body}
 """
@@ -246,7 +247,7 @@ def marker_content(node: ProductNode) -> str:
 
 
 def parse_icp_references(text: str) -> list[str]:
-    """Extract the icp ids a node declares it serves, from its fenced yaml block.
+    """Extract the icp ids a node declares it serves from frontmatter.
 
     Supports both inline (``icps: [icp.a, icp.b]``) and block list form::
 
@@ -254,34 +255,24 @@ def parse_icp_references(text: str) -> list[str]:
           - icp.a
           - icp.b
     """
-    lines = _yaml_block_lines(text)
-    references: list[str] = []
-    index = 0
-    while index < len(lines):
-        line = lines[index]
-        stripped = line.strip()
-        if stripped == f"{ICP_REFERENCE_FIELD}:" or stripped.startswith(f"{ICP_REFERENCE_FIELD}:"):
-            inline = stripped[len(ICP_REFERENCE_FIELD) + 1 :].strip()
-            if inline:
-                references.extend(_parse_inline_list(inline))
-            else:
-                index += 1
-                while index < len(lines) and lines[index].strip().startswith("- "):
-                    references.append(lines[index].strip()[2:].strip())
-                    index += 1
-                continue
-        index += 1
+    value = parse_frontmatter_value(text, ICP_REFERENCE_FIELD)
+    if value is None:
+        return []
+    references = value if isinstance(value, list) else _parse_inline_list(value)
     return [ref for ref in (_strip_quotes(ref) for ref in references) if ref]
 
 
-def parse_yaml_scalar(text: str, field: str) -> str | None:
-    prefix = f"{field}:"
-    for line in _yaml_block_lines(text):
-        stripped = line.strip()
-        if stripped.startswith(prefix):
-            value = stripped[len(prefix) :].strip()
-            return _strip_quotes(value) if value else ""
-    return None
+def parse_frontmatter_value(text: str, field: str) -> str | list[str] | None:
+    return parse_frontmatter(text).get(field)
+
+
+def parse_frontmatter_scalar(text: str, field: str) -> str | None:
+    value = parse_frontmatter_value(text, field)
+    if value is None:
+        return None
+    if isinstance(value, list):
+        return ", ".join(value)
+    return _strip_quotes(value)
 
 
 def node_icp_references(node: ProductNode) -> list[str]:
@@ -306,19 +297,52 @@ def related_icps(root: Path, node: ProductNode, ancestors: list[ProductNode]) ->
     return list(seen.values())
 
 
-def _yaml_block_lines(text: str) -> list[str]:
+def parse_frontmatter(text: str) -> dict[str, str | list[str]]:
     lines = text.splitlines()
-    inside = False
+    if not lines or lines[0].strip() != "---":
+        return {}
+
     block: list[str] = []
-    for line in lines:
-        if line.strip().startswith("```"):
-            if inside:
-                break
-            inside = line.strip().startswith("```yaml")
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        block.append(line)
+    else:
+        return {}
+
+    metadata: dict[str, str | list[str]] = {}
+    index = 0
+    while index < len(block):
+        stripped = block[index].strip()
+        if not stripped or stripped.startswith("#") or ":" not in stripped:
+            index += 1
             continue
-        if inside:
-            block.append(line)
-    return block
+        key, raw_value = stripped.split(":", 1)
+        key = key.strip()
+        value = raw_value.strip()
+        if value:
+            metadata[key] = _strip_quotes(value)
+            index += 1
+            continue
+
+        items: list[str] = []
+        index += 1
+        while index < len(block) and block[index].strip().startswith("- "):
+            items.append(_strip_quotes(block[index].strip()[2:].strip()))
+            index += 1
+        metadata[key] = items
+    return metadata
+
+
+def has_fenced_yaml_metadata(text: str) -> bool:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("# "):
+            continue
+        return stripped == "```yaml"
+    return False
 
 
 def _parse_inline_list(value: str) -> list[str]:
@@ -380,6 +404,8 @@ def validate(root: Path) -> list[ValidationIssue]:
         if len(markers) == 1:
             marker = markers[0]
             kind = MARKER_FILES[marker.name]
+            if has_fenced_yaml_metadata(marker.read_text(encoding="utf-8")):
+                issues.append(ValidationIssue(marker, "metadata must use frontmatter, not fenced yaml blocks"))
             node_id = f"{kind}.{path.name}"
             if node_id in seen_ids:
                 issues.append(ValidationIssue(path, f"duplicate node id {node_id}; first seen at {seen_ids[node_id]}"))
@@ -462,6 +488,8 @@ def validate(root: Path) -> list[ValidationIssue]:
 
     root_strategy = root / "STRATEGY.md"
     if root_strategy.is_file():
+        if has_fenced_yaml_metadata(root_strategy.read_text(encoding="utf-8")):
+            issues.append(ValidationIssue(root_strategy, "metadata must use frontmatter, not fenced yaml blocks"))
         _validate_strategy_marker(root_strategy, issues, strategy_periods)
     _validate_strategy_periods_do_not_overlap(strategy_periods, issues)
 
@@ -470,12 +498,16 @@ def validate(root: Path) -> list[ValidationIssue]:
 
 def _validate_strategy_marker(marker: Path, issues: list[ValidationIssue], strategy_periods: list[StrategyPeriod]) -> None:
     content = marker.read_text(encoding="utf-8")
-    status = parse_yaml_scalar(content, "status")
+    name_text = parse_frontmatter_scalar(content, "name")
+    if name_text is None or not name_text.strip():
+        issues.append(ValidationIssue(marker, "strategy must declare name"))
+
+    status = parse_frontmatter_scalar(content, "status")
     if status is not None:
         issues.append(ValidationIssue(marker, "strategy status is derived from starts/ends; remove status"))
 
-    starts_text = parse_yaml_scalar(content, "starts")
-    ends_text = parse_yaml_scalar(content, "ends")
+    starts_text = parse_frontmatter_scalar(content, "starts")
+    ends_text = parse_frontmatter_scalar(content, "ends")
     if starts_text is None:
         issues.append(ValidationIssue(marker, "strategy must declare starts: YYYY-MM-DD"))
     if ends_text is None:

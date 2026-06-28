@@ -34,9 +34,11 @@ collaboration happens through git like everything else in the repo. The server
 is dependency-free (Python stdlib) and binds to loopback by default; use
 `--host`/`--port` to change that and `--no-open` to skip launching a browser.
 
-An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more, and they live in the top-level `product/icps/` collection. ICPs are not part of the outcome → opportunity → solution trace chain; instead outcomes and opportunities reference the ICPs they serve by listing `icp.<slug>` ids in their yaml block.
+Graph metadata lives in Markdown frontmatter. Fenced YAML metadata blocks are invalid.
 
-Strategy is top-level product context. A simple graph can keep its current strategy in `product/STRATEGY.md`; additional historical or planned strategies can live under `product/strategies/<slug>/STRATEGY.md`. Strategies declare `starts` and `ends` dates, and `oe validate` rejects missing dates, invalid ranges, explicit strategy status, or overlapping strategy periods.
+An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more, and they live in the top-level `product/icps/` collection. ICPs are not part of the outcome → opportunity → solution trace chain; instead outcomes and opportunities reference the ICPs they serve by listing `icp.<slug>` ids in frontmatter.
+
+Strategy is top-level product context. A simple graph can keep its current strategy in `product/STRATEGY.md`; additional historical or planned strategies can live under `product/strategies/<slug>/STRATEGY.md`. Strategies declare `name`, `starts`, and `ends` in frontmatter, and `oe validate` rejects missing strategy names or dates, invalid ranges, explicit strategy status, or overlapping strategy periods.
 
 ## Docs
 

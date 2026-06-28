@@ -1,10 +1,10 @@
-# Local Market Briefing MVP
-
-```yaml
+---
 type: prd
 id: prd.local-market-briefing-mvp
 status: draft
-```
+---
+
+# Local Market Briefing MVP
 
 ## Problem
 

@@ -1,10 +1,10 @@
-# Reformkompas Reducerer Fortolkningstid
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.reformkompas-reducerer-fortolkningstid
 status: planned
-```
+---
+
+# Reformkompas Reducerer Fortolkningstid
 
 ## Antagelse
 

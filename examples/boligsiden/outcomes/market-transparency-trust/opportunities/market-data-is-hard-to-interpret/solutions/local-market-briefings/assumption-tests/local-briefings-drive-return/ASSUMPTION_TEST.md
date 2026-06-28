@@ -1,10 +1,10 @@
-# Local Briefings Drive Return
-
-```yaml
+---
 type: assumption-test
 id: assumption-test.local-briefings-drive-return
 status: planned
-```
+---
+
+# Local Briefings Drive Return
 
 ## Assumption
 

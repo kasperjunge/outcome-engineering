@@ -1,12 +1,12 @@
-# Buyer Search Confidence
-
-```yaml
+---
 type: outcome
 id: outcome.buyer-search-confidence
 icps:
   - icp.active-home-buyer
 status: active
-```
+---
+
+# Buyer Search Confidence
 
 Home buyers trust Boligsiden enough to use it as their primary home-search workflow.
 

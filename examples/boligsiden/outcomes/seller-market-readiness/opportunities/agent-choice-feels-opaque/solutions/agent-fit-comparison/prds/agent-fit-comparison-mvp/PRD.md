@@ -1,10 +1,10 @@
-# Agent Fit Comparison MVP
-
-```yaml
+---
 type: prd
 id: prd.agent-fit-comparison-mvp
 status: draft
-```
+---
+
+# Agent Fit Comparison MVP
 
 ## Problem
 

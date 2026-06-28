@@ -1,10 +1,10 @@
-# Resultatdialogpakke
-
-```yaml
+---
 type: solution
 id: solution.resultatdialogpakke
 status: planned
-```
+---
+
+# Resultatdialogpakke
 
 En pakke med nøgletal, dialogspørgsmål og eksempler på lokal opfølgning, der hjælper kommuner med at bruge STARs data i ledelsesdialog frem for kun kontrol.
 

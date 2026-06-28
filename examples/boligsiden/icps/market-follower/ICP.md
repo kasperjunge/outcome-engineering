@@ -1,10 +1,10 @@
-# Market Follower
-
-```yaml
+---
 type: icp
 id: icp.market-follower
 status: active
-```
+---
+
+# Market Follower
 
 ## Who They Are
 

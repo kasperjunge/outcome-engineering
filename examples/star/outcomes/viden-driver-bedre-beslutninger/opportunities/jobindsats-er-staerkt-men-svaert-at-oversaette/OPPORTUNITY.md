@@ -1,10 +1,10 @@
-# Jobindsats Er Stærkt Men Svært At Oversætte
-
-```yaml
+---
 type: opportunity
 id: opportunity.jobindsats-er-staerkt-men-svaert-at-oversaette
 status: discovery
-```
+---
+
+# Jobindsats Er Stærkt Men Svært At Oversætte
 
 Jobindsats giver adgang til centrale tal, men lokale ledere og fagpersoner kan have svært ved at oversætte tal til handling, forklaring og prioritering.
 
