@@ -16,3 +16,7 @@ installed-name = "oe-cli"
 [[skill]]
 path = "./skills/oe-grill"
 installed-name = "oe-grill"
+
+[[skill]]
+path = "./skills/oe-validate"
+installed-name = "oe-validate"
