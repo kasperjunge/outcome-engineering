@@ -11,7 +11,7 @@ Solo software product builders need to believe Outcome Engineering names a real 
 ## Evidence
 
 - Hypothesis: Agentic engineering makes implementation faster, which shifts more of the solo builder's constraint toward product judgment, focus, validation, and maintaining intent.
-- Hypothesis: A manifesto-style essay could create the first belief by making the strategic argument memorable and shareable.
+- Hypothesis: If solo builders do not recognize that constraint shift in their own work, Outcome Engineering will feel like extra process.
 
 ## Known / Unknown
 

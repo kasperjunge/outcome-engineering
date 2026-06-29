@@ -116,6 +116,19 @@ After changing graph structure, validate:
 uv run oe validate product
 ```
 
+## Product Judgment Guardrails
+
+`oe validate` only checks structure. When creating or editing graph content, also check the product logic:
+
+- Outcomes describe changed customer, user, product, or business behavior. They are not shipped artifacts, features, documents, graph nodes, or implementation tasks.
+- Measures should prove the outcome happened. Prefer behavior, decision quality, retention, learning, risk reduction, or value creation over counts of outputs created.
+- Opportunities describe customer needs, pains, constraints, moments, or unmet jobs. Do not hide solution ideas inside opportunities. Candidate artifacts such as essays, examples, guided flows, onboarding sessions, UI panels, automations, prompts, or features belong under `solutions/`.
+- Solutions describe the chosen intervention for an opportunity. Assumption tests live under solutions and test desirability, usability, feasibility, viability, or strategic assumptions.
+- Known means observed, validated, already decided strategy, or factual graph context. Do not label hopes, beliefs, market theses, or plausible causal stories as known unless there is evidence or an explicit strategic decision behind them.
+- Unknown means a genuine uncertainty that should change what gets explored, tested, built, or prioritized next.
+- Keep a visible narrative thread: vision -> strategy -> ICP -> outcome -> opportunity -> solution -> assumption test / PRD. If a child node does not make its parent more actionable, revise, move, or delete it.
+- Preserve the current wedge deliberately. Broad visions may include teams, but the active strategy should make clear why solo builders are the first adoption path and how that can expand later.
+
 ## CLI Commands
 
 Keep this section in sync with `uv run oe --help` and `src/outcome_engineering/cli.py`.

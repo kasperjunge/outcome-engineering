@@ -20,4 +20,4 @@ They need a compelling first impression that makes the framework feel relevant t
 - Known: Outcome Engineering is a new framework, so adoption cannot rely on existing category demand.
 - Known: The product must teach the framework before it can expect committed product usage.
 - Unknown: Which first impression creates enough curiosity to try the framework.
-- Unknown: Whether the strongest path is an essay, example graphs, live teardown, direct onboarding, or a combination.
+- Unknown: Which gap is the larger adoption blocker: not believing the problem is urgent, or not being able to picture the practice in a real product context.

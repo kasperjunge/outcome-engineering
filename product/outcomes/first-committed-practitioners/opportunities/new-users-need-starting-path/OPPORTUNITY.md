@@ -10,12 +10,12 @@ Even if solo builders believe in the framework, they need a low-friction way to 
 
 ## Evidence
 
-- Hypothesis: The first product experience should accept messy input and help place it into the graph instead of asking the user to understand every node type upfront.
-- Hypothesis: A guided first session could turn one real product thought into a useful graph fragment and create the first value moment.
+- Hypothesis: New users arrive with messy, partial product thinking rather than a clean starting node.
+- Hypothesis: Requiring users to understand every node type before they begin delays the first value moment.
 
 ## Known / Unknown
 
 - Known: The strategy says users should start from whatever is on their mind and learn the framework through use.
 - Known: A blank graph creates a risk that new users understand the idea but fail to take the first action.
 - Unknown: What the best starting point is: product idea, current build task, target customer, vision, strategy, opportunity, or solution.
-- Unknown: Whether the first path should be self-serve, agent-led, example-led, or concierge-led.
+- Unknown: What kind of first value moment makes the practice feel useful enough to continue.
