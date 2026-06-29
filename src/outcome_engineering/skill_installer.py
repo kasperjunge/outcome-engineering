@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 SKILL_NAME = "oe-cli"
-SKILL_NAMES = (SKILL_NAME, "oe-grill", "oe-graph-audit")
+SKILL_NAMES = (SKILL_NAME, "oe-grill", "oe-graph-audit", "oe-release")
 
 
 def skill_target(agent: str) -> Path:
@@ -107,7 +107,8 @@ def copy_skill(destination: Path, force: bool = False, skill_name: str = SKILL_N
             destination.unlink()
 
     destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(source, destination)
+    with resources.as_file(source) as source_path:
+        shutil.copytree(source_path, destination)
     return destination
 
 

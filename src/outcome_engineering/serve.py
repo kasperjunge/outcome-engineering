@@ -129,7 +129,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
     root: Path
     server_version = "oe-serve"
 
-    def log_message(self, *args) -> None:  # noqa: D401 - quiet by default
+    def log_message(self, format: str, *args: object) -> None:  # noqa: A002,D401 - quiet by default
         return
 
     # -- helpers --------------------------------------------------------------
