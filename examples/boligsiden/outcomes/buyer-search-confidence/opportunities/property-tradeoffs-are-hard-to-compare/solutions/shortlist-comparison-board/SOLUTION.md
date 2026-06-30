@@ -8,6 +8,10 @@ status: planned
 
 A saved-home comparison view that shows property attributes, local context, price movement, and next action side by side.
 
+## Why This Could Work
+
+It moves comparison from memory, tabs, and external notes into the saved-home workflow, where buyers already signal that multiple homes are under consideration.
+
 ## Product Risks
 
 - Value: comparison may happen outside the product in spreadsheets or family chats.

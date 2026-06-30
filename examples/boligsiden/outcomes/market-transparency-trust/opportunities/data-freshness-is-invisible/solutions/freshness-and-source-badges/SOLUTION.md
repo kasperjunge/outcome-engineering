@@ -8,6 +8,10 @@ status: planned
 
 Show clear update timestamps, source explanations, and confidence states on listings and market-data modules.
 
+## Why This Could Work
+
+It makes data reliability visible at the point of interpretation, reducing the trust gap created when users cannot tell how current or certain a market signal is.
+
 ## Product Risks
 
 - Value: users may not notice freshness details.

@@ -16,4 +16,4 @@ Users may not know when listings, price changes, sold data, or statistics were l
 ## Known / Unknown
 
 - Known: freshness affects confidence.
-- Unknown: whether explicit freshness badges increase trust or clutter the interface.
+- Unknown: which freshness and source questions most often block user confidence.

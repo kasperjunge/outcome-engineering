@@ -20,5 +20,5 @@ Kommuner, a-kasser og beslutningstagere bruger STARs viden, analyser og Jobindsa
 
 ## Kendt / Ukendt
 
-- Known: STAR har Jobindsats, analyser, evalueringer, praksisundersøgelser og viden om, hvad der virker.
-- Unknown: hvilke brugergrupper der primært mangler overblik, og hvilke der mangler dybere analyseværktøjer.
+- Kendt: STAR har Jobindsats, analyser, evalueringer, praksisundersøgelser og viden om, hvad der virker.
+- Uafklaret: hvilke brugergrupper der primært mangler overblik, og hvilke der mangler dybere analyseværktøjer.

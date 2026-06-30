@@ -16,5 +16,5 @@ Fagpersoner skal ofte finde viden på tværs af artikler, rapporter, Jobindsats,
 
 ## Kendt / Ukendt
 
-- Known: STAR har meget relevant indhold og flere etablerede datasurfaces.
-- Unknown: om brugerne mister mest tid på søgning, vurdering af relevans eller oversættelse til egen målgruppe.
+- Kendt: STAR har meget relevant indhold og flere etablerede datasurfaces.
+- Uafklaret: om brugerne mister mest tid på søgning, vurdering af relevans eller oversættelse til egen målgruppe.

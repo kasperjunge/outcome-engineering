@@ -9,13 +9,14 @@ status: active
 
 # Seller Market Readiness
 
-Homeowners use Boligsiden to understand their sale opportunity and take the next step toward a qualified agent conversation.
+Future home sellers use Boligsiden to understand their sale opportunity, compare options, and take the next step toward a qualified estate-agent conversation.
 
 ## Measures
 
 - More homeowners view local sales and valuation content.
 - Seller-intent actions increase, such as agent comparison or contact requests.
 - Estate agents receive better-qualified seller leads.
+- Seller interviews show clearer confidence about timing, preparation, and agent choice.
 
 ## Known / Unknown
 

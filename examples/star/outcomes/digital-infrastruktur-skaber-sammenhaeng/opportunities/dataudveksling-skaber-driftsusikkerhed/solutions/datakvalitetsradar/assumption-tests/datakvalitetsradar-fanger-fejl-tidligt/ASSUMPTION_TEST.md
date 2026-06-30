@@ -12,15 +12,19 @@ Et fælles datakvalitetsoverblik gør det muligt at opdage og kommunikere væsen
 
 ## Risikotype
 
-Feasibility og value.
+Gennemførlighed og værdi.
 
 ## Test
 
 Kør en 6-ugers pilot med tre udvalgte datakvalitetsregler og registrer afvigelser, fejlmeldinger, henvendelser og tid til afklaring.
 
-## Succes- / Fejlsignal
+## Tillid Øges Hvis
 
-Success: afvigelser opdages før gentagne brugersager, og aktørerne vurderer statusinformationen som handlingsanvisende. Failure: radaren viser for mange falske positive eller skaber flere afklaringsspørgsmål.
+Afvigelser opdages før gentagne brugersager, og aktørerne vurderer statusinformationen som handlingsanvisende.
+
+## Tillid Falder Hvis
+
+Radaren viser for mange falske positive eller skaber flere afklaringsspørgsmål.
 
 ## Beslutning Det Informerer
 

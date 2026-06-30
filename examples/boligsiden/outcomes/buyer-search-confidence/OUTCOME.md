@@ -8,13 +8,14 @@ status: active
 
 # Buyer Search Confidence
 
-Home buyers trust Boligsiden enough to use it as their primary home-search workflow.
+Active home buyers use Boligsiden as their primary search workflow because it helps them find relevant homes, understand tradeoffs, and act with confidence.
 
 ## Measures
 
-- More buyers create saved searches and alerts.
+- More active buyers create saved searches, alerts, or saved-home lists after browsing.
 - Buyers return to compare homes before contacting agents.
-- Contact intent increases on high-fit listings.
+- Contact intent increases on listings users describe as high fit.
+- Buyer interviews show clearer explanations of why a home is or is not worth acting on.
 
 ## Known / Unknown
 

@@ -8,6 +8,10 @@ status: planned
 
 Let buyers follow neighborhoods or postal codes before they are ready to define a precise property search.
 
+## Why This Could Work
+
+It serves buyers earlier than exact search alerts by matching the way many people first choose where they might want to live.
+
 ## Product Risks
 
 - Value: users may prefer property alerts over area alerts.

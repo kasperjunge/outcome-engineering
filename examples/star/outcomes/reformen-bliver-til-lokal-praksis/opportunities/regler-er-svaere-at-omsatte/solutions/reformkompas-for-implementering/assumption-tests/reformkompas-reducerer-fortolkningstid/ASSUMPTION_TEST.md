@@ -12,15 +12,19 @@ Faglige nøglepersoner kan hurtigere lave en lokal implementeringsplan, når ref
 
 ## Risikotype
 
-Value og usability.
+Værdi og brugbarhed.
 
 ## Test
 
 Lad 8-10 kommunale og a-kasse-fagpersoner løse samme implementeringsopgave med henholdsvis eksisterende materialesamling og en prototype på reformkompasset.
 
-## Succes- / Fejlsignal
+## Tillid Øges Hvis
 
-Success: kortere tid til første brugbare plan, færre uafklarede spørgsmål og højere vurdering af lokal anvendelighed. Failure: brugerne går tilbage til webinarer, pdf'er og direkte hotline.
+Brugerne når hurtigere frem til en første brugbar plan, har færre uafklarede spørgsmål og vurderer materialet som mere lokalt anvendeligt.
+
+## Tillid Falder Hvis
+
+Brugerne går tilbage til webinarer, pdf'er og direkte hotline.
 
 ## Beslutning Det Informerer
 

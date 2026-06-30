@@ -16,5 +16,5 @@ Borgere og virksomheder kan møde STARs indhold, Jobnet, borger.dk, virk.dk, kom
 
 ## Kendt / Ukendt
 
-- Known: ansvaret er fordelt mellem flere myndigheder og services.
-- Unknown: hvor ofte uklare indgange skaber fejlkontakter, ekstra ventetid eller forkert forventning hos borgeren.
+- Kendt: ansvaret er fordelt mellem flere myndigheder og services.
+- Uafklaret: hvor ofte uklare indgange skaber fejlkontakter, ekstra ventetid eller forkert forventning hos borgeren.

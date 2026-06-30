@@ -8,12 +8,16 @@ status: planned
 
 Et internt og aktørrettet overblik over datakvalitetsindikatorer, kendte afvigelser, berørte systemer, dataejer og forventet opfølgning.
 
+## Hvorfor Det Kan Virke
+
+Det gør ejerskab, status og påvirkning synligt, så professionelle brugere kan skelne mellem lokale fejl, kendte afvigelser og forhold der kræver handling.
+
 ## Produktrisici
 
-- Value: brugerne kan have brug for handlingsanvisninger mere end tekniske indikatorer.
-- Usability: status skal være forståelig for både faglige og tekniske brugere.
-- Feasibility: kræver datakvalitetsregler, ejerskab og eskaleringsprocesser.
-- Viability: kan reducere manuelle afklaringer og styrke tillid til opfølgningsdata.
+- Værdi: brugerne kan have brug for handlingsanvisninger mere end tekniske indikatorer.
+- Brugbarhed: status skal være forståelig for både faglige og tekniske brugere.
+- Gennemførlighed: kræver datakvalitetsregler, ejerskab og eskaleringsprocesser.
+- Bæredygtighed: kan reducere manuelle afklaringer og styrke tillid til opfølgningsdata.
 
 ## Antagelser
 

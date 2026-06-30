@@ -8,6 +8,10 @@ status: planned
 
 Contextual next-step modules on articles and market-stat pages, such as follow this area, view homes, estimate sale readiness, or compare agents.
 
+## Why This Could Work
+
+It turns explanation into an appropriate next step while the user's market question is active, without forcing every reader into the same funnel.
+
 ## Product Risks
 
 - Value: readers may not want transactional prompts inside editorial content.

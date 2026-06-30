@@ -16,5 +16,5 @@ Når reformer giver mere lokal frihed eller ændrer kravene til indsatsen, har l
 
 ## Kendt / Ukendt
 
-- Known: ledere har brug for data til både styring og dialog.
-- Unknown: hvilke indikatorer der bedst forudsiger god implementering uden at skabe uhensigtsmæssig adfærd.
+- Kendt: ledere har brug for data til både styring og dialog.
+- Uafklaret: hvilke indikatorer der bedst forudsiger god implementering uden at skabe uhensigtsmæssig adfærd.
