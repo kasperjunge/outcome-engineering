@@ -25,7 +25,7 @@ from outcome_engineering.graph import (
 )
 from outcome_engineering.serve import build_graph_payload, make_server
 from outcome_engineering.hosted import create_app
-from outcome_engineering.read import context_node, list_nodes, show_node, trace_node, validation_payload
+from outcome_engineering.read import GraphReader, context_node, list_nodes, show_node, trace_node, validation_payload
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
     SKILL_NAMES,
@@ -829,6 +829,20 @@ def test_read_service_returns_cli_equivalent_context_with_source_metadata(tmp_pa
     assert context["node"]["id"] == "solution.agent-central"
     assert "# Context: solution.agent-central" in context["markdown"]
     assert context["trace"][0]["id"] == "outcome.delegation-confidence"
+
+
+def test_graph_reader_exposes_shared_read_interface(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    reader = GraphReader(root)
+
+    assert reader.root == root.resolve()
+    assert reader.validation_payload()["valid"] is True
+    assert reader.graph_payload(read_only=True)["readOnly"] is True
+    assert reader.list_nodes("solution")["nodes"][0]["kind"] == "solution"
+    assert reader.show_node("solution.agent-central")["node"]["id"] == "solution.agent-central"
+    assert reader.trace_node("solution.agent-central")["trace"][-1]["id"] == "solution.agent-central"
+    assert "# Context: solution.agent-central" in reader.context_node("solution.agent-central")["markdown"]
 
 
 def test_hosted_app_exposes_read_only_http_api(tmp_path: Path) -> None:

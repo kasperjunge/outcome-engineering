@@ -59,6 +59,38 @@ class SourceMetadata:
         }
 
 
+@dataclass(frozen=True)
+class GraphReader:
+    root: Path
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "root", self.root.resolve())
+
+    def source_metadata(self) -> dict:
+        return SourceMetadata.from_root(self.root).to_dict()
+
+    def issues(self) -> list[dict]:
+        return issue_dicts(self.root)
+
+    def validation_payload(self) -> dict:
+        return validation_payload(self.root)
+
+    def graph_payload(self, *, read_only: bool = False, include_source: bool = False) -> dict:
+        return build_graph_payload(self.root, read_only=read_only, include_source=include_source)
+
+    def list_nodes(self, kind: str | None = None) -> dict:
+        return list_nodes(self.root, kind)
+
+    def show_node(self, selector: str) -> dict:
+        return show_node(self.root, selector)
+
+    def trace_node(self, selector: str) -> dict:
+        return trace_node(self.root, selector)
+
+    def context_node(self, selector: str) -> dict:
+        return context_node(self.root, selector)
+
+
 def title_from_body(text: str, fallback: str) -> str:
     return title_from_markdown(text, fallback)
 
