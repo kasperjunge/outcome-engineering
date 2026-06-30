@@ -4,11 +4,11 @@ id: opportunity.external-agents-need-current-product-context
 status: draft
 ---
 
-# External agents need current product context without repo access
+# I need external agents to understand my product context without repo access
 
-Small product-building teams increasingly use external chat agents to think through product decisions, PRDs, implementation plans, and tradeoffs. Those agents often do not have a local checkout of the repo and cannot run the `oe` CLI, so they depend on whatever product context the user manually pastes into the conversation.
+I increasingly use external chat agents to think through product decisions, PRDs, implementation plans, and tradeoffs. Those agents often do not have a local checkout of the repo and cannot run the `oe` CLI, so they depend on whatever product context I manually paste into the conversation.
 
-That makes product intent fragile. The agent may miss the current strategy, misunderstand the active outcome, ignore a relevant ICP, or advise on a PRD without seeing how it connects to the rest of the graph. The user then has to act as the context bridge instead of letting the product graph serve as durable shared memory.
+That makes product intent fragile. The agent may miss the current strategy, misunderstand the active outcome, ignore a relevant ICP, or advise on a PRD without seeing how it connects to the rest of the graph. I then have to act as the context bridge instead of letting the product graph serve as durable shared memory.
 
 This is part of the larger shared-direction problem: humans need a browser-accessible graph, and agents need a structured read-only context interface. Both should reflect the same current product graph without requiring local setup.
 

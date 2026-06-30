@@ -4,9 +4,9 @@ id: opportunity.concrete-reference-points
 status: draft
 ---
 
-# Small builders need concrete reference points
+# I need concrete reference points
 
-Small product-building teams need concrete reference points that make Outcome Engineering feel applicable to real product decisions. Without a recognizable product context, the framework can remain an abstract taxonomy instead of a practice they can transfer to their own work.
+I need concrete reference points that make Outcome Engineering feel applicable to real product decisions. Without a recognizable product context, the framework can remain an abstract taxonomy instead of a practice I can transfer to my own work.
 
 ## Evidence
 

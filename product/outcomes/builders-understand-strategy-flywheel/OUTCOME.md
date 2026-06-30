@@ -7,16 +7,16 @@ icps:
 status: draft
 ---
 
-# Builders understand how their strategy compounds
+# Builders make sharper strategy decisions
 
-The first user and strategy-minded early builders use Outcome Engineering to clarify the reinforcing motion behind their strategy, so they can explain what creates momentum, where the loop is weak, and which work should strengthen the system over time.
+The first user and strategy-minded early builders use Outcome Engineering to make clearer choices about what should create momentum, where their current strategy is weak, and which work should strengthen the system over time.
 
 ## Measures
 
-- Builders can describe the causal steps in their product or business flywheel without reducing it to a list of disconnected tactics.
-- Builders can identify the weakest step in the flywheel and connect it to a concrete opportunity or next learning step.
-- Builders use the flywheel to explain why a strategy, outcome, opportunity, or solution matters beyond its immediate effect.
-- Builders revise their strategy when the flywheel exposes a missing causal link, unsupported assumption, or non-compounding activity.
+- Builders can explain how the parts of their strategy are supposed to reinforce each other instead of treating them as disconnected tactics.
+- Builders can identify the weakest part of their strategy and connect it to a concrete opportunity or next learning step.
+- Builders can explain why a strategy, outcome, opportunity, or solution matters beyond its immediate effect.
+- Builders revise their strategy when they find a missing causal link, unsupported assumption, or non-compounding activity.
 
 ## Known / Unknown
 

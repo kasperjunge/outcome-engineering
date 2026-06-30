@@ -4,11 +4,11 @@ id: opportunity.why-this-way-of-working-matters
 status: draft
 ---
 
-# Small builders need to see why this way of working matters
+# I need to see why this way of working matters
 
-Small product-building teams will not become committed practitioners until they understand the core idea behind Outcome Engineering: agentic engineering makes building faster, so product judgment, validation, focus, alignment, and durable intent become the bottleneck.
+I will not become a committed practitioner until I understand the core idea behind Outcome Engineering: agentic engineering makes building faster, so product judgment, validation, focus, alignment, and durable intent become the bottleneck.
 
-They need a compelling first impression that makes the framework feel relevant to their current way of building, not like an abstract methodology or another productivity system.
+I need a compelling first impression that makes the framework feel relevant to my current way of building, not like an abstract methodology or another productivity system.
 
 ## Evidence
 

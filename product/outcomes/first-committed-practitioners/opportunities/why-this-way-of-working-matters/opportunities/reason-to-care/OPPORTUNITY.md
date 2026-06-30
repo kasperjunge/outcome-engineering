@@ -4,9 +4,9 @@ id: opportunity.reason-to-care
 status: draft
 ---
 
-# Small builders need a reason to care
+# I need a reason to care
 
-Small product-building teams need to believe Outcome Engineering names a real problem in how they now build. Without that belief, the graph can look like extra process instead of a way to make better product decisions and alignment choices while agents accelerate implementation.
+I need to believe Outcome Engineering names a real problem in how I now build. Without that belief, the graph can look like extra process instead of a way to make better product decisions and alignment choices while agents accelerate implementation.
 
 ## Evidence
 

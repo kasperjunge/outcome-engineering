@@ -4,9 +4,9 @@ id: opportunity.new-users-need-starting-path
 status: draft
 ---
 
-# New users need a starting path
+# I need a clear starting path
 
-Even if small builders and teams believe in the framework, they need a low-friction way to begin. Starting from an empty graph can feel ambiguous because their product thinking is messy, partial, and spread across ideas, code, chats, notes, and assumptions.
+Even if I believe in the framework, I need a low-friction way to begin. Starting from an empty graph can feel ambiguous because my product thinking is messy, partial, and spread across ideas, code, chats, notes, and assumptions.
 
 ## Evidence
 

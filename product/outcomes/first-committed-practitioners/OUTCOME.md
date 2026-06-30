@@ -7,7 +7,7 @@ icps:
 status: draft
 ---
 
-# First committed practitioners
+# Builders adopt OE as a working product practice
 
 Solo builders and small product-building teams start using Outcome Engineering as a real working practice for deciding what to build, why it matters, and how product intent should guide agent-assisted implementation.
 
