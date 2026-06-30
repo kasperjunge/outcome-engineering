@@ -183,7 +183,7 @@
         </defs>
         <g id="viewport"></g>
       </svg>
-      <div class="hint">scroll to zoom · drag to pan · click an outcome to focus</div>
+      <div class="hint">scroll to zoom · drag to pan · click any node to inspect</div>
       <div id="toast"></div>
     </div>
     <div id="detail" class="empty">Select a node to see its content.</div>
@@ -216,31 +216,11 @@ function buildIndexes() {
 }
 function childKinds(kind) { return (GRAPH.schema && GRAPH.schema.childKinds && GRAPH.schema.childKinds[kind]) || []; }
 
-// Union of ICP ids referenced anywhere in a node's subtree (incl. itself).
-function subtreeIcps(node) {
-  const seen = new Set();
-  (function walk(n) {
-    (n.icps || []).forEach(i => seen.add(i));
-    (childrenOf.get(n.id) || []).forEach(walk);
-  })(node);
-  return [...seen];
-}
-// Nodes inside an outcome subtree that directly reference a given icp.
-function referrersOf(outcome, icpId) {
-  const out = [];
-  (function walk(n) {
-    if ((n.icps || []).includes(icpId)) out.push(n);
-    (childrenOf.get(n.id) || []).forEach(walk);
-  })(outcome);
-  return out;
-}
-
 const svg = document.getElementById("svg");
 const viewport = document.getElementById("viewport");
 const SVGNS = "http://www.w3.org/2000/svg";
 const state = {
-  mode: "overview",   // "overview" | "focus"
-  focus: null,        // outcome id when focused
+  mode: "overview",   // "overview" | "flywheel"
   collapsed: new Set(),
   selected: null,
   view: { x: 0, y: 0, k: 1 },
@@ -331,22 +311,40 @@ function sketchOffset(a, b) {
     c: ((f * 13) % 1 - .5) * 14,
   };
 }
-// ---- overview (strategic) layout -------------------------------------------
+// ---- overview: full product graph ------------------------------------------
 function renderOverview() {
   clear(viewport);
   const usedVisions = visions.slice();
   const usedStrategies = strategies.slice();
   const usedIcps = icps.slice();
-  const visionX = spread(usedVisions.length, COL_W * 1.25);
-  const strategyX = spread(usedStrategies.length, COL_W * 1.25);
-  const icpX = spread(usedIcps.length, COL_W);
-  const outX = spread(outcomes.length, COL_W * 1.15);
-  const visionY = 0, strategyY = ROW_H * 1.15, icpY = ROW_H * 2.3, outY = ROW_H * 3.7;
   const pos = new Map();
+  let cursor = 0;
+
+  function layoutTree(n, depth) {
+    const kids = state.collapsed.has(n.id) ? [] : (childrenOf.get(n.id) || []);
+    const y = depth * ROW_H;
+    if (!kids.length) {
+      pos.set(n.id, { x: cursor * COL_W, y, h: nodeHeight(n) });
+      cursor++;
+      return;
+    }
+    kids.forEach(c => layoutTree(c, depth + 1));
+    const xs = kids.map(c => pos.get(c.id).x);
+    pos.set(n.id, { x: (Math.min(...xs) + Math.max(...xs)) / 2, y, h: nodeHeight(n) });
+  }
+
+  outcomes.forEach(o => layoutTree(o, 3));
+  const graphXs = outcomes.map(o => pos.get(o.id).x);
+  const minX = graphXs.length ? Math.min(...graphXs) : 0;
+  const maxX = graphXs.length ? Math.max(...graphXs) : 0;
+  const centerX = (minX + maxX) / 2;
+  const visionX = spread(usedVisions.length, COL_W * 1.2).map(x => x + centerX);
+  const strategyX = spread(usedStrategies.length, COL_W * 1.2).map(x => x + centerX);
+  const icpX = spread(usedIcps.length, COL_W).map(x => x + centerX);
+  const visionY = 0, strategyY = ROW_H * 0.95, icpY = ROW_H * 1.9;
   usedVisions.forEach((vision, i) => pos.set(vision.id, { x: visionX[i], y: visionY, h: nodeHeight(vision) }));
   usedStrategies.forEach((strategy, i) => pos.set(strategy.id, { x: strategyX[i], y: strategyY, h: nodeHeight(strategy) }));
   usedIcps.forEach((icp, i) => pos.set(icp.id, { x: icpX[i], y: icpY, h: nodeHeight(icp) }));
-  outcomes.forEach((o, i) => pos.set(o.id, { x: outX[i], y: outY, h: nodeHeight(o) }));
 
   // top-level strategic context edges
   usedVisions.forEach(vision => {
@@ -360,21 +358,28 @@ function renderOverview() {
       viewport.appendChild(edgePath(pos.get(strategy.id), pos.get(o.id), "structural"));
     });
   });
-  // edges: outcome serves icp (aggregated over its subtree)
-  outcomes.forEach(o => {
-    subtreeIcps(o).forEach(icpId => {
-      if (!pos.has(icpId)) return;
-      viewport.appendChild(edgePath(pos.get(o.id), pos.get(icpId), "icp"));
-    });
+  GRAPH.edges.filter(e => e.type === "structural").forEach(e => {
+    if (pos.has(e.source) && pos.has(e.target)) viewport.appendChild(edgePath(pos.get(e.source), pos.get(e.target), "structural"));
   });
+  GRAPH.edges.filter(e => e.type === "icp").forEach(e => {
+    if (pos.has(e.source) && pos.has(e.target)) viewport.appendChild(edgePath(pos.get(e.target), pos.get(e.source), "icp"));
+  });
+
   if (usedVisions.length) addBandLabel("vision", visionX, visionY);
   if (usedStrategies.length) addBandLabel("strategy", strategyX, strategyY);
   if (usedIcps.length) addBandLabel("ideal customer profiles", icpX, icpY);
-  if (outcomes.length) addBandLabel("outcomes", outX, outY);
+  if (outcomes.length) addBandLabel("product graph", [minX], ROW_H * 3);
   usedVisions.forEach(vision => drawNode(vision, pos.get(vision.id).x, pos.get(vision.id).y));
   usedStrategies.forEach(strategy => drawNode(strategy, pos.get(strategy.id).x, pos.get(strategy.id).y));
   usedIcps.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
-  outcomes.forEach(o => drawNode(o, pos.get(o.id).x, pos.get(o.id).y));
+  outcomes.forEach(o => drawFullGraphNode(o, pos));
+}
+
+function drawFullGraphNode(n, pos) {
+  const p = pos.get(n.id);
+  const kids = childrenOf.get(n.id) || [];
+  drawNode(n, p.x, p.y, { toggle: kids.length > 0 });
+  if (!state.collapsed.has(n.id)) kids.forEach(child => drawFullGraphNode(child, pos));
 }
 
 function addBandLabel(text, xs, y) {
@@ -388,55 +393,6 @@ function spread(count, gap) {
   const start = -((count - 1) * gap) / 2;
   for (let i = 0; i < count; i++) xs.push(start + i * gap);
   return xs;
-}
-
-// ---- focus (tactical) layout: one outcome subtree --------------------------
-function renderFocus(outcomeId) {
-  clear(viewport);
-  const root = byId.get(outcomeId);
-  if (!root) { goOverview(); return; }
-  let cursor = 0;
-  const pos = new Map();
-  (function layout(n, depth) {
-    const kids = state.collapsed.has(n.id) ? [] : (childrenOf.get(n.id) || []);
-    const y = depth * ROW_H;
-    if (kids.length === 0) {
-      pos.set(n.id, { x: cursor * COL_W, y, h: nodeHeight(n) });
-      cursor++;
-    } else {
-      kids.forEach(c => layout(c, depth + 1));
-      const xs = kids.map(c => pos.get(c.id).x);
-      pos.set(n.id, { x: (Math.min(...xs) + Math.max(...xs)) / 2, y, h: nodeHeight(n) });
-    }
-  })(root, 1);
-
-  // pinned ICPs this subtree serves, sitting above the outcome
-  const served = subtreeIcps(root).map(id => byId.get(id)).filter(Boolean);
-  const icpXs = spread(served.length, COL_W);
-  const rootX = pos.get(root.id).x;
-  served.forEach((icp, i) => pos.set(icp.id, { x: rootX + icpXs[i], y: -ROW_H * 0.55, h: nodeHeight(icp) }));
-
-  // structural edges
-  (function edges(n) {
-    if (state.collapsed.has(n.id)) return;
-    (childrenOf.get(n.id) || []).forEach(c => {
-      viewport.appendChild(edgePath(pos.get(n.id), pos.get(c.id), "structural"));
-      edges(c);
-    });
-  })(root);
-  // icp reference edges to the specific referrers
-  served.forEach(icp => {
-    referrersOf(root, icp.id).forEach(ref => {
-      if (pos.has(ref.id)) viewport.appendChild(edgePath(pos.get(icp.id), pos.get(ref.id), "icp"));
-    });
-  });
-  served.forEach(icp => drawNode(icp, pos.get(icp.id).x, pos.get(icp.id).y));
-  (function nodes(n) {
-    const p = pos.get(n.id);
-    const kids = childrenOf.get(n.id) || [];
-    drawNode(n, p.x, p.y, { toggle: kids.length > 0 });
-    if (!state.collapsed.has(n.id)) kids.forEach(nodes);
-  })(root);
 }
 
 // ---- flywheel layout: separate causal loop surface -------------------------
@@ -505,8 +461,7 @@ function flywheelEdgeId(sourceId, targetId) { return "flywheel-edge:" + sourceId
 function onNodeClick(n) {
   state.selected = n.id;
   showDetail(n);
-  if (n.kind === "outcome" && state.mode === "overview") enterFocus(n.id);
-  else render();
+  render();
 }
 function onFlywheelNodeClick(n) {
   state.selected = n.id;
@@ -518,14 +473,12 @@ function onFlywheelEdgeClick(source, target) {
   showFlywheelEdgeDetail(source, target);
   render();
 }
-function enterFocus(outcomeId) { state.mode = "focus"; state.focus = outcomeId; state.collapsed.clear(); render({ fitView: true }); }
-function enterFlywheel() { state.mode = "flywheel"; state.focus = null; state.selected = null; render({ fitView: true }); showFlywheelDetail(); }
-function goOverview() { state.mode = "overview"; state.focus = null; state.selected = null; render({ fitView: true }); clearDetail(); }
+function enterFlywheel() { state.mode = "flywheel"; state.selected = null; render({ fitView: true }); showFlywheelDetail(); }
+function goOverview() { state.mode = "overview"; state.selected = null; render({ fitView: true }); clearDetail(); }
 function toggleCollapse(id) { state.collapsed.has(id) ? state.collapsed.delete(id) : state.collapsed.add(id); render({ fitView: true }); }
 
 function render({ fitView = false } = {}) {
   if (state.mode === "flywheel") renderFlywheel();
-  else if (state.mode === "focus" && state.focus) renderFocus(state.focus);
   else renderOverview();
   renderCrumbs();
   document.getElementById("btn-overview").disabled = state.mode === "overview";
@@ -546,13 +499,6 @@ function renderCrumbs() {
     c.appendChild(document.createTextNode(" / flywheel"));
     return;
   }
-  const o = byId.get(state.focus);
-  const link = document.createElement("a");
-  link.textContent = "overview";
-  link.onclick = goOverview;
-  c.appendChild(document.createTextNode("· "));
-  c.appendChild(link);
-  c.appendChild(document.createTextNode(" / " + (o ? o.title : state.focus)));
 }
 // ---- detail panel -----------------------------------------------------------
 function clearHtml(node) { while (node.firstChild) node.removeChild(node.firstChild); }
@@ -717,12 +663,7 @@ function showCreateForm(kind, under) {
       const newId = res.data.id;
       const parent = under ? byId.get(under) : null;
       await reload(newId);
-      // focus the relevant outcome subtree so the new node is visible
       const created = byId.get(newId);
-      if (created && created.kind !== "outcome" && created.kind !== "icp") {
-        const oc = outcomeAncestor(created);
-        if (oc) enterFocus(oc.id);
-      }
       if (created) { state.selected = created.id; showDetail(created); }
       reportIssues(res.data.issues);
     } else { create.disabled = false; toast(res.error || "Create failed", "error"); }
@@ -748,7 +689,6 @@ async function deleteNode(n) {
   const res = await api("DELETE", path);
   if (res.ok) {
     toast("Deleted " + n.id, "ok");
-    if (state.focus === n.id) { state.mode = "overview"; state.focus = null; }
     state.selected = null;
     await reload();
     clearDetail();
@@ -886,8 +826,7 @@ async function reload(selectId) {
   document.getElementById("root-title").textContent = GRAPH.root || "product graph";
   document.title = (GRAPH.root || "product") + " · product graph";
   document.getElementById("btn-flywheel").style.display = GRAPH.flywheel ? "" : "none";
-  // drop stale selection / focus
-  if (state.focus && !byId.has(state.focus)) { state.mode = "overview"; state.focus = null; }
+  // drop stale selection
   if (state.mode === "flywheel" && !GRAPH.flywheel) state.mode = "overview";
   if (state.selected && state.mode !== "flywheel" && !byId.has(state.selected)) state.selected = null;
   if (selectId && byId.has(selectId)) { state.selected = selectId; }
