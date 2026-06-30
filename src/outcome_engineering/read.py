@@ -123,28 +123,12 @@ def build_graph_payload(root: Path, *, read_only: bool = False, include_source: 
     for node in discovered:
         if node.kind not in NODE_KINDS:
             continue
-        body = marker_content(node).rstrip()
-        icp_refs = parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else []
-        nodes.append(
-            {
-                "id": node.id,
-                "kind": node.kind,
-                "slug": node.slug,
-                "title": title_from_body(body, node.slug),
-                "status": status_from_body(body),
-                "parent": node.parent.id if node.parent is not None else None,
-                "relationship": node.relationship,
-                "children": [child.id for child in node.children],
-                "icps": icp_refs,
-                "body": body,
-                "marker": _relative_or_absolute(node.marker_file, root),
-                "path": _relative_or_absolute(node.path, root),
-                "deletable": node.path != root and not read_only,
-            }
-        )
+        payload = node_payload(root, node)
+        payload["deletable"] = node.path != root and not read_only
+        nodes.append(payload)
         if node.parent is not None:
             edges.append({"source": node.parent.id, "target": node.id, "type": "structural"})
-        for ref in icp_refs:
+        for ref in payload["icps"]:
             edges.append({"source": node.id, "target": ref, "type": "icp"})
             icp_served_by.setdefault(ref, [])
             if node.id not in icp_served_by[ref]:
