@@ -11,12 +11,12 @@ from outcome_engineering.graph import (
     delete_node,
     write_marker,
 )
-from outcome_engineering.read import build_graph_payload, issue_dicts
+from outcome_engineering.read import GraphReader
 from outcome_engineering.ui import graph_page
 
 
 def _issues(root: Path) -> list[dict]:
-    return issue_dicts(root)
+    return GraphReader(root).issues()
 
 
 class GraphRequestHandler(BaseHTTPRequestHandler):
@@ -73,7 +73,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
         elif path == "/api/graph":
-            self._send_json(200, build_graph_payload(self.root))
+            self._send_json(200, GraphReader(self.root).graph_payload())
         else:
             self._send_json(404, {"error": "not found"})
 
