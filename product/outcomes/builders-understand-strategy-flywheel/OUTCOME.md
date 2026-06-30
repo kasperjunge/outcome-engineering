@@ -3,12 +3,13 @@ type: outcome
 id: outcome.builders-understand-strategy-flywheel
 icps:
   - icp.solo-software-product-builders
+  - icp.small-product-building-teams
 status: draft
 ---
 
 # Builders understand how their strategy compounds
 
-Solo software product builders use Outcome Engineering to clarify the reinforcing motion behind their strategy, so they can explain what creates momentum, where the loop is weak, and which work should strengthen the system over time.
+The first user and strategy-minded early builders use Outcome Engineering to clarify the reinforcing motion behind their strategy, so they can explain what creates momentum, where the loop is weak, and which work should strengthen the system over time.
 
 ## Measures
 
@@ -21,7 +22,8 @@ Solo software product builders use Outcome Engineering to clarify the reinforcin
 
 - Known: Outcome Engineering already treats strategy as the current bet for moving from vision toward outcomes.
 - Known: A flywheel is strategic logic, not part of the normal outcome -> opportunity -> solution trace chain.
+- Known: The flywheel is currently a first-user need, not a required part of Outcome Engineering adoption.
 - Known: The product graph should remain clean and traceable while still giving builders optional strategy thinking surfaces.
-- Unknown: Whether solo builders naturally think in flywheels, or whether the concept needs guided explanation before it becomes useful.
+- Unknown: Whether other builders naturally think in flywheels, or whether the concept needs guided explanation before it becomes useful.
 - Unknown: Whether the flywheel should live as a single strategy-level artifact or support multiple experimental flywheels over time.
 - Unknown: Which visual and agent-assisted workflow best helps builders improve the causal strength of a flywheel.

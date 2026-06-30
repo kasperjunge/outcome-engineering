@@ -8,7 +8,7 @@ status: draft
 
 ## Assumption
 
-Builders make sharper strategy decisions when they can see their flywheel as nodes and labeled causal edges instead of only describing strategy in prose.
+The first user and some strategy-minded builders make sharper strategy decisions when they can see their flywheel as nodes and labeled causal edges instead of only describing strategy in prose.
 
 ## Risk Type
 
@@ -16,7 +16,7 @@ Value
 
 ## Test
 
-Run a small moderated prototype test with 3 to 5 solo software product builders. Give each builder a simple markdown-backed flywheel sketch for their own product or a realistic example product. Ask them to explain the loop, identify the weakest link, and choose one next product decision that should strengthen the flywheel.
+Start with first-user dogfooding on Outcome Engineering's own strategy, then run a small moderated prototype test with 3 to 5 small product-building teams or solo builders. Give each builder a simple markdown-backed flywheel sketch for their own product or a realistic example product. Ask them to explain the loop, identify the weakest link, and choose one next product decision that should strengthen the flywheel.
 
 Compare this against a prose-only strategy description for the same product context.
 

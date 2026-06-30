@@ -26,3 +26,4 @@ Success means a solo builder or small founder team can use the hosted graph as a
 - Browser access lowers the friction of revisiting the product graph.
 - Small teams need shared visibility before they need shared editing.
 - Read-only hosted access preserves the repo as the source of truth while still creating alignment value.
+- Repeated read-only use is valuable enough to justify hosted access before collaboration or editing exists.

@@ -8,11 +8,11 @@ status: draft
 
 ## Problem
 
-Solo software product builders can capture vision, strategy, outcomes, opportunities, solutions, assumptions, and PRDs in Outcome Engineering, but they do not yet have a structured place to define the reinforcing strategic motion behind those choices.
+The first user and strategy-minded early builders can capture vision, strategy, outcomes, opportunities, solutions, assumptions, and PRDs in Outcome Engineering, but they do not yet have a structured place to define the reinforcing strategic motion behind those choices.
 
 The normal product graph is intentionally traceable and mostly hierarchical. A flywheel is different: it is a causal loop. Builders need a way to capture that loop without confusing it with the normal outcome -> opportunity -> solution trace chain.
 
-This PRD defines the first experimental version of a flywheel graph surface: optional, strategy-level, visually inspectable, and useful as agent context.
+This PRD defines the first experimental version of a flywheel graph surface: optional, strategy-level, visually inspectable, and useful as agent context. The normal product graph must remain fully useful without flywheel content.
 
 ## User Stories
 
@@ -34,6 +34,7 @@ This PRD defines the first experimental version of a flywheel graph surface: opt
 - The flywheel remains visually and conceptually separate from the normal product trace graph.
 - Agent-facing context can include the flywheel when strategy context is requested.
 - Empty or missing flywheel data does not break `oe validate`, `oe tree`, or the existing graph UI.
+- Users can ignore flywheels entirely and still create, inspect, validate, and use the normal product graph.
 
 ## Proposed Artifact Format
 
