@@ -744,10 +744,14 @@ def test_server_handles_favicon_without_browser_console_404(tmp_path: Path) -> N
         thread.join(timeout=5)
 
 
-def test_graph_template_keeps_focus_toggles_attached_to_nodes() -> None:
+def test_graph_template_renders_full_graph_with_branch_toggles() -> None:
     page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
 
+    assert "// ---- overview: full product graph" in page
+    assert "function drawFullGraphNode(n, pos)" in page
     assert 'class: "toggle", transform: `translate(${x},${y + h / 2 + 12})`' in page
+    assert "function renderFocus" not in page
+    assert "enterFocus" not in page
 
 
 def test_graph_template_wraps_full_node_titles() -> None:
