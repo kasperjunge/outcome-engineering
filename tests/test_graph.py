@@ -878,7 +878,7 @@ def test_hosted_app_reports_selector_and_validation_errors(tmp_path: Path) -> No
 
 
 def test_graph_page_can_be_rendered_read_only() -> None:
-    from outcome_engineering.serve import graph_page
+    from outcome_engineering.ui import graph_page
 
     page = graph_page(read_only=True)
 

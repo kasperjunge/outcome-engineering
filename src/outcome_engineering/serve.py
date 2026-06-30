@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from importlib import resources
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -13,15 +12,11 @@ from outcome_engineering.graph import (
     write_marker,
 )
 from outcome_engineering.read import build_graph_payload, issue_dicts
+from outcome_engineering.ui import graph_page
 
 
 def _issues(root: Path) -> list[dict]:
     return issue_dicts(root)
-
-
-def graph_page(*, read_only: bool = False) -> str:
-    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
-    return page.replace("const OE_READ_ONLY = false;", f"const OE_READ_ONLY = {'true' if read_only else 'false'};")
 
 
 class GraphRequestHandler(BaseHTTPRequestHandler):

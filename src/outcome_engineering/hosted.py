@@ -17,7 +17,7 @@ from outcome_engineering.read import (
     trace_node,
     validation_payload,
 )
-from outcome_engineering.serve import graph_page
+from outcome_engineering.ui import graph_page
 
 
 def graph_root_from_env() -> Path:
