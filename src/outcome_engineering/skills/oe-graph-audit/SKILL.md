@@ -7,6 +7,8 @@ description: Use this skill when asked to audit, review, critique, or check an O
 
 Audit an Outcome Engineering product graph for product-thinking quality. This complements `oe validate`, which checks structure only.
 
+Use `oe-cli` for graph inspection commands. Use `oe-best-practices` as the source of truth for judging node content.
+
 ## Workflow
 
 1. Run structural checks:
@@ -21,20 +23,17 @@ uv run oe list --root product
 
 3. Use `uv run oe context <node-id> --root product` when auditing a specific node or chain.
 
-4. Report findings by severity, with file and line references when possible. Separate structural validity from product-method quality.
+4. Read the matching `oe-best-practices` reference for every node type you judge.
+
+5. Report findings by severity, with file and line references when possible. Separate structural validity from product-method quality.
 
 ## Audit Checks
 
-- Outcome/output separation: outcomes must describe changed behavior, value, decision quality, learning, risk reduction, adoption depth, or business/customer result. Flag outcomes that are merely artifacts shipped, features built, documents written, graph nodes created, tasks completed, or implementation milestones.
-- Measure quality: measures should prove the outcome, not count activity. Prefer evidence of changed behavior or decision impact over counts of outputs.
-- Opportunity/solution separation: opportunities must describe needs, pains, constraints, situations, or unmet jobs. Flag solution artifacts inside opportunity titles, body, evidence, or unknowns, including essays, examples, guided flows, onboarding sessions, UI panels, automations, prompts, features, pages, documents, or specific channels.
-- Solution placement: solution ideas belong in `solutions/` under an opportunity. Assumption tests belong under solutions, not under opportunities.
-- Known/unknown discipline: `Known` is for observed evidence, validated learning, explicit strategic decisions, or factual graph context. `Unknown` is for genuine uncertainty that should affect discovery, testing, prioritization, or delivery. Flag hypotheses, hopes, market theses, causal guesses, or solution preferences mislabeled as known.
-- Evidence honesty: distinguish evidence from hypothesis. If there is no customer/user evidence yet, say that plainly.
-- ICP consistency: outcomes and opportunities should clearly serve the referenced ICPs, and the pain should sound specific to those people rather than generic users.
-- Narrative thread: check whether vision -> strategy -> ICP -> outcome -> opportunity -> solution -> assumption test / PRD forms a believable story. Flag child nodes that repeat the parent, jump levels, contradict the strategy, or fail to make the parent more actionable.
-- Wedge coherence: broad visions may include future teams, but the active strategy should explain why the current wedge is first and how expansion could follow.
-- Authenticity: the language should sound like the product's actual belief system and target user's lived problem, not generic product-management ceremony.
+- Apply the relevant `oe-best-practices` reference for each node.
+- Check cross-node coherence: vision -> strategy -> ICP -> outcome -> opportunity -> solution -> assumption test / PRD should form a believable product story.
+- Flag parent/child mismatches: repetition, level jumps, contradictions, generic wording, or children that do not make the parent more actionable.
+- Distinguish structural validity from product-method quality.
+- Do not invent evidence, customers, metrics, or strategic decisions while recommending fixes.
 
 ## Output Format
 

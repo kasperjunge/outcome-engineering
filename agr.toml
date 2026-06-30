@@ -21,9 +21,12 @@ default_repo = "skills"
 
 dependencies = [
     {handle = "computerlovetech/agr/agr-cli", type = "skill"},
-    {path = "./skills/oe-cli", type = "skill"},
-    {path = "./skills/oe-grill", type = "skill"},
-    {path = "./skills/oe-validate", type = "skill"},
+    {path = "./src/outcome_engineering/skills/oe-cli", type = "skill"},
+    {path = "./src/outcome_engineering/skills/oe-grill", type = "skill"},
+    {path = "./src/outcome_engineering/skills/oe-graph-audit", type = "skill"},
+    {path = "./src/outcome_engineering/skills/oe-validate", type = "skill"},
+    {path = "./src/outcome_engineering/skills/oe-best-practices", type = "skill"},
+    {path = "./skills/oe-release", type = "skill"},
 ]
 
 [[source]]

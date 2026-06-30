@@ -11,7 +11,6 @@ SKILL_NAMES = (
     SKILL_NAME,
     "oe-grill",
     "oe-graph-audit",
-    "oe-release",
     "oe-validate",
     "oe-best-practices",
 )
