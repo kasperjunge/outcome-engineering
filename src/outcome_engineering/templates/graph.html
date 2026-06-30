@@ -24,6 +24,7 @@
     --solution: #f08c35;
     --assumption-test: #d6aa28;
     --prd: #79808b;
+    --flywheel-node: #6f8f46;
     --shadow: rgba(47, 42, 36, .12);
   }
   * { box-sizing: border-box; }
@@ -92,6 +93,9 @@
   .node .stripe { opacity: .82; }
   .edge { fill: none; stroke: var(--line); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
   .edge.icp { stroke: var(--icp); stroke-dasharray: 7 6; stroke-width: 1.7; opacity: .8; }
+  .edge.flywheel { stroke: var(--flywheel-node); stroke-width: 2.1; cursor: pointer; marker-end: url(#arrow); }
+  .edge.flywheel:hover { stroke-width: 3; }
+  .edge.flywheel.selected { stroke-width: 3.4; }
   .edge.dim { opacity: .08; }
   .toggle { cursor: pointer; }
   .toggle circle { fill: #fffdf7; stroke: var(--line); stroke-width: 1.5; filter: url(#sketch); }
@@ -161,6 +165,7 @@
     <span class="spacer"></span>
     <button class="btn" id="btn-add-outcome">+ Outcome</button>
     <button class="btn" id="btn-add-icp">+ ICP</button>
+    <button class="btn" id="btn-flywheel" style="display:none">Flywheel</button>
     <button class="btn" id="btn-overview">Overview</button>
     <button class="btn" id="btn-fit">Fit</button>
   </header>
@@ -172,6 +177,9 @@
             <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="1" seed="8" result="noise" />
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.45" />
           </filter>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L8,3 z" fill="#6f8f46"></path>
+          </marker>
         </defs>
         <g id="viewport"></g>
       </svg>
@@ -187,12 +195,13 @@ const KIND_COLOR = {
   "vision": "#d96c75", "strategy": "#c6a15b",
   "icp": "#b07cf0", "outcome": "#4f8cf7", "opportunity": "#2bb3a3",
   "solution": "#f0913a", "assumption-test": "#e6c34a", "prd": "#8a94a6",
+  "flywheel-node": "#6f8f46",
 };
 const NODE_W = 240, NODE_MIN_H = 58, ROW_H = 142, COL_W = 284;
 const TITLE_CHARS_PER_LINE = 24, TITLE_LINE_H = 14;
 
-let GRAPH = { nodes: [], edges: [], schema: { childKinds: {} } };
-let byId = new Map(), childrenOf = new Map(), visions = [], strategies = [], outcomes = [], icps = [];
+let GRAPH = { nodes: [], edges: [], flywheel: null, schema: { childKinds: {} } };
+let byId = new Map(), childrenOf = new Map(), visions = [], strategies = [], outcomes = [], icps = [], flywheelById = new Map();
 
 function buildIndexes() {
   byId = new Map(GRAPH.nodes.map(n => [n.id, n]));
@@ -203,6 +212,7 @@ function buildIndexes() {
   strategies = GRAPH.nodes.filter(n => n.kind === "strategy");
   outcomes = GRAPH.nodes.filter(n => n.kind === "outcome");
   icps = GRAPH.nodes.filter(n => n.kind === "icp");
+  flywheelById = new Map(((GRAPH.flywheel && GRAPH.flywheel.nodes) || []).map(n => [n.id, { ...n, kind: "flywheel-node", deletable: false }]));
 }
 function childKinds(kind) { return (GRAPH.schema && GRAPH.schema.childKinds && GRAPH.schema.childKinds[kind]) || []; }
 
@@ -290,7 +300,7 @@ function drawNode(n, x, y, opts = {}) {
     s.textContent = n.status;
     g.appendChild(s);
   }
-  g.addEventListener("click", (e) => { e.stopPropagation(); onNodeClick(n); });
+  g.addEventListener("click", (e) => { e.stopPropagation(); (opts.onClick || onNodeClick)(n); });
   viewport.appendChild(g);
   // collapse / expand toggle
   if (opts.toggle) {
@@ -429,6 +439,68 @@ function renderFocus(outcomeId) {
   })(root);
 }
 
+// ---- flywheel layout: separate causal loop surface -------------------------
+function renderFlywheel() {
+  clear(viewport);
+  const fw = GRAPH.flywheel;
+  if (!fw || !fw.nodes || !fw.nodes.length) { goOverview(); return; }
+  const nodes = orderFlywheelNodes(fw.nodes.map(n => ({ ...n, kind: "flywheel-node", deletable: false })));
+  const radius = Math.max(230, nodes.length * 62);
+  const step = 2 * Math.PI / nodes.length;
+  const pos = new Map();
+  nodes.forEach((n, i) => {
+    const angle = -Math.PI / 2 + (i * step);
+    pos.set(n.id, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, h: nodeHeight(n), angle, radius, index: i });
+  });
+
+  nodes.forEach(source => {
+    (source.next || []).forEach(targetId => {
+      const target = nodes.find(n => n.id === targetId);
+      if (!target || !pos.has(source.id) || !pos.has(target.id)) return;
+      drawFlywheelEdge(source, target, pos.get(source.id), pos.get(target.id));
+    });
+  });
+  nodes.forEach(n => drawNode(n, pos.get(n.id).x, pos.get(n.id).y, { onClick: onFlywheelNodeClick }));
+}
+
+function orderFlywheelNodes(nodes) {
+  if (!nodes.length) return nodes;
+  const byNodeId = new Map(nodes.map(n => [n.id, n]));
+  const pointedAt = new Set(nodes.flatMap(n => n.next || []));
+  const preferred = byNodeId.get("flywheel-node.clearer-product-intent");
+  const start = preferred || nodes.find(n => !pointedAt.has(n.id)) || nodes[0];
+  const ordered = [];
+  const seen = new Set();
+  let current = start;
+  while (current && !seen.has(current.id)) {
+    ordered.push(current);
+    seen.add(current.id);
+    current = byNodeId.get((current.next || [])[0]);
+  }
+  nodes.forEach(n => { if (!seen.has(n.id)) ordered.push(n); });
+  return ordered;
+}
+
+function drawFlywheelEdge(source, target, a, b) {
+  const step = Math.PI * 2 / Math.max(1, (GRAPH.flywheel.nodes || []).length);
+  const trim = Math.min(step * .26, .28);
+  const clockwise = ((b.index - a.index + GRAPH.flywheel.nodes.length) % GRAPH.flywheel.nodes.length) <= 1;
+  const startAngle = a.angle + (clockwise ? trim : -trim);
+  const endAngle = b.angle - (clockwise ? trim : -trim);
+  const edgeRadius = a.radius * .88;
+  const start = { x: Math.cos(startAngle) * edgeRadius, y: Math.sin(startAngle) * edgeRadius };
+  const end = { x: Math.cos(endAngle) * edgeRadius, y: Math.sin(endAngle) * edgeRadius };
+  const edgeId = flywheelEdgeId(source.id, target.id);
+  const path = el("path", {
+    class: "edge flywheel" + (state.selected === edgeId ? " selected" : ""),
+    d: `M ${start.x} ${start.y} A ${edgeRadius} ${edgeRadius} 0 0 ${clockwise ? 1 : 0} ${end.x} ${end.y}`,
+  });
+  path.addEventListener("click", (e) => { e.stopPropagation(); onFlywheelEdgeClick(source, target); });
+  viewport.appendChild(path);
+}
+
+function flywheelEdgeId(sourceId, targetId) { return "flywheel-edge:" + sourceId + "->" + targetId; }
+
 // ---- interaction ------------------------------------------------------------
 function onNodeClick(n) {
   state.selected = n.id;
@@ -436,15 +508,28 @@ function onNodeClick(n) {
   if (n.kind === "outcome" && state.mode === "overview") enterFocus(n.id);
   else render();
 }
+function onFlywheelNodeClick(n) {
+  state.selected = n.id;
+  showFlywheelNodeDetail(n);
+  render();
+}
+function onFlywheelEdgeClick(source, target) {
+  state.selected = flywheelEdgeId(source.id, target.id);
+  showFlywheelEdgeDetail(source, target);
+  render();
+}
 function enterFocus(outcomeId) { state.mode = "focus"; state.focus = outcomeId; state.collapsed.clear(); render({ fitView: true }); }
+function enterFlywheel() { state.mode = "flywheel"; state.focus = null; state.selected = null; render({ fitView: true }); showFlywheelDetail(); }
 function goOverview() { state.mode = "overview"; state.focus = null; state.selected = null; render({ fitView: true }); clearDetail(); }
 function toggleCollapse(id) { state.collapsed.has(id) ? state.collapsed.delete(id) : state.collapsed.add(id); render({ fitView: true }); }
 
 function render({ fitView = false } = {}) {
-  if (state.mode === "focus" && state.focus) renderFocus(state.focus);
+  if (state.mode === "flywheel") renderFlywheel();
+  else if (state.mode === "focus" && state.focus) renderFocus(state.focus);
   else renderOverview();
   renderCrumbs();
   document.getElementById("btn-overview").disabled = state.mode === "overview";
+  document.getElementById("btn-flywheel").disabled = state.mode === "flywheel";
   if (fitView) fit();
   else applyView();
 }
@@ -452,6 +537,15 @@ function renderCrumbs() {
   const c = document.getElementById("crumbs");
   clearHtml(c);
   if (state.mode === "overview") { c.textContent = "· overview"; return; }
+  if (state.mode === "flywheel") {
+    const link = document.createElement("a");
+    link.textContent = "overview";
+    link.onclick = goOverview;
+    c.appendChild(document.createTextNode("· "));
+    c.appendChild(link);
+    c.appendChild(document.createTextNode(" / flywheel"));
+    return;
+  }
   const o = byId.get(state.focus);
   const link = document.createElement("a");
   link.textContent = "overview";
@@ -471,6 +565,49 @@ function showDoc(title, body) {
   d.className = ""; clearHtml(d);
   const h = document.createElement("h1"); h.textContent = title; d.appendChild(h);
   const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(body);
+  d.appendChild(md);
+}
+function showFlywheelDetail() {
+  const fw = GRAPH.flywheel;
+  if (!fw) { clearDetail(); return; }
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const pill = document.createElement("span"); pill.className = "pill"; pill.style.color = KIND_COLOR["flywheel-node"]; pill.style.borderColor = KIND_COLOR["flywheel-node"]; pill.textContent = "flywheel"; d.appendChild(pill);
+  if (fw.status) { const s = document.createElement("span"); s.className = "pill"; s.textContent = fw.status; d.appendChild(s); }
+  const h = document.createElement("h1"); h.textContent = fw.title; d.appendChild(h);
+  const id = document.createElement("div"); id.className = "id"; id.textContent = fw.id; d.appendChild(id);
+  const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(stripFrontHeading(fw.body));
+  d.appendChild(md);
+}
+function showFlywheelNodeDetail(n) {
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const pill = document.createElement("span"); pill.className = "pill"; pill.style.color = KIND_COLOR["flywheel-node"]; pill.style.borderColor = KIND_COLOR["flywheel-node"]; pill.textContent = "flywheel node"; d.appendChild(pill);
+  if (n.status) { const s = document.createElement("span"); s.className = "pill"; s.textContent = n.status; d.appendChild(s); }
+  const h = document.createElement("h1"); h.textContent = n.title; d.appendChild(h);
+  const id = document.createElement("div"); id.className = "id"; id.textContent = n.id; d.appendChild(id);
+  if ((n.next || []).length) {
+    const wrap = document.createElement("div"); wrap.className = "served";
+    const lbl = document.createElement("div"); lbl.style.color = "var(--muted)"; lbl.style.fontSize = "12px"; lbl.textContent = "Next";
+    wrap.appendChild(lbl);
+    n.next.forEach(rid => {
+      const chip = document.createElement("span"); chip.className = "chip";
+      const target = flywheelById.get(rid); chip.textContent = target ? target.title : rid;
+      chip.onclick = () => { const t = flywheelById.get(rid); if (t) onFlywheelNodeClick(t); };
+      wrap.appendChild(chip);
+    });
+    d.appendChild(wrap);
+  }
+  const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(stripFrontHeading(n.body));
+  d.appendChild(md);
+}
+function showFlywheelEdgeDetail(source, target) {
+  const d = document.getElementById("detail");
+  d.className = ""; clearHtml(d);
+  const pill = document.createElement("span"); pill.className = "pill"; pill.style.color = KIND_COLOR["flywheel-node"]; pill.style.borderColor = KIND_COLOR["flywheel-node"]; pill.textContent = "causal edge"; d.appendChild(pill);
+  const h = document.createElement("h1"); h.textContent = source.title + " -> " + target.title; d.appendChild(h);
+  const id = document.createElement("div"); id.className = "id"; id.textContent = source.id + " -> " + target.id; d.appendChild(id);
+  const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(stripFrontHeading(source.body));
   d.appendChild(md);
 }
 function showDetail(n) {
@@ -734,6 +871,7 @@ svg.addEventListener("click", () => { state.selected = null; render(); });
 
 // ---- buttons ----------------------------------------------------------------
 document.getElementById("btn-overview").onclick = goOverview;
+document.getElementById("btn-flywheel").onclick = enterFlywheel;
 document.getElementById("btn-fit").onclick = fit;
 document.getElementById("btn-add-outcome").onclick = () => showCreateForm("outcome", null);
 document.getElementById("btn-add-icp").onclick = () => showCreateForm("icp", null);
@@ -747,9 +885,11 @@ async function reload(selectId) {
   buildIndexes();
   document.getElementById("root-title").textContent = GRAPH.root || "product graph";
   document.title = (GRAPH.root || "product") + " · product graph";
+  document.getElementById("btn-flywheel").style.display = GRAPH.flywheel ? "" : "none";
   // drop stale selection / focus
   if (state.focus && !byId.has(state.focus)) { state.mode = "overview"; state.focus = null; }
-  if (state.selected && !byId.has(state.selected)) state.selected = null;
+  if (state.mode === "flywheel" && !GRAPH.flywheel) state.mode = "overview";
+  if (state.selected && state.mode !== "flywheel" && !byId.has(state.selected)) state.selected = null;
   if (selectId && byId.has(selectId)) { state.selected = selectId; }
   render({ fitView: true });
 }

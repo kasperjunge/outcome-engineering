@@ -10,6 +10,7 @@ from outcome_engineering.graph import (
     discover_nodes,
     find_node,
     find_nodes_by_kind,
+    flywheel_context,
     marker_content,
     node_ancestors,
     related_icps,
@@ -256,6 +257,13 @@ def context(
         typer.echo("## Supporting Files")
         for path in files:
             typer.echo(f"- {path}")
+
+    flywheel = flywheel_context(root.resolve())
+    if flywheel:
+        typer.echo("")
+        typer.echo("## Flywheel Context")
+        typer.echo("")
+        typer.echo(flywheel)
 
     if ancestors:
         typer.echo("")

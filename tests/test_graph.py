@@ -10,8 +10,10 @@ from outcome_engineering.example import create_example
 from outcome_engineering.graph import (
     create_node,
     delete_node,
+    discover_flywheel,
     find_node,
     find_nodes_by_kind,
+    flywheel_context,
     marker_content,
     node_ancestors,
     node_icp_references,
@@ -425,6 +427,105 @@ def test_strategy_can_live_under_top_level_strategies_collection(tmp_path: Path)
     assert validate(root) == []
 
 
+def write_valid_flywheel(root: Path) -> None:
+    flywheel = root / "flywheels" / "strategy"
+    nodes = flywheel / "nodes"
+    (nodes / "clearer-product-graph").mkdir(parents=True)
+    (nodes / "agent-legible-intent").mkdir(parents=True)
+    (flywheel / "FLYWHEEL.md").write_text(
+        """---
+type: flywheel
+id: flywheel.strategy
+status: experimental
+---
+
+# Strategy flywheel
+
+Outcome Engineering builds momentum by making product intent clearer and more usable by agents.
+""",
+        encoding="utf-8",
+    )
+    (nodes / "clearer-product-graph" / "FLYWHEEL_NODE.md").write_text(
+        """---
+type: flywheel-node
+id: flywheel-node.clearer-product-graph
+next:
+  - flywheel-node.agent-legible-intent
+status: experimental
+---
+
+# Clearer product graph
+
+Outcome Engineering turns messy product thinking into traceable product intent.
+
+## Why this creates the next step
+
+A clearer graph gives agents stable product context they can inspect, challenge, and use during implementation.
+""",
+        encoding="utf-8",
+    )
+    (nodes / "agent-legible-intent" / "FLYWHEEL_NODE.md").write_text(
+        """---
+type: flywheel-node
+id: flywheel-node.agent-legible-intent
+next:
+  - flywheel-node.clearer-product-graph
+status: experimental
+---
+
+# Agent-legible intent
+
+Agents can keep implementation aligned with current product judgment.
+
+## Why this creates the next step
+
+Better aligned implementation creates more evidence and sharper product graph updates.
+""",
+        encoding="utf-8",
+    )
+
+
+def test_optional_flywheel_artifact_is_valid_and_discoverable(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    create_node(root, kind="outcome", slug="activation", title=None, under=None)
+    write_valid_flywheel(root)
+
+    flywheel = discover_flywheel(root)
+
+    assert validate(root) == []
+    assert flywheel is not None
+    assert flywheel.id == "flywheel.strategy"
+    assert [node.id for node in flywheel.nodes] == [
+        "flywheel-node.agent-legible-intent",
+        "flywheel-node.clearer-product-graph",
+    ]
+
+
+def test_invalid_flywheel_next_reference_is_reported(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    write_valid_flywheel(root)
+    marker = root / "flywheels" / "strategy" / "nodes" / "clearer-product-graph" / "FLYWHEEL_NODE.md"
+    marker.write_text(marker.read_text(encoding="utf-8").replace("flywheel-node.agent-legible-intent", "flywheel-node.missing"), encoding="utf-8")
+
+    issues = validate(root)
+
+    assert any("does not resolve to a flywheel node" in issue.message for issue in issues)
+
+
+def test_flywheel_context_includes_artifact_for_agents(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    root.mkdir()
+    write_valid_flywheel(root)
+
+    context = flywheel_context(root)
+
+    assert "### flywheel.strategy" in context
+    assert "#### flywheel-node.clearer-product-graph" in context
+    assert "Why this creates the next step" in context
+
+
 def test_install_skill(tmp_path: Path) -> None:
     target = tmp_path / "skills" / "oe-cli"
 
@@ -525,6 +626,21 @@ def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
     assert schema["root"] == ["icp", "outcome", "strategy"]
     assert schema["outcome"] == ["opportunity"]
     assert schema["solution"] == ["assumption-test", "prd"]
+
+
+def test_build_graph_payload_exposes_optional_flywheel(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    write_valid_flywheel(root)
+
+    payload = build_graph_payload(root)
+
+    assert payload["flywheel"]["id"] == "flywheel.strategy"
+    assert {node["id"] for node in payload["flywheel"]["nodes"]} == {
+        "flywheel-node.clearer-product-graph",
+        "flywheel-node.agent-legible-intent",
+    }
+    assert payload["flywheel"]["nodes"][0]["next"]
 
 
 def test_write_marker_overwrites_node_content(tmp_path: Path) -> None:
@@ -674,6 +790,15 @@ def test_graph_template_preserves_viewport_on_selection() -> None:
     assert "if (fitView) fit();" in page
     assert "else applyView();" in page
     assert "render({ fitView: true });" in page
+
+
+def test_graph_template_has_separate_flywheel_mode() -> None:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+
+    assert 'id="btn-flywheel"' in page
+    assert 'function renderFlywheel()' in page
+    assert 'class: "edge flywheel"' in page
+    assert 'function showFlywheelEdgeDetail(source, target)' in page
 
 
 def test_serve_command_reports_bind_failure_without_traceback(tmp_path: Path, monkeypatch) -> None:

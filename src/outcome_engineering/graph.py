@@ -7,6 +7,11 @@ from pathlib import Path
 
 from outcome_engineering.model import (
     ALLOWED_CHILD_RELATIONSHIPS,
+    FLYWHEEL_COLLECTION,
+    FLYWHEEL_KIND,
+    FLYWHEEL_MARKER_FILE,
+    FLYWHEEL_NODE_KIND,
+    FLYWHEEL_NODE_MARKER_FILE,
     ICP_COLLECTION,
     ICP_KIND,
     ICP_REFERENCE_FIELD,
@@ -18,6 +23,8 @@ from outcome_engineering.model import (
     RELATIONSHIP_ORDER,
     RELATIONSHIP_TO_CHILD_KIND,
     ROOT_KINDS,
+    FlywheelGraph,
+    FlywheelNode,
     ProductNode,
     STRATEGY_COLLECTION,
     STRATEGY_KIND,
@@ -34,6 +41,10 @@ class StrategyPeriod:
 
 def marker_files_in(path: Path) -> list[Path]:
     return sorted(child for child in path.iterdir() if child.is_file() and child.name in MARKER_FILES)
+
+
+def flywheel_marker_files_in(path: Path) -> list[Path]:
+    return sorted(child for child in path.iterdir() if child.is_file() and child.name in {FLYWHEEL_MARKER_FILE, FLYWHEEL_NODE_MARKER_FILE})
 
 
 def discover_nodes(root: Path) -> list[ProductNode]:
@@ -111,6 +122,50 @@ def find_nodes_by_kind(root: Path, kind: str | None = None) -> list[ProductNode]
     if kind is None:
         return sorted(nodes, key=lambda node: (node.kind, node.slug, str(node.path)))
     return sorted((node for node in nodes if node.kind == kind), key=lambda node: (node.slug, str(node.path)))
+
+
+def discover_flywheel(root: Path) -> FlywheelGraph | None:
+    root = root.resolve()
+    flywheels_dir = root / FLYWHEEL_COLLECTION
+    if not flywheels_dir.is_dir():
+        return None
+
+    flywheel_dirs = sorted(child for child in flywheels_dir.iterdir() if child.is_dir() and (child / FLYWHEEL_MARKER_FILE).is_file())
+    if not flywheel_dirs:
+        return None
+
+    path = flywheel_dirs[0]
+    marker = path / FLYWHEEL_MARKER_FILE
+    body = marker.read_text(encoding="utf-8").rstrip()
+    nodes: list[FlywheelNode] = []
+    nodes_dir = path / "nodes"
+    if nodes_dir.is_dir():
+        for node_dir in sorted(child for child in nodes_dir.iterdir() if child.is_dir()):
+            node_marker = node_dir / FLYWHEEL_NODE_MARKER_FILE
+            if not node_marker.is_file():
+                continue
+            node_body = node_marker.read_text(encoding="utf-8").rstrip()
+            nodes.append(
+                FlywheelNode(
+                    path=node_dir,
+                    marker_file=node_marker,
+                    slug=node_dir.name,
+                    title=title_from_markdown(node_body, node_dir.name),
+                    body=node_body,
+                    status=parse_frontmatter_scalar(node_body, "status"),
+                    next=parse_flywheel_next(node_body),
+                )
+            )
+
+    return FlywheelGraph(
+        path=path,
+        marker_file=marker,
+        slug=path.name,
+        title=title_from_markdown(body, path.name),
+        body=body,
+        status=parse_frontmatter_scalar(body, "status"),
+        nodes=nodes,
+    )
 
 
 def node_ancestors(node: ProductNode) -> list[ProductNode]:
@@ -242,6 +297,17 @@ def title_from_slug(slug: str) -> str:
     return " ".join(part.capitalize() for part in slug.replace("_", "-").split("-") if part)
 
 
+def title_from_markdown(text: str, fallback: str) -> str:
+    name = parse_frontmatter_scalar(text, "name")
+    if name:
+        return name
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# "):
+            return stripped[2:].strip()
+    return title_from_slug(fallback)
+
+
 def marker_content(node: ProductNode) -> str:
     return node.marker_file.read_text(encoding="utf-8")
 
@@ -256,6 +322,14 @@ def parse_icp_references(text: str) -> list[str]:
           - icp.b
     """
     value = parse_frontmatter_value(text, ICP_REFERENCE_FIELD)
+    if value is None:
+        return []
+    references = value if isinstance(value, list) else _parse_inline_list(value)
+    return [ref for ref in (_strip_quotes(ref) for ref in references) if ref]
+
+
+def parse_flywheel_next(text: str) -> list[str]:
+    value = parse_frontmatter_value(text, "next")
     if value is None:
         return []
     references = value if isinstance(value, list) else _parse_inline_list(value)
@@ -368,6 +442,17 @@ def supporting_files(node: ProductNode) -> list[Path]:
         and path != node.marker_file
         and not any(part in relationship_names for part in path.relative_to(node.path).parts[:-1])
     )
+
+
+def flywheel_context(root: Path) -> str:
+    flywheel = discover_flywheel(root)
+    if flywheel is None:
+        return ""
+
+    lines = [f"### {flywheel.id}", "", flywheel.body.rstrip()]
+    for node in flywheel.nodes:
+        lines.extend(["", f"#### {node.id}", "", node.body.rstrip()])
+    return "\n".join(lines)
 
 
 def relationship_dirs(path: Path) -> list[Path]:
@@ -492,8 +577,92 @@ def validate(root: Path) -> list[ValidationIssue]:
             issues.append(ValidationIssue(root_strategy, "metadata must use frontmatter, not fenced yaml blocks"))
         _validate_strategy_marker(root_strategy, issues, strategy_periods)
     _validate_strategy_periods_do_not_overlap(strategy_periods, issues)
+    _validate_flywheel(root, issues)
 
     return issues
+
+
+def _validate_flywheel(root: Path, issues: list[ValidationIssue]) -> None:
+    flywheels_dir = root / FLYWHEEL_COLLECTION
+    if not flywheels_dir.exists():
+        return
+    if not flywheels_dir.is_dir():
+        issues.append(ValidationIssue(flywheels_dir, f"{FLYWHEEL_COLLECTION} must be a directory"))
+        return
+
+    flywheel_dirs = sorted(child for child in flywheels_dir.iterdir() if child.is_dir())
+    if len(flywheel_dirs) > 1:
+        issues.append(ValidationIssue(flywheels_dir, "only one experimental flywheel is supported"))
+
+    for flywheel_dir in flywheel_dirs:
+        markers = flywheel_marker_files_in(flywheel_dir)
+        if markers != [flywheel_dir / FLYWHEEL_MARKER_FILE]:
+            issues.append(ValidationIssue(flywheel_dir, f"flywheel directory must contain exactly {FLYWHEEL_MARKER_FILE}"))
+            continue
+        content = markers[0].read_text(encoding="utf-8")
+        _validate_flywheel_marker(markers[0], content, FLYWHEEL_KIND, f"{FLYWHEEL_KIND}.{flywheel_dir.name}", issues)
+
+        nodes_dir = flywheel_dir / "nodes"
+        if not nodes_dir.exists():
+            issues.append(ValidationIssue(flywheel_dir, "flywheel must contain nodes/"))
+            continue
+        if not nodes_dir.is_dir():
+            issues.append(ValidationIssue(nodes_dir, "flywheel nodes must live in a nodes/ directory"))
+            continue
+
+        node_ids: set[str] = set()
+        node_next: dict[Path, list[str]] = {}
+        for node_dir in sorted(child for child in nodes_dir.iterdir() if child.is_dir()):
+            node_markers = flywheel_marker_files_in(node_dir)
+            if node_markers != [node_dir / FLYWHEEL_NODE_MARKER_FILE]:
+                issues.append(ValidationIssue(node_dir, f"flywheel node directory must contain exactly {FLYWHEEL_NODE_MARKER_FILE}"))
+                continue
+            node_id = f"{FLYWHEEL_NODE_KIND}.{node_dir.name}"
+            node_ids.add(node_id)
+            node_content = node_markers[0].read_text(encoding="utf-8")
+            _validate_flywheel_marker(node_markers[0], node_content, FLYWHEEL_NODE_KIND, node_id, issues)
+            next_ids = parse_flywheel_next(node_content)
+            if not next_ids:
+                issues.append(ValidationIssue(node_markers[0], "flywheel node must declare at least one next flywheel-node id"))
+            if not causal_explanation(node_content):
+                issues.append(ValidationIssue(node_markers[0], "flywheel node must explain why it creates the next step"))
+            node_next[node_markers[0]] = next_ids
+
+        for marker, next_ids in node_next.items():
+            for next_id in next_ids:
+                if not next_id.startswith(f"{FLYWHEEL_NODE_KIND}."):
+                    issues.append(ValidationIssue(marker, f"next reference {next_id!r} must be a flywheel-node id"))
+                elif next_id not in node_ids:
+                    issues.append(ValidationIssue(marker, f"next reference {next_id!r} does not resolve to a flywheel node"))
+
+
+def _validate_flywheel_marker(marker: Path, content: str, expected_type: str, expected_id: str, issues: list[ValidationIssue]) -> None:
+    if has_fenced_yaml_metadata(content):
+        issues.append(ValidationIssue(marker, "metadata must use frontmatter, not fenced yaml blocks"))
+    metadata = parse_frontmatter(content)
+    if metadata.get("type") != expected_type:
+        issues.append(ValidationIssue(marker, f"flywheel metadata type must be {expected_type}"))
+    if metadata.get("id") != expected_id:
+        issues.append(ValidationIssue(marker, f"flywheel metadata id must be {expected_id}"))
+    if not title_from_markdown(content, ""):
+        issues.append(ValidationIssue(marker, "flywheel marker must include a title"))
+
+
+def causal_explanation(text: str) -> bool:
+    body = _strip_frontmatter(text)
+    lines = [line.strip() for line in body.splitlines()]
+    content_lines = [line for line in lines if line and not line.startswith("#")]
+    return bool(content_lines)
+
+
+def _strip_frontmatter(text: str) -> str:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return text
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            return "\n".join(lines[index + 1 :])
+    return text
 
 
 def _validate_strategy_marker(marker: Path, issues: list[ValidationIssue], strategy_periods: list[StrategyPeriod]) -> None:

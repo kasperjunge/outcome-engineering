@@ -15,6 +15,12 @@ MARKER_FILES = {
     "PRD.md": "prd",
 }
 
+FLYWHEEL_COLLECTION = "flywheels"
+FLYWHEEL_MARKER_FILE = "FLYWHEEL.md"
+FLYWHEEL_NODE_MARKER_FILE = "FLYWHEEL_NODE.md"
+FLYWHEEL_KIND = "flywheel"
+FLYWHEEL_NODE_KIND = "flywheel-node"
+
 RELATIONSHIP_TO_CHILD_KIND = {
     "strategies": {"strategy"},
     "outcomes": {"outcome"},
@@ -87,6 +93,36 @@ class ProductNode:
     @property
     def id(self) -> str:
         return f"{self.kind}.{self.slug}"
+
+
+@dataclass(frozen=True)
+class FlywheelNode:
+    path: Path
+    marker_file: Path
+    slug: str
+    title: str
+    body: str
+    status: str | None
+    next: list[str]
+
+    @property
+    def id(self) -> str:
+        return f"{FLYWHEEL_NODE_KIND}.{self.slug}"
+
+
+@dataclass(frozen=True)
+class FlywheelGraph:
+    path: Path
+    marker_file: Path
+    slug: str
+    title: str
+    body: str
+    status: str | None
+    nodes: list[FlywheelNode]
+
+    @property
+    def id(self) -> str:
+        return f"{FLYWHEEL_KIND}.{self.slug}"
 
 
 @dataclass(frozen=True)

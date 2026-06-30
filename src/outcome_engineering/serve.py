@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from outcome_engineering.graph import (
     create_node,
     delete_node,
+    discover_flywheel,
     discover_nodes,
     marker_content,
     parse_frontmatter_scalar,
@@ -99,10 +100,33 @@ def build_graph_payload(root: Path) -> dict:
         if node["kind"] == "icp":
             node["servedBy"] = icp_served_by.get(node["id"], [])
 
+    flywheel = discover_flywheel(root)
+    flywheel_payload = None
+    if flywheel is not None:
+        flywheel_payload = {
+            "id": flywheel.id,
+            "slug": flywheel.slug,
+            "title": flywheel.title,
+            "status": flywheel.status,
+            "body": flywheel.body,
+            "nodes": [
+                {
+                    "id": node.id,
+                    "slug": node.slug,
+                    "title": node.title,
+                    "status": node.status,
+                    "body": node.body,
+                    "next": node.next,
+                }
+                for node in flywheel.nodes
+            ],
+        }
+
     return {
         "root": root.name,
         "vision": _root_marker_text(discovered, "vision"),
         "strategy": _root_marker_text(discovered, "strategy"),
+        "flywheel": flywheel_payload,
         "schema": _schema(),
         "nodes": nodes,
         "edges": edges,
