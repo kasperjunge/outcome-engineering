@@ -10,13 +10,11 @@ from outcome_engineering.graph import (
     discover_nodes,
     find_node,
     find_nodes_by_kind,
-    flywheel_context,
     marker_content,
     node_ancestors,
-    related_icps,
-    supporting_files,
     validate as validate_graph,
 )
+from outcome_engineering.read import NodeResolutionError, context_node as read_context_node
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
 from outcome_engineering.skill_installer import (
     install_project_skills,
@@ -228,65 +226,18 @@ def context(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Print deterministic context around a node for an agent."""
-    node = load_valid_node(root, selector)
-    ancestors = node_ancestors(node)
-    icps = related_icps(root.resolve(), node, ancestors)
+    issues = validate_graph(root)
+    if issues:
+        typer.echo(f"Invalid product graph: {root}")
+        for issue in issues:
+            typer.echo(f"- {issue.path}: {issue.message}")
+        raise typer.Exit(code=1)
 
-    typer.echo(f"# Context: {node.id}")
-    typer.echo("")
-    typer.echo("## Trace")
-    for ancestor in ancestors:
-        typer.echo(f"- {ancestor.id} ({ancestor.marker_file})")
-    typer.echo(f"- {node.id} ({node.marker_file})")
-
-    if icps:
-        typer.echo("")
-        typer.echo("## ICPs")
-        for icp in icps:
-            typer.echo(f"- {icp.id} ({icp.marker_file})")
-
-    if node.children:
-        typer.echo("")
-        typer.echo("## Children")
-        for child in node.children:
-            typer.echo(f"- {child.id} ({child.marker_file})")
-
-    files = supporting_files(node)
-    if files:
-        typer.echo("")
-        typer.echo("## Supporting Files")
-        for path in files:
-            typer.echo(f"- {path}")
-
-    flywheel = flywheel_context(root.resolve())
-    if flywheel:
-        typer.echo("")
-        typer.echo("## Flywheel Context")
-        typer.echo("")
-        typer.echo(flywheel)
-
-    if ancestors:
-        typer.echo("")
-        typer.echo("## Ancestor Content")
-        for ancestor in ancestors:
-            typer.echo("")
-            typer.echo(f"### {ancestor.id}")
-            typer.echo("")
-            typer.echo(marker_content(ancestor).rstrip())
-
-    if icps:
-        typer.echo("")
-        typer.echo("## ICP Content")
-        for icp in icps:
-            typer.echo("")
-            typer.echo(f"### {icp.id}")
-            typer.echo("")
-            typer.echo(marker_content(icp).rstrip())
-
-    typer.echo("")
-    typer.echo("## Node Content")
-    typer.echo("")
-    typer.echo(marker_content(node).rstrip())
+    try:
+        typer.echo(read_context_node(root, selector)["markdown"])
+    except NodeResolutionError as error:
+        typer.echo(f"Node not found or ambiguous: {error.selector}")
+        raise typer.Exit(code=1) from error
 
 
 @app.command("new")

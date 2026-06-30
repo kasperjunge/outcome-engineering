@@ -5,7 +5,9 @@ description = "Repo-native product graph tooling for Outcome Engineering."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "fastapi>=0.124.0",
     "typer>=0.16.0",
+    "uvicorn>=0.40.0",
 ]
 
 [project.scripts]
@@ -13,6 +15,7 @@ oe = "outcome_engineering.cli:app"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.0",
     "pytest>=8.0.0",
     "ruff>=0.15.20",
     "ty>=0.0.55",

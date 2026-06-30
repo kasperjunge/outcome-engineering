@@ -34,6 +34,24 @@ collaboration happens through git like everything else in the repo. The server
 is dependency-free (Python stdlib) and binds to loopback by default; use
 `--host`/`--port` to change that and `--no-open` to skip launching a browser.
 
+## Hosted read-only graph
+
+The package also includes a FastAPI app for hosting one read-only graph behind
+external access control:
+
+```sh
+OE_GRAPH_ROOT=product uv run uvicorn outcome_engineering.hosted:app --host 0.0.0.0 --port 8000
+```
+
+The hosted app exposes HTTP equivalents of the read-only CLI workflows:
+`/api/graph`, `/api/validate`, `/api/nodes`, `/api/nodes/{selector}`,
+`/api/nodes/{selector}/trace`, and `/api/nodes/{selector}/context`.
+Context responses include both structured JSON and markdown. The app does not
+register create, edit, delete, or reorganization routes; authentication is
+expected to live in the deployment/proxy layer. `Dockerfile.hosted` builds a
+single-graph deployable that reads the bundled `product/` directory, suitable
+for redeploying from CI on each push to `main`.
+
 Graph metadata lives in Markdown frontmatter. Fenced YAML metadata blocks are invalid.
 
 An ICP (ideal customer profile) is the "who" the graph serves. A graph can have one or more, and they live in the top-level `product/icps/` collection. ICPs are not part of the outcome → opportunity → solution trace chain; instead outcomes and opportunities reference the ICPs they serve by listing `icp.<slug>` ids in frontmatter.

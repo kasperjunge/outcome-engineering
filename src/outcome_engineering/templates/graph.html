@@ -191,6 +191,7 @@
 </div>
 <script>
 const KINDS = ["vision", "strategy", "icp", "outcome", "opportunity", "solution", "assumption-test", "prd"];
+const OE_READ_ONLY = false;
 const KIND_COLOR = {
   "vision": "#d96c75", "strategy": "#c6a15b",
   "icp": "#b07cf0", "outcome": "#4f8cf7", "opportunity": "#2bb3a3",
@@ -581,22 +582,24 @@ function showDetail(n) {
     d.appendChild(wrap);
   }
 
-  // action buttons: edit, add child (legal kinds only), delete
-  const actions = document.createElement("div"); actions.className = "actions";
-  const editBtn = document.createElement("button"); editBtn.className = "btn primary"; editBtn.textContent = "Edit";
-  editBtn.onclick = () => showEditor(n);
-  actions.appendChild(editBtn);
-  childKinds(n.kind).forEach(ck => {
-    const b = document.createElement("button"); b.className = "btn"; b.textContent = "+ " + ck;
-    b.onclick = () => showCreateForm(ck, n.id);
-    actions.appendChild(b);
-  });
-  if (n.deletable !== false) {
-    const delBtn = document.createElement("button"); delBtn.className = "btn danger"; delBtn.textContent = "Delete";
-    delBtn.onclick = () => deleteNode(n);
-    actions.appendChild(delBtn);
+  if (!OE_READ_ONLY) {
+    // action buttons: edit, add child (legal kinds only), delete
+    const actions = document.createElement("div"); actions.className = "actions";
+    const editBtn = document.createElement("button"); editBtn.className = "btn primary"; editBtn.textContent = "Edit";
+    editBtn.onclick = () => showEditor(n);
+    actions.appendChild(editBtn);
+    childKinds(n.kind).forEach(ck => {
+      const b = document.createElement("button"); b.className = "btn"; b.textContent = "+ " + ck;
+      b.onclick = () => showCreateForm(ck, n.id);
+      actions.appendChild(b);
+    });
+    if (n.deletable !== false) {
+      const delBtn = document.createElement("button"); delBtn.className = "btn danger"; delBtn.textContent = "Delete";
+      delBtn.onclick = () => deleteNode(n);
+      actions.appendChild(delBtn);
+    }
+    d.appendChild(actions);
   }
-  d.appendChild(actions);
 
   const md = document.createElement("div"); md.className = "md"; md.innerHTML = renderMarkdown(stripFrontHeading(n.body));
   d.appendChild(md);
@@ -813,8 +816,13 @@ svg.addEventListener("click", () => { state.selected = null; render(); });
 document.getElementById("btn-overview").onclick = goOverview;
 document.getElementById("btn-flywheel").onclick = enterFlywheel;
 document.getElementById("btn-fit").onclick = fit;
-document.getElementById("btn-add-outcome").onclick = () => showCreateForm("outcome", null);
-document.getElementById("btn-add-icp").onclick = () => showCreateForm("icp", null);
+if (OE_READ_ONLY) {
+  document.getElementById("btn-add-outcome").style.display = "none";
+  document.getElementById("btn-add-icp").style.display = "none";
+} else {
+  document.getElementById("btn-add-outcome").onclick = () => showCreateForm("outcome", null);
+  document.getElementById("btn-add-icp").onclick = () => showCreateForm("icp", null);
+}
 window.addEventListener("resize", () => applyView());
 
 // ---- data loading -----------------------------------------------------------

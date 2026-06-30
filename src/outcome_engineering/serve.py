@@ -10,135 +10,18 @@ from urllib.parse import parse_qs, unquote, urlparse
 from outcome_engineering.graph import (
     create_node,
     delete_node,
-    discover_flywheel,
-    discover_nodes,
-    marker_content,
-    parse_frontmatter_scalar,
-    parse_icp_references,
-    validate,
     write_marker,
 )
-from outcome_engineering.model import PARENT_KIND_TO_CHILD_KIND
-
-# Kinds that are rendered as graph nodes. Vision and strategy are top-level
-# product context, but the UI still renders them as nodes in the overview.
-NODE_KINDS = ("vision", "strategy", "icp", "outcome", "opportunity", "solution", "assumption-test", "prd")
-
-
-def _title_from_body(text: str, fallback: str) -> str:
-    name = parse_frontmatter_scalar(text, "name")
-    if name:
-        return name
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("# "):
-            return stripped[2:].strip()
-    return fallback
-
-
-def _status_from_body(text: str) -> str | None:
-    return parse_frontmatter_scalar(text, "status")
-
-
-def _root_marker_text(nodes: list, kind: str) -> str:
-    for node in nodes:
-        if node.kind == kind:
-            return marker_content(node).rstrip()
-    return ""
-
-
-def _schema() -> dict:
-    """The model's placement rules, so the UI only ever offers legal moves."""
-    return {
-        "childKinds": {
-            parent: sorted(child for child in children if child in NODE_KINDS)
-            for parent, children in PARENT_KIND_TO_CHILD_KIND.items()
-        }
-    }
-
-
-def build_graph_payload(root: Path) -> dict:
-    """Serialize the discovered product graph into a render-ready payload.
-
-    The payload separates the two edge meanings the model defines: structural
-    parent->child trace edges, and many-to-many ICP reference edges.
-    """
-    root = root.resolve()
-    discovered = discover_nodes(root)
-
-    nodes: list[dict] = []
-    edges: list[dict] = []
-    icp_served_by: dict[str, list[str]] = {}
-
-    for node in discovered:
-        if node.kind not in NODE_KINDS:
-            continue
-        body = marker_content(node).rstrip()
-        icp_refs = parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else []
-        nodes.append(
-            {
-                "id": node.id,
-                "kind": node.kind,
-                "slug": node.slug,
-                "title": _title_from_body(body, node.slug),
-                "status": _status_from_body(body),
-                "parent": node.parent.id if node.parent is not None else None,
-                "icps": icp_refs,
-                "body": body,
-                "deletable": node.path != root,
-            }
-        )
-        if node.parent is not None:
-            edges.append({"source": node.parent.id, "target": node.id, "type": "structural"})
-        for ref in icp_refs:
-            edges.append({"source": node.id, "target": ref, "type": "icp"})
-            icp_served_by.setdefault(ref, [])
-            if node.id not in icp_served_by[ref]:
-                icp_served_by[ref].append(node.id)
-
-    for node in nodes:
-        if node["kind"] == "icp":
-            node["servedBy"] = icp_served_by.get(node["id"], [])
-
-    flywheel = discover_flywheel(root)
-    flywheel_payload = None
-    if flywheel is not None:
-        flywheel_payload = {
-            "id": flywheel.id,
-            "slug": flywheel.slug,
-            "title": flywheel.title,
-            "status": flywheel.status,
-            "body": flywheel.body,
-            "nodes": [
-                {
-                    "id": node.id,
-                    "slug": node.slug,
-                    "title": node.title,
-                    "status": node.status,
-                    "body": node.body,
-                    "next": node.next,
-                }
-                for node in flywheel.nodes
-            ],
-        }
-
-    return {
-        "root": root.name,
-        "vision": _root_marker_text(discovered, "vision"),
-        "strategy": _root_marker_text(discovered, "strategy"),
-        "flywheel": flywheel_payload,
-        "schema": _schema(),
-        "nodes": nodes,
-        "edges": edges,
-    }
+from outcome_engineering.read import build_graph_payload, issue_dicts
 
 
 def _issues(root: Path) -> list[dict]:
-    return [{"path": str(issue.path), "message": issue.message} for issue in validate(root)]
+    return issue_dicts(root)
 
 
-def _page() -> str:
-    return (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+def graph_page(*, read_only: bool = False) -> str:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+    return page.replace("const OE_READ_ONLY = false;", f"const OE_READ_ONLY = {'true' if read_only else 'false'};")
 
 
 class GraphRequestHandler(BaseHTTPRequestHandler):
@@ -189,7 +72,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = urlparse(self.path).path
         if path == "/":
-            self._send_html(_page())
+            self._send_html(graph_page())
         elif path == "/favicon.ico":
             self.send_response(204)
             self.send_header("Content-Length", "0")

@@ -24,6 +24,8 @@ from outcome_engineering.graph import (
     write_marker,
 )
 from outcome_engineering.serve import build_graph_payload, make_server
+from outcome_engineering.hosted import create_app
+from outcome_engineering.read import context_node, list_nodes, show_node, trace_node, validation_payload
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
     SKILL_NAMES,
@@ -803,6 +805,86 @@ def test_graph_template_has_separate_flywheel_mode() -> None:
     assert 'function renderFlywheel()' in page
     assert 'class: "edge flywheel"' in page
     assert 'function showFlywheelEdgeDetail(source, target)' in page
+
+
+def test_read_service_returns_cli_equivalent_context_with_source_metadata(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+
+    listed = list_nodes(root)
+    shown = show_node(root, "solution.agent-central")
+    traced = trace_node(root, "solution.agent-central")
+    context = context_node(root, "solution.agent-central")
+    validation = validation_payload(root)
+
+    assert validation["valid"] is True
+    assert "source" in listed and listed["source"]["branch"] == "main"
+    assert "vision.product" in {node["id"] for node in listed["nodes"]}
+    assert shown["node"]["id"] == "solution.agent-central"
+    assert [node["id"] for node in traced["trace"]] == [
+        "outcome.delegation-confidence",
+        "opportunity.agents-lack-safe-access-to-tools",
+        "solution.agent-central",
+    ]
+    assert context["node"]["id"] == "solution.agent-central"
+    assert "# Context: solution.agent-central" in context["markdown"]
+    assert context["trace"][0]["id"] == "outcome.delegation-confidence"
+
+
+def test_hosted_app_exposes_read_only_http_api(tmp_path: Path) -> None:
+    from fastapi.testclient import TestClient
+
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    client = TestClient(create_app(root))
+
+    page = client.get("/")
+    graph = client.get("/api/graph")
+    nodes = client.get("/api/nodes", params={"kind": "outcome"})
+    shown = client.get("/api/nodes/solution.agent-central")
+    traced = client.get("/api/nodes/solution.agent-central/trace")
+    context = client.get("/api/nodes/solution.agent-central/context")
+    validation = client.get("/api/validate")
+    mutation = client.post("/api/nodes", json={"kind": "outcome", "slug": "x"})
+
+    assert page.status_code == 200
+    assert "const OE_READ_ONLY = true;" in page.text
+    assert graph.status_code == 200
+    assert graph.json()["readOnly"] is True
+    assert all(node["deletable"] is False for node in graph.json()["nodes"])
+    assert nodes.status_code == 200
+    assert {node["kind"] for node in nodes.json()["nodes"]} == {"outcome"}
+    assert shown.status_code == 200 and shown.json()["node"]["id"] == "solution.agent-central"
+    assert traced.status_code == 200 and traced.json()["trace"][0]["id"] == "outcome.delegation-confidence"
+    assert context.status_code == 200 and "# Context: solution.agent-central" in context.json()["markdown"]
+    assert validation.status_code == 200 and validation.json()["valid"] is True
+    assert mutation.status_code == 405
+
+
+def test_hosted_app_reports_selector_and_validation_errors(tmp_path: Path) -> None:
+    from fastapi.testclient import TestClient
+
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    client = TestClient(create_app(root))
+
+    assert client.get("/api/nodes/missing").status_code == 404
+
+    broken_client = TestClient(create_app(tmp_path / "missing"))
+    response = broken_client.get("/api/graph")
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["valid"] is False
+
+
+def test_graph_page_can_be_rendered_read_only() -> None:
+    from outcome_engineering.serve import graph_page
+
+    page = graph_page(read_only=True)
+
+    assert "const OE_READ_ONLY = true;" in page
+    assert 'document.getElementById("btn-add-outcome").style.display = "none";' in page
+    assert "if (!OE_READ_ONLY)" in page
 
 
 def test_serve_command_reports_bind_failure_without_traceback(tmp_path: Path, monkeypatch) -> None:
