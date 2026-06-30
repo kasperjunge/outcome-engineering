@@ -1,6 +1,6 @@
 ---
 name: oe-cli
-description: Use this skill whenever a repository has an Outcome Engineering product graph, the `oe` CLI, the `outcome-engineering` Python package, or the user asks about product vision, strategy, ICPs (ideal customer profiles), outcomes, opportunities, solutions, assumption tests, PRDs, product discovery, or implementing work that should trace to product intent. This skill tells agents how to use `oe` to inspect, create, validate, and contextualize product graph structure before doing product or delivery work.
+description: Use this skill whenever a repository has an Outcome Engineering product graph, the `oe` CLI, the `outcome-engineering` Python package, or the user needs graph structure inspected, created, validated, traced, served, or contextualized. This skill is the CLI and graph-structure operating manual; use `oe-best-practices` for product content quality, `oe-graph-audit` for method audits, and `oe-grill` for product conversations.
 ---
 
 # Outcome Engineering
@@ -116,19 +116,6 @@ After changing graph structure, validate:
 uv run oe validate product
 ```
 
-## Product Judgment Guardrails
-
-`oe validate` only checks structure. When creating or editing graph content, also check the product logic:
-
-- Outcomes describe changed customer, user, product, or business behavior. They are not shipped artifacts, features, documents, graph nodes, or implementation tasks.
-- Measures should prove the outcome happened. Prefer behavior, decision quality, retention, learning, risk reduction, or value creation over counts of outputs created.
-- Opportunities describe customer needs, pains, constraints, moments, or unmet jobs. Do not hide solution ideas inside opportunities. Candidate artifacts such as essays, examples, guided flows, onboarding sessions, UI panels, automations, prompts, or features belong under `solutions/`.
-- Solutions describe the chosen intervention for an opportunity. Assumption tests live under solutions and test desirability, usability, feasibility, viability, or strategic assumptions.
-- Known means observed, validated, already decided strategy, or factual graph context. Do not label hopes, beliefs, market theses, or plausible causal stories as known unless there is evidence or an explicit strategic decision behind them.
-- Unknown means a genuine uncertainty that should change what gets explored, tested, built, or prioritized next.
-- Keep a visible narrative thread: vision -> strategy -> ICP -> outcome -> opportunity -> solution -> assumption test / PRD. If a child node does not make its parent more actionable, revise, move, or delete it.
-- Preserve the current wedge deliberately. Broad visions may include teams, but the active strategy should make clear why solo builders are the first adoption path and how that can expand later.
-
 ## CLI Commands
 
 Keep this section in sync with `uv run oe --help` and `src/outcome_engineering/cli.py`.
@@ -166,3 +153,5 @@ If a slug is ambiguous, use the full node id or marker file path.
 `oe` currently manages deterministic structure. It does not make product judgment.
 
 Do not pretend that `oe validate` means the product thinking is good. It only means the graph structure is valid. Human judgment and user discovery remain required.
+
+For product content judgment, use `oe-best-practices`. For a graph-wide quality audit, use `oe-graph-audit`. For conversational product discovery, use `oe-grill`. For fixing validation failures, use `oe-validate`.

@@ -79,9 +79,8 @@ Update docs only when the release changes user-facing behavior:
 - Installation or skill behavior changed
 - Existing examples no longer match current behavior
 
-For CLI surface changes, keep both `oe-cli` skill copies in sync:
+For CLI surface changes, update the bundled `oe-cli` skill:
 
-- `skills/oe-cli/SKILL.md`
 - `src/outcome_engineering/skills/oe-cli/SKILL.md`
 
 ## Step 4: Bump Version

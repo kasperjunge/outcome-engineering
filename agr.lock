@@ -10,13 +10,25 @@ content-hash = "sha256:526cf89cbb2ea8ef2e3ae225969e5b7c120ee7bc339f462af05af8d5c
 installed-name = "agr-cli"
 
 [[skill]]
-path = "./skills/oe-cli"
+path = "./src/outcome_engineering/skills/oe-cli"
 installed-name = "oe-cli"
 
 [[skill]]
-path = "./skills/oe-grill"
+path = "./src/outcome_engineering/skills/oe-grill"
 installed-name = "oe-grill"
 
 [[skill]]
-path = "./skills/oe-validate"
+path = "./src/outcome_engineering/skills/oe-graph-audit"
+installed-name = "oe-graph-audit"
+
+[[skill]]
+path = "./src/outcome_engineering/skills/oe-validate"
 installed-name = "oe-validate"
+
+[[skill]]
+path = "./src/outcome_engineering/skills/oe-best-practices"
+installed-name = "oe-best-practices"
+
+[[skill]]
+path = "./skills/oe-release"
+installed-name = "oe-release"
