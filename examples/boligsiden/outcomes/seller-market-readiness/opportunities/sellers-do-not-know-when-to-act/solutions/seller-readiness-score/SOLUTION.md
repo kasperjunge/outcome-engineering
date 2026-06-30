@@ -8,6 +8,10 @@ status: planned
 
 A local-market readiness summary that combines recent sales, price trends, active supply, time-on-market, and demand indicators for the seller's area and property type.
 
+## Why This Could Work
+
+It packages local market signals into a first-read decision aid, helping uncertain sellers judge whether agent advice is worth pursuing now.
+
 ## Product Risks
 
 - Value: sellers may distrust a score without human context.

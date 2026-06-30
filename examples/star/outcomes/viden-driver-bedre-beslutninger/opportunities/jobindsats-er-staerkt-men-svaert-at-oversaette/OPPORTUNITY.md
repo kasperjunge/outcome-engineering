@@ -16,5 +16,5 @@ Jobindsats giver adgang til centrale tal, men lokale ledere og fagpersoner kan h
 
 ## Kendt / Ukendt
 
-- Known: data er tilgængelig og central for opfølgning.
-- Unknown: hvilke nøgletal der oftest misforstås eller bruges uden tilstrækkelig kontekst.
+- Kendt: data er tilgængelig og central for opfølgning.
+- Uafklaret: hvilke nøgletal der oftest misforstås eller bruges uden tilstrækkelig kontekst.

@@ -16,5 +16,5 @@ Nye reformelementer kan være juridisk tydelige, men stadig svære at omsætte t
 
 ## Kendt / Ukendt
 
-- Known: kommuner og a-kasser har brug for faglige svar og implementeringsstøtte.
-- Unknown: hvilke spørgsmål der skyldes uklart indhold, og hvilke der skyldes manglende timing, format eller kanal.
+- Kendt: kommuner og a-kasser har brug for faglige svar og implementeringsstøtte.
+- Uafklaret: hvilke spørgsmål der skyldes uklart indhold, og hvilke der skyldes manglende timing, format eller kanal.

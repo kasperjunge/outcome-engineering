@@ -10,11 +10,20 @@ status: draft
 
 Potential sellers need a clear first read on local market conditions before they are ready to contact an agent.
 
+## Product Intent
+
+This delivers the seller readiness score for the seller-timing opportunity under seller market readiness.
+
 ## User Stories
 
 - As a homeowner, I can enter my property type and area.
 - As a homeowner, I can see a plain-language market readiness summary.
 - As a homeowner, I can request agent advice when ready.
+
+## Unknowns
+
+- Which market signals sellers interpret as readiness rather than pressure.
+- How to present uncertainty without making the summary feel useless.
 
 ## Acceptance Criteria
 

@@ -15,5 +15,5 @@ Sellers need to choose an estate agent, but may not know how to compare local ex
 
 ## Known / Unknown
 
-- Known: broker comparison is a natural seller job.
-- Unknown: what broker performance data can be shown fairly and commercially.
+- Known: comparing agents is a natural seller job.
+- Unknown: which trust signals sellers recognize as fair, useful, and non-promotional.

@@ -10,11 +10,20 @@ status: draft
 
 Buyers need a simple way to compare saved homes and decide which properties deserve action.
 
+## Product Intent
+
+This delivers the shortlist comparison board for the property-tradeoff opportunity under buyer search confidence.
+
 ## User Stories
 
 - As a buyer, I can select saved homes and compare key attributes.
 - As a buyer, I can see price changes, days on market, and monthly cost estimates.
 - As a buyer, I can mark homes as reject, maybe, or contact.
+
+## Unknowns
+
+- Which attributes matter most during real shortlist decisions.
+- Whether buyers want formal labels or lighter comparison notes.
 
 ## Acceptance Criteria
 

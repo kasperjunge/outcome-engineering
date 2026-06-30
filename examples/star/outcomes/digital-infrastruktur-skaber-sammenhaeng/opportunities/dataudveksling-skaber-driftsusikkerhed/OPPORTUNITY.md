@@ -16,5 +16,5 @@ Når data flytter mellem statslige systemer, kommuner, a-kasser og eksterne løs
 
 ## Kendt / Ukendt
 
-- Known: data- og systemfejl påvirker faglig drift og tillid til tal.
-- Unknown: hvilke fejl der opdages sent, fordi ingen aktør har samlet overblik over datakvalitet.
+- Kendt: data- og systemfejl påvirker faglig drift og tillid til tal.
+- Uafklaret: hvilke fejl der opdages sent, fordi ingen aktør har samlet overblik over datakvalitet.

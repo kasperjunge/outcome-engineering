@@ -6,7 +6,11 @@ ends: 2026-12-31
 
 # Strategy
 
-Use Boligsiden's public strengths in listing search, housing-market data, and broker connection to become the most trusted decision surface for Danish buyers and sellers.
+Use Boligsiden's public strengths in listing search, housing-market data, and broker connection to become the most trusted decision surface for Danish buyers and sellers who need confidence before taking the next step.
+
+The current bet is to serve high-intent consumers first: active buyers comparing homes, future sellers reading local market signals, and market followers who can move from insight to action. The strategy does not optimize first for professional analytics, full mortgage advice, or estate-agent back-office workflows.
+
+This can win because Boligsiden can connect three moments competitors often separate: finding homes, understanding the market, and choosing what to do next. If users trust the context around a decision, Boligsiden can deepen repeat usage while creating better qualified buyer, seller, and broker interactions.
 
 ## Strategic Pillars
 

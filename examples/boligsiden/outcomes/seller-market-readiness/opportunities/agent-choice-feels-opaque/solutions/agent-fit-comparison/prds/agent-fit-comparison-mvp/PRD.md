@@ -10,11 +10,20 @@ status: draft
 
 Sellers need to compare local estate agents before asking for valuation or sales advice.
 
+## Product Intent
+
+This delivers agent fit comparison for the opaque-agent-choice opportunity under seller market readiness.
+
 ## User Stories
 
 - As a seller, I can compare local agents by relevant local experience.
 - As a seller, I can request contact from one or more agents.
 - As an agent, I receive context about the seller's property and needs.
+
+## Unknowns
+
+- Which fit signals sellers trust and agents consider fair.
+- How commercial placements should be presented without reducing seller trust.
 
 ## Acceptance Criteria
 

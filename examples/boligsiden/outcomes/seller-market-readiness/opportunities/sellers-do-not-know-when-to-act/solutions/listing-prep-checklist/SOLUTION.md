@@ -8,6 +8,10 @@ status: planned
 
 A seller checklist that helps homeowners prepare core information before requesting agent advice.
 
+## Why This Could Work
+
+It reduces uncertainty before the first agent conversation and can make the next step feel practical rather than premature.
+
 ## Product Risks
 
 - Value: sellers may want immediate human contact instead of preparation.

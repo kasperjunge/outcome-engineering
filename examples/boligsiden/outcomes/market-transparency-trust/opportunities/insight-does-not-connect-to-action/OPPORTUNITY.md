@@ -15,5 +15,5 @@ A user may read a market article or statistic but not understand what to do next
 
 ## Known / Unknown
 
-- Known: action pathways can make content more useful.
-- Unknown: which next action is appropriate for each article or data view.
+- Known: users need different next steps depending on whether they are buying, selling, or monitoring the market.
+- Unknown: where users welcome action prompts versus where they want pure explanation.

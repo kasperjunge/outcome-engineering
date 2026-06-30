@@ -8,6 +8,10 @@ status: planned
 
 Personalized local market briefings for a municipality, postal code, or saved-search area.
 
+## Why This Could Work
+
+It translates broad market movement into the specific area and property context users care about, making insight more repeatable and actionable.
+
 ## Product Risks
 
 - Value: market followers may read without taking action.

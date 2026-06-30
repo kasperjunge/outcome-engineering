@@ -8,6 +8,10 @@ status: planned
 
 Show estimated monthly cost ranges and affordability notes beside listing price.
 
+## Why This Could Work
+
+It turns asking price into a more decision-relevant affordability signal, helping buyers compare tradeoffs before they spend effort on unsuitable homes.
+
 ## Product Risks
 
 - Value: users may already rely on bank calculators.

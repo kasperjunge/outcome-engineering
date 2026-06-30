@@ -21,5 +21,5 @@ Kommuner og a-kasser kan omsætte beskæftigelsesreformen til klare arbejdsgange
 
 ## Kendt / Ukendt
 
-- Known: STAR har temasider, webinarer, spørgsmål og svar samt hotline for faglige spørgsmål.
-- Unknown: hvilke reformelementer der skaber mest lokal fortolkningsarbejde, og hvor vejledning bedst gives som tekst, webinar, beslutningstræ eller dataoverblik.
+- Kendt: STAR har temasider, webinarer, spørgsmål og svar samt hotline for faglige spørgsmål.
+- Uafklaret: hvilke reformelementer der skaber mest lokal fortolkningsarbejde, og hvor vejledning bedst gives som tekst, webinar, beslutningstræ eller dataoverblik.

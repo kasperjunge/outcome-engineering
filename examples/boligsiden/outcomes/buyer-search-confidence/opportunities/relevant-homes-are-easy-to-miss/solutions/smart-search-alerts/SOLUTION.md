@@ -8,6 +8,10 @@ status: planned
 
 A saved-search alert system that explains why a listing matches, highlights changed listings, and suggests safe filter expansions.
 
+## Why This Could Work
+
+It makes alerts more trustworthy and useful by explaining relevance and recovering homes that strict filters would otherwise hide.
+
 ## Product Risks
 
 - Value: buyers may already feel alerts are sufficient.

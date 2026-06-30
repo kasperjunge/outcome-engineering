@@ -16,4 +16,4 @@ Buyers compare homes across price, square meters, energy, location, days on mark
 ## Known / Unknown
 
 - Known: comparison work exists.
-- Unknown: whether users want a formal comparison board or lighter saved-home summaries.
+- Unknown: which comparison moments are painful enough to change buyer behavior.
