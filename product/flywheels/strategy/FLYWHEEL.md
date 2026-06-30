@@ -6,5 +6,4 @@ status: experimental
 
 # Outcome Engineering strategy flywheel
 
-Outcome Engineering builds momentum when clearer product intent makes agents more useful, useful agent work creates better evidence, and better evidence sharpens the product graph.
-
+Outcome Engineering builds momentum when clearer product intent gives agents better context, better agent work creates more useful shipped or validated work, that work produces sharper evidence, and sharper evidence improves the builder's product judgment.

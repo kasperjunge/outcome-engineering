@@ -444,12 +444,13 @@ function renderFlywheel() {
   clear(viewport);
   const fw = GRAPH.flywheel;
   if (!fw || !fw.nodes || !fw.nodes.length) { goOverview(); return; }
-  const nodes = fw.nodes.map(n => ({ ...n, kind: "flywheel-node", deletable: false }));
+  const nodes = orderFlywheelNodes(fw.nodes.map(n => ({ ...n, kind: "flywheel-node", deletable: false })));
   const radius = Math.max(230, nodes.length * 62);
+  const step = 2 * Math.PI / nodes.length;
   const pos = new Map();
   nodes.forEach((n, i) => {
-    const angle = -Math.PI / 2 + (i * 2 * Math.PI / nodes.length);
-    pos.set(n.id, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, h: nodeHeight(n) });
+    const angle = -Math.PI / 2 + (i * step);
+    pos.set(n.id, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, h: nodeHeight(n), angle, radius, index: i });
   });
 
   nodes.forEach(source => {
@@ -462,18 +463,37 @@ function renderFlywheel() {
   nodes.forEach(n => drawNode(n, pos.get(n.id).x, pos.get(n.id).y, { onClick: onFlywheelNodeClick }));
 }
 
+function orderFlywheelNodes(nodes) {
+  if (!nodes.length) return nodes;
+  const byNodeId = new Map(nodes.map(n => [n.id, n]));
+  const pointedAt = new Set(nodes.flatMap(n => n.next || []));
+  const preferred = byNodeId.get("flywheel-node.clearer-product-intent");
+  const start = preferred || nodes.find(n => !pointedAt.has(n.id)) || nodes[0];
+  const ordered = [];
+  const seen = new Set();
+  let current = start;
+  while (current && !seen.has(current.id)) {
+    ordered.push(current);
+    seen.add(current.id);
+    current = byNodeId.get((current.next || [])[0]);
+  }
+  nodes.forEach(n => { if (!seen.has(n.id)) ordered.push(n); });
+  return ordered;
+}
+
 function drawFlywheelEdge(source, target, a, b) {
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-  const start = { x: a.x + dx / len * (NODE_W / 2), y: a.y + dy / len * (NODE_MIN_H / 2) };
-  const end = { x: b.x - dx / len * (NODE_W / 2 + 8), y: b.y - dy / len * (NODE_MIN_H / 2 + 8) };
-  const mx = (start.x + end.x) / 2, my = (start.y + end.y) / 2;
-  const curve = 42;
-  const cx = mx - dy / len * curve, cy = my + dx / len * curve;
+  const step = Math.PI * 2 / Math.max(1, (GRAPH.flywheel.nodes || []).length);
+  const trim = Math.min(step * .26, .28);
+  const clockwise = ((b.index - a.index + GRAPH.flywheel.nodes.length) % GRAPH.flywheel.nodes.length) <= 1;
+  const startAngle = a.angle + (clockwise ? trim : -trim);
+  const endAngle = b.angle - (clockwise ? trim : -trim);
+  const edgeRadius = a.radius * .88;
+  const start = { x: Math.cos(startAngle) * edgeRadius, y: Math.sin(startAngle) * edgeRadius };
+  const end = { x: Math.cos(endAngle) * edgeRadius, y: Math.sin(endAngle) * edgeRadius };
   const edgeId = flywheelEdgeId(source.id, target.id);
   const path = el("path", {
     class: "edge flywheel" + (state.selected === edgeId ? " selected" : ""),
-    d: `M ${start.x} ${start.y} Q ${cx} ${cy} ${end.x} ${end.y}`,
+    d: `M ${start.x} ${start.y} A ${edgeRadius} ${edgeRadius} 0 0 ${clockwise ? 1 : 0} ${end.x} ${end.y}`,
   });
   path.addEventListener("click", (e) => { e.stopPropagation(); onFlywheelEdgeClick(source, target); });
   viewport.appendChild(path);
