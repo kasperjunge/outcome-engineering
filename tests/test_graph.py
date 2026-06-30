@@ -845,6 +845,29 @@ def test_graph_reader_exposes_shared_read_interface(tmp_path: Path) -> None:
     assert "# Context: solution.agent-central" in reader.context_node("solution.agent-central")["markdown"]
 
 
+def test_cli_read_commands_use_shared_reader_without_changing_output_shape(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_example(root, force=False)
+    runner = CliRunner()
+
+    listed = runner.invoke(cli.app, ["list", "solutions", "--root", str(root)])
+    shown = runner.invoke(cli.app, ["show", "solution.agent-central", "--root", str(root)])
+    traced = runner.invoke(cli.app, ["trace", "solution.agent-central", "--root", str(root)])
+    context = runner.invoke(cli.app, ["context", "solution.agent-central", "--root", str(root)])
+
+    assert listed.exit_code == 0
+    assert "solution.agent-central\t" in listed.output
+    assert "vision.product" not in listed.output
+    assert shown.exit_code == 0
+    assert "# Agent Central" in shown.output
+    assert traced.exit_code == 0
+    assert "solution: agent-central" in traced.output
+    assert "relationship: solutions" in traced.output
+    assert "Trace:\n- outcome: delegation-confidence" in traced.output
+    assert context.exit_code == 0
+    assert "# Context: solution.agent-central" in context.output
+
+
 def test_hosted_app_exposes_read_only_http_api(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
 

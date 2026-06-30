@@ -78,8 +78,8 @@ class GraphReader:
     def graph_payload(self, *, read_only: bool = False, include_source: bool = False) -> dict:
         return build_graph_payload(self.root, read_only=read_only, include_source=include_source)
 
-    def list_nodes(self, kind: str | None = None) -> dict:
-        return list_nodes(self.root, kind)
+    def list_nodes(self, kind: str | None = None, *, include_root_context: bool = True) -> dict:
+        return list_nodes(self.root, kind, include_root_context=include_root_context)
 
     def show_node(self, selector: str) -> dict:
         return show_node(self.root, selector)
@@ -133,6 +133,7 @@ def build_graph_payload(root: Path, *, read_only: bool = False, include_source: 
                 "title": title_from_body(body, node.slug),
                 "status": status_from_body(body),
                 "parent": node.parent.id if node.parent is not None else None,
+                "relationship": node.relationship,
                 "children": [child.id for child in node.children],
                 "icps": icp_refs,
                 "body": body,
@@ -177,9 +178,11 @@ def placement_schema() -> dict:
     }
 
 
-def list_nodes(root: Path, kind: str | None = None) -> dict:
+def list_nodes(root: Path, kind: str | None = None, *, include_root_context: bool = True) -> dict:
     root = root.resolve()
     nodes = [node for node in discover_nodes(root) if node.kind in NODE_KINDS]
+    if not include_root_context:
+        nodes = [node for node in nodes if node.kind not in {"vision", "strategy"}]
     if kind is not None:
         nodes = [node for node in nodes if node.kind == kind]
     return {
@@ -250,6 +253,7 @@ def node_payload(root: Path, node: ProductNode) -> dict:
         "title": title_from_body(body, node.slug),
         "status": status_from_body(body),
         "parent": node.parent.id if node.parent is not None else None,
+        "relationship": node.relationship,
         "children": [child.id for child in node.children],
         "icps": parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else [],
         "body": body,
@@ -266,6 +270,7 @@ def node_summary(root: Path, node: ProductNode) -> dict:
         "slug": node.slug,
         "title": title_from_body(body, node.slug),
         "status": status_from_body(body),
+        "relationship": node.relationship,
         "marker": _relative_or_absolute(node.marker_file, root),
         "path": _relative_or_absolute(node.path, root),
     }

@@ -8,13 +8,9 @@ from outcome_engineering.example import create_example
 from outcome_engineering.graph import (
     create_node,
     discover_nodes,
-    find_node,
-    find_nodes_by_kind,
-    marker_content,
-    node_ancestors,
     validate as validate_graph,
 )
-from outcome_engineering.read import NodeResolutionError, context_node as read_context_node
+from outcome_engineering.read import GraphReader, NodeResolutionError
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
 from outcome_engineering.skill_installer import (
     install_project_skills,
@@ -148,41 +144,36 @@ def trace(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Show where a node sits in the product graph."""
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
-
-    node = find_node(root, selector)
-    if node is None:
+    reader = load_valid_reader(root)
+    try:
+        payload = reader.trace_node(selector)
+    except NodeResolutionError:
         typer.echo(f"Node not found or ambiguous: {selector}")
         raise typer.Exit(code=1)
 
-    typer.echo(f"{node.kind}: {node.slug}")
-    typer.echo(f"id: {node.id}")
-    typer.echo(f"path: {node.path}")
-    typer.echo(f"marker: {node.marker_file}")
-    if node.parent is not None:
-        typer.echo(f"parent: {node.parent.id}")
-        typer.echo(f"relationship: {node.relationship}")
+    node = payload["node"]
+    typer.echo(f"{node['kind']}: {node['slug']}")
+    typer.echo(f"id: {node['id']}")
+    typer.echo(f"path: {display_path(reader.root, node['path'])}")
+    typer.echo(f"marker: {display_path(reader.root, node['marker'])}")
+    if node["parent"] is not None:
+        typer.echo(f"parent: {node['parent']}")
+        typer.echo(f"relationship: {node['relationship']}")
     else:
         typer.echo("parent: <root>")
 
-    ancestors = node_ancestors(node)
-    if ancestors:
+    trace_nodes = payload["trace"]
+    if len(trace_nodes) > 1:
         typer.echo("")
         typer.echo("Trace:")
-        for ancestor in ancestors:
-            typer.echo(f"- {ancestor.kind}: {ancestor.slug}")
-        typer.echo(f"- {node.kind}: {node.slug}")
+        for trace_item in trace_nodes:
+            typer.echo(f"- {trace_item['kind']}: {trace_item['slug']}")
 
-    if node.children:
+    if payload["children"]:
         typer.echo("")
         typer.echo("Children:")
-        for child in node.children:
-            typer.echo(f"- {child.kind}: {child.slug}")
+        for child in payload["children"]:
+            typer.echo(f"- {child['kind']}: {child['slug']}")
 
 
 @app.command("list")
@@ -191,12 +182,7 @@ def list_command(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """List graph nodes."""
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
+    reader = load_valid_reader(root)
 
     if kind is not None and kind.endswith("s"):
         kind = kind[:-1]
@@ -205,9 +191,9 @@ def list_command(
         typer.echo(f"unsupported node kind {kind!r}; expected one of: {supported}")
         raise typer.Exit(code=1)
 
-    nodes = find_nodes_by_kind(root, kind)
-    for node in nodes:
-        typer.echo(f"{node.id}\t{node.path}")
+    payload = reader.list_nodes(kind, include_root_context=False)
+    for node in payload["nodes"]:
+        typer.echo(f"{node['id']}\t{display_path(reader.root, node['path'])}")
 
 
 @app.command()
@@ -216,8 +202,11 @@ def show(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Print a node's marker file."""
-    node = load_valid_node(root, selector)
-    typer.echo(marker_content(node).rstrip())
+    try:
+        typer.echo(load_valid_reader(root).show_node(selector)["node"]["body"])
+    except NodeResolutionError:
+        typer.echo(f"Node not found or ambiguous: {selector}")
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -226,15 +215,8 @@ def context(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Print deterministic context around a node for an agent."""
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
-
     try:
-        typer.echo(read_context_node(root, selector)["markdown"])
+        typer.echo(load_valid_reader(root).context_node(selector)["markdown"])
     except NodeResolutionError as error:
         typer.echo(f"Node not found or ambiguous: {error.selector}")
         raise typer.Exit(code=1) from error
@@ -268,19 +250,18 @@ def new_command(
     typer.echo(f"marker: {node.marker_file}")
 
 
-def load_valid_node(root: Path, selector: str):
+def load_valid_reader(root: Path) -> GraphReader:
     issues = validate_graph(root)
     if issues:
         typer.echo(f"Invalid product graph: {root}")
         for issue in issues:
             typer.echo(f"- {issue.path}: {issue.message}")
         raise typer.Exit(code=1)
+    return GraphReader(root)
 
-    node = find_node(root, selector)
-    if node is None:
-        typer.echo(f"Node not found or ambiguous: {selector}")
-        raise typer.Exit(code=1)
-    return node
+
+def display_path(root: Path, relative_path: str) -> Path:
+    return root.resolve() / relative_path
 
 
 def parse_skills_option(args: list[str]) -> str:
