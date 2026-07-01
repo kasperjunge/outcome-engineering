@@ -6,8 +6,13 @@ The format follows Keep a Changelog, and this project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-01
+
 ### Added
 
+- Added a hosted read-only graph HTTP API for serving product graphs.
+- Added a full product graph overview to the graph UI.
+- Added an experimental strategy flywheel graph view.
 - Added ICP guidance to the `oe-best-practices` skill.
 
 ### Changed

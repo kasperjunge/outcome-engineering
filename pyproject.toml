@@ -1,6 +1,6 @@
 [project]
 name = "outcome-engineering"
-version = "0.1.1"
+version = "0.1.2"
 description = "Repo-native product graph tooling for Outcome Engineering."
 readme = "README.md"
 requires-python = ">=3.11"
