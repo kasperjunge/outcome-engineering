@@ -1,7 +1,3 @@
-"""Outcome Engineering CLI package."""
-
 from outcome_engineering.product_graph.core import NodeResolutionError, ProductGraph
-
-__version__ = "0.1.0"
 
 __all__ = ["NodeResolutionError", "ProductGraph"]

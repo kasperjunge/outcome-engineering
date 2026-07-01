@@ -5,30 +5,12 @@ from datetime import datetime, timezone
 import os
 from pathlib import Path
 
-from outcome_engineering.graph import (
-    discover_flywheel,
-    discover_nodes,
-    find_node,
-    flywheel_context,
-    marker_content,
-    node_ancestors,
-    parse_frontmatter_scalar,
-    parse_icp_references,
-    related_icps,
-    supporting_files,
-    title_from_markdown,
-    validate,
-)
-from outcome_engineering.model import PARENT_KIND_TO_CHILD_KIND, ProductNode
+from outcome_engineering.product_graph.core import NodeResolutionError as NodeResolutionError, ProductGraph
+from outcome_engineering.product_graph.discovery import marker_content, title_from_markdown
+from outcome_engineering.product_graph.frontmatter import parse_frontmatter_scalar, parse_icp_references
+from outcome_engineering.product_graph.model import PARENT_KIND_TO_CHILD_KIND, ProductNode
 
 NODE_KINDS = ("vision", "strategy", "icp", "outcome", "opportunity", "solution", "assumption-test", "prd")
-
-
-class NodeResolutionError(ValueError):
-    def __init__(self, selector: str, reason: str) -> None:
-        super().__init__(f"{reason}: {selector}")
-        self.selector = selector
-        self.reason = reason
 
 
 @dataclass(frozen=True)
@@ -59,38 +41,6 @@ class SourceMetadata:
         }
 
 
-@dataclass(frozen=True)
-class GraphReader:
-    root: Path
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "root", self.root.resolve())
-
-    def source_metadata(self) -> dict:
-        return SourceMetadata.from_root(self.root).to_dict()
-
-    def issues(self) -> list[dict]:
-        return issue_dicts(self.root)
-
-    def validation_payload(self) -> dict:
-        return validation_payload(self.root)
-
-    def graph_payload(self, *, read_only: bool = False, include_source: bool = False) -> dict:
-        return build_graph_payload(self.root, read_only=read_only, include_source=include_source)
-
-    def list_nodes(self, kind: str | None = None, *, include_root_context: bool = True) -> dict:
-        return list_nodes(self.root, kind, include_root_context=include_root_context)
-
-    def show_node(self, selector: str) -> dict:
-        return show_node(self.root, selector)
-
-    def trace_node(self, selector: str) -> dict:
-        return trace_node(self.root, selector)
-
-    def context_node(self, selector: str) -> dict:
-        return context_node(self.root, selector)
-
-
 def title_from_body(text: str, fallback: str) -> str:
     return title_from_markdown(text, fallback)
 
@@ -102,7 +52,7 @@ def status_from_body(text: str) -> str | None:
 def issue_dicts(root: Path) -> list[dict]:
     root = root.resolve()
     issues = []
-    for issue in validate(root):
+    for issue in ProductGraph(root).validate():
         issues.append(
             {
                 "path": _relative_or_absolute(issue.path, root),
@@ -114,7 +64,8 @@ def issue_dicts(root: Path) -> list[dict]:
 
 def build_graph_payload(root: Path, *, read_only: bool = False, include_source: bool = False) -> dict:
     root = root.resolve()
-    discovered = discover_nodes(root)
+    graph = ProductGraph(root)
+    discovered = graph.nodes()
 
     nodes: list[dict] = []
     edges: list[dict] = []
@@ -123,16 +74,11 @@ def build_graph_payload(root: Path, *, read_only: bool = False, include_source: 
     for node in discovered:
         if node.kind not in NODE_KINDS:
             continue
-        payload = node_payload(root, node)
-        payload["deletable"] = node.path != root and not read_only
-        nodes.append(payload)
+        node_payload, icp_refs = graph_node_payload(root, node, read_only=read_only)
+        nodes.append(node_payload)
         if node.parent is not None:
             edges.append({"source": node.parent.id, "target": node.id, "type": "structural"})
-        for ref in payload["icps"]:
-            edges.append({"source": node.id, "target": ref, "type": "icp"})
-            icp_served_by.setdefault(ref, [])
-            if node.id not in icp_served_by[ref]:
-                icp_served_by[ref].append(node.id)
+        add_icp_edges(node.id, icp_refs, edges, icp_served_by)
 
     for node in nodes:
         if node["kind"] == "icp":
@@ -143,7 +89,7 @@ def build_graph_payload(root: Path, *, read_only: bool = False, include_source: 
         "readOnly": read_only,
         "vision": _root_marker_text(discovered, "vision"),
         "strategy": _root_marker_text(discovered, "strategy"),
-        "flywheel": flywheel_payload(root),
+        "flywheel": flywheel_payload(graph),
         "schema": placement_schema(),
         "nodes": nodes,
         "edges": edges,
@@ -151,6 +97,36 @@ def build_graph_payload(root: Path, *, read_only: bool = False, include_source: 
     if include_source:
         payload["source"] = SourceMetadata.from_root(root).to_dict()
     return payload
+
+
+def graph_node_payload(root: Path, node: ProductNode, *, read_only: bool) -> tuple[dict, list[str]]:
+    body = marker_content(node).rstrip()
+    icp_refs = parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else []
+    return (
+        {
+            "id": node.id,
+            "kind": node.kind,
+            "slug": node.slug,
+            "title": title_from_body(body, node.slug),
+            "status": status_from_body(body),
+            "parent": node.parent.id if node.parent is not None else None,
+            "children": [child.id for child in node.children],
+            "icps": icp_refs,
+            "body": body,
+            "marker": _relative_or_absolute(node.marker_file, root),
+            "path": _relative_or_absolute(node.path, root),
+            "deletable": node.path != root and not read_only,
+        },
+        icp_refs,
+    )
+
+
+def add_icp_edges(node_id: str, icp_refs: list[str], edges: list[dict], icp_served_by: dict[str, list[str]]) -> None:
+    for ref in icp_refs:
+        edges.append({"source": node_id, "target": ref, "type": "icp"})
+        icp_served_by.setdefault(ref, [])
+        if node_id not in icp_served_by[ref]:
+            icp_served_by[ref].append(node_id)
 
 
 def placement_schema() -> dict:
@@ -162,11 +138,10 @@ def placement_schema() -> dict:
     }
 
 
-def list_nodes(root: Path, kind: str | None = None, *, include_root_context: bool = True) -> dict:
+def list_nodes(root: Path, kind: str | None = None) -> dict:
     root = root.resolve()
-    nodes = [node for node in discover_nodes(root) if node.kind in NODE_KINDS]
-    if not include_root_context:
-        nodes = [node for node in nodes if node.kind not in {"vision", "strategy"}]
+    graph = ProductGraph(root)
+    nodes = [node for node in graph.nodes() if node.kind in NODE_KINDS]
     if kind is not None:
         nodes = [node for node in nodes if node.kind == kind]
     return {
@@ -177,16 +152,18 @@ def list_nodes(root: Path, kind: str | None = None, *, include_root_context: boo
 
 def show_node(root: Path, selector: str) -> dict:
     root = root.resolve()
+    graph = ProductGraph(root)
     return {
-        "node": node_payload(root, resolve_node(root, selector)),
+        "node": node_payload(root, graph.resolve(selector)),
         "source": SourceMetadata.from_root(root).to_dict(),
     }
 
 
 def trace_node(root: Path, selector: str) -> dict:
     root = root.resolve()
-    node = resolve_node(root, selector)
-    ancestors = node_ancestors(node)
+    graph = ProductGraph(root)
+    node = graph.resolve(selector)
+    ancestors = graph.ancestors(node)
     return {
         "node": node_payload(root, node),
         "trace": [node_summary(root, ancestor) for ancestor in [*ancestors, node]],
@@ -197,11 +174,12 @@ def trace_node(root: Path, selector: str) -> dict:
 
 def context_node(root: Path, selector: str) -> dict:
     root = root.resolve()
-    node = resolve_node(root, selector)
-    ancestors = node_ancestors(node)
-    icps = related_icps(root, node, ancestors)
-    files = supporting_files(node)
-    flywheel = flywheel_context(root)
+    graph = ProductGraph(root)
+    node = graph.resolve(selector)
+    ancestors = graph.ancestors(node)
+    icps = graph.related_icps(node, ancestors)
+    files = graph.supporting_files(node)
+    flywheel = graph.flywheel_context()
 
     structured = {
         "node": node_payload(root, node),
@@ -237,7 +215,6 @@ def node_payload(root: Path, node: ProductNode) -> dict:
         "title": title_from_body(body, node.slug),
         "status": status_from_body(body),
         "parent": node.parent.id if node.parent is not None else None,
-        "relationship": node.relationship,
         "children": [child.id for child in node.children],
         "icps": parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else [],
         "body": body,
@@ -254,29 +231,17 @@ def node_summary(root: Path, node: ProductNode) -> dict:
         "slug": node.slug,
         "title": title_from_body(body, node.slug),
         "status": status_from_body(body),
-        "relationship": node.relationship,
         "marker": _relative_or_absolute(node.marker_file, root),
         "path": _relative_or_absolute(node.path, root),
     }
 
 
 def resolve_node(root: Path, selector: str) -> ProductNode:
-    root = root.resolve()
-    node = find_node(root, selector)
-    if node is not None:
-        return node
-    if matching_nodes(root, selector):
-        raise NodeResolutionError(selector, "ambiguous")
-    raise NodeResolutionError(selector, "not found")
+    return ProductGraph(root).resolve(selector)
 
 
 def matching_nodes(root: Path, selector: str) -> list[ProductNode]:
-    root = root.resolve()
-    selector_path = Path(selector)
-    if selector_path.exists():
-        resolved_selector = selector_path.resolve()
-        return [node for node in discover_nodes(root) if node.path == resolved_selector or node.marker_file == resolved_selector]
-    return [node for node in discover_nodes(root) if node.id == selector or node.slug == selector]
+    return ProductGraph(root).matching(selector)
 
 
 def context_markdown(
@@ -287,44 +252,52 @@ def context_markdown(
     flywheel: str,
 ) -> str:
     lines = [f"# Context: {node.id}", "", "## Trace"]
-    for ancestor in ancestors:
-        lines.append(f"- {ancestor.id} ({ancestor.marker_file})")
+    append_node_references(lines, ancestors)
     lines.append(f"- {node.id} ({node.marker_file})")
 
-    if icps:
-        lines.extend(["", "## ICPs"])
-        for icp in icps:
-            lines.append(f"- {icp.id} ({icp.marker_file})")
-
-    if node.children:
-        lines.extend(["", "## Children"])
-        for child in node.children:
-            lines.append(f"- {child.id} ({child.marker_file})")
-
-    if files:
-        lines.extend(["", "## Supporting Files"])
-        for path in files:
-            lines.append(f"- {path}")
+    append_node_reference_section(lines, "ICPs", icps)
+    append_node_reference_section(lines, "Children", node.children)
+    append_path_section(lines, "Supporting Files", files)
 
     if flywheel:
         lines.extend(["", "## Flywheel Context", "", flywheel])
 
-    if ancestors:
-        lines.extend(["", "## Ancestor Content"])
-        for ancestor in ancestors:
-            lines.extend(["", f"### {ancestor.id}", "", marker_content(ancestor).rstrip()])
-
-    if icps:
-        lines.extend(["", "## ICP Content"])
-        for icp in icps:
-            lines.extend(["", f"### {icp.id}", "", marker_content(icp).rstrip()])
-
+    append_marker_content_section(lines, "Ancestor Content", ancestors)
+    append_marker_content_section(lines, "ICP Content", icps)
     lines.extend(["", "## Node Content", "", marker_content(node).rstrip()])
     return "\n".join(lines)
 
 
-def flywheel_payload(root: Path) -> dict | None:
-    flywheel = discover_flywheel(root)
+def append_node_reference_section(lines: list[str], title: str, nodes: list[ProductNode]) -> None:
+    if not nodes:
+        return
+    lines.extend(["", f"## {title}"])
+    append_node_references(lines, nodes)
+
+
+def append_node_references(lines: list[str], nodes: list[ProductNode]) -> None:
+    for node in nodes:
+        lines.append(f"- {node.id} ({node.marker_file})")
+
+
+def append_path_section(lines: list[str], title: str, paths: list[Path]) -> None:
+    if not paths:
+        return
+    lines.extend(["", f"## {title}"])
+    for path in paths:
+        lines.append(f"- {path}")
+
+
+def append_marker_content_section(lines: list[str], title: str, nodes: list[ProductNode]) -> None:
+    if not nodes:
+        return
+    lines.extend(["", f"## {title}"])
+    for node in nodes:
+        lines.extend(["", f"### {node.id}", "", marker_content(node).rstrip()])
+
+
+def flywheel_payload(graph: ProductGraph) -> dict | None:
+    flywheel = graph.flywheel()
     if flywheel is None:
         return None
     return {

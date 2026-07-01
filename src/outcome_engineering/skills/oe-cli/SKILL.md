@@ -128,7 +128,6 @@ Keep this section in sync with `uv run oe --help` and `src/outcome_engineering/c
 - `uv run oe trace <node-id-or-slug> --root product` shows where a node sits in the graph.
 - `uv run oe context <node-id-or-slug> --root product` prints deterministic agent context, including trace, ICPs, children, supporting files, ancestor content, ICP content, and node content.
 - `uv run oe new <kind> <slug> --root product --under <parent> --title <title>` creates a node in a valid graph location.
-- `uv run oe create-example --output examples/delegation-product-graph --force` creates the bundled example graph.
 - `uv run oe install --skills` or `uv run oe install --skills=agents` installs bundled assets through the legacy install command.
 - `uv run oe install-skill --agent codex|claude|all --target <dir> --force` installs the bundled Outcome Engineering agent skill.
 

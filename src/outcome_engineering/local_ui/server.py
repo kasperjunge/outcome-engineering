@@ -3,20 +3,21 @@ from __future__ import annotations
 import json
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib import resources
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from outcome_engineering.graph import (
-    create_node,
-    delete_node,
-    write_marker,
-)
-from outcome_engineering.read import GraphReader
-from outcome_engineering.ui import graph_page
+from outcome_engineering.product_graph.core import ProductGraph
+from outcome_engineering.product_graph.read import build_graph_payload, issue_dicts
 
 
 def _issues(root: Path) -> list[dict]:
-    return GraphReader(root).issues()
+    return issue_dicts(root)
+
+
+def graph_page(*, read_only: bool = False) -> str:
+    page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
+    return page.replace("const OE_READ_ONLY = false;", f"const OE_READ_ONLY = {'true' if read_only else 'false'};")
 
 
 class GraphRequestHandler(BaseHTTPRequestHandler):
@@ -63,6 +64,9 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
     def _selector(self, prefix: str) -> str:
         return unquote(urlparse(self.path).path[len(prefix) :])
 
+    def _graph(self) -> ProductGraph:
+        return ProductGraph(self.root)
+
     # -- routes ---------------------------------------------------------------
     def do_GET(self) -> None:
         path = urlparse(self.path).path
@@ -73,7 +77,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
         elif path == "/api/graph":
-            self._send_json(200, GraphReader(self.root).graph_payload())
+            self._send_json(200, build_graph_payload(self.root))
         else:
             self._send_json(404, {"error": "not found"})
 
@@ -83,8 +87,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             return
         data = self._read_json()
         try:
-            node = create_node(
-                self.root,
+            node = self._graph().create_node(
                 kind=data["kind"],
                 slug=data["slug"],
                 title=data.get("title"),
@@ -108,7 +111,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             self._send_json(400, {"error": "missing field: content"})
             return
         try:
-            node = write_marker(self.root, self._selector(prefix), data["content"])
+            node = self._graph().write_marker(self._selector(prefix), data["content"])
         except ValueError as error:
             self._send_json(400, {"error": str(error)})
             return
@@ -122,7 +125,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         params = parse_qs(urlparse(self.path).query)
         cascade = params.get("cascade", ["false"])[0] == "true"
         try:
-            delete_node(self.root, self._selector(prefix), cascade=cascade)
+            self._graph().delete_node(self._selector(prefix), cascade=cascade)
         except ValueError as error:
             self._send_json(400, {"error": str(error)})
             return

@@ -16,8 +16,6 @@ uv run oe new strategy <slug> --root product
 uv run oe new icp <slug> --root product
 uv run oe new opportunity <slug> --root product --under outcome.<slug>
 uv run oe serve product
-uv run oe create-example --comprehensive --output examples/ui-evaluation-product-graph --force
-uv run oe create-example --boligsiden --output examples/boligsiden-product-graph --force
 ```
 
 Use `product/` as the graph root.
