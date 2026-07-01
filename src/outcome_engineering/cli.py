@@ -4,24 +4,15 @@ from pathlib import Path
 
 import typer
 
-from outcome_engineering.example import create_example
-from outcome_engineering.graph import (
-    create_node,
-    discover_nodes,
-    find_node,
-    find_nodes_by_kind,
-    marker_content,
-    node_ancestors,
-    validate as validate_graph,
-)
-from outcome_engineering.read import NodeResolutionError, context_node as read_context_node
-from outcome_engineering.model import KIND_TO_RELATIONSHIP
+from outcome_engineering.product_graph.core import NodeResolutionError, ProductGraph
+from outcome_engineering.product_graph.read import context_node as read_context_node
+from outcome_engineering.product_graph.model import KIND_TO_RELATIONSHIP
 from outcome_engineering.skill_installer import (
     install_project_skills,
     install_skill,
     install_skills_for_agent,
 )
-from outcome_engineering.serve import serve as serve_graph
+from outcome_engineering.local_ui.server import serve as serve_graph
 
 app = typer.Typer(help="Outcome Engineering product graph tooling.")
 
@@ -53,7 +44,7 @@ def validate(
     path: Path = typer.Argument(Path("product"), help="Product graph root to validate."),
 ) -> None:
     """Validate a product graph directory."""
-    issues = validate_graph(path)
+    issues = ProductGraph(path).validate()
     if not issues:
         typer.echo(f"OK: {path} is a valid product graph")
         return
@@ -69,16 +60,10 @@ def tree_command(
     path: Path = typer.Argument(Path("product"), help="Product graph root to print."),
 ) -> None:
     """Print the product graph tree."""
-    issues = validate_graph(path)
-    if issues:
-        typer.echo(f"Invalid product graph: {path}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
+    graph = load_valid_graph(path)
 
-    root = path.resolve()
     typer.echo(str(path))
-    top_level = [node for node in discover_nodes(root) if node.parent is None and node.kind not in {"vision", "strategy"}]
+    top_level = [node for node in graph.nodes() if node.parent is None and node.kind not in {"vision", "strategy"}]
     for index, node in enumerate(top_level):
         print_node(node, prefix="", is_last=index == len(top_level) - 1)
 
@@ -91,39 +76,13 @@ def serve_command(
     open_browser: bool = typer.Option(True, "--open/--no-open", help="Open the UI in a browser on start."),
 ) -> None:
     """Serve an editable web UI of the product graph: add, edit, remove, visualize."""
-    issues = validate_graph(path)
-    if issues:
-        typer.echo(f"Invalid product graph: {path}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
+    load_valid_graph(path)
 
     try:
         serve_graph(path, host=host, port=port, open_browser=open_browser)
     except OSError as error:
         typer.echo(f"Could not bind {host}:{port}: {error}")
         raise typer.Exit(code=1) from error
-
-
-@app.command("create-example")
-def create_example_command(
-    output: Path = typer.Option(
-        Path("examples/delegation-product-graph"),
-        "--output",
-        "-o",
-        help="Directory to create.",
-    ),
-    comprehensive: bool = typer.Option(False, "--comprehensive", help="Create a larger UI evaluation graph."),
-    boligsiden: bool = typer.Option(False, "--boligsiden", help="Create a Boligsiden-style product graph."),
-    force: bool = typer.Option(False, "--force", help="Replace output directory if it already exists."),
-) -> None:
-    """Create an example product graph."""
-    try:
-        create_example(output, force=force, comprehensive=comprehensive, boligsiden=boligsiden)
-    except (FileExistsError, ValueError) as error:
-        typer.echo(str(error))
-        raise typer.Exit(code=1) from error
-    typer.echo(f"Created example product graph at {output}")
 
 
 @app.command("install-skill")
@@ -148,14 +107,8 @@ def trace(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Show where a node sits in the product graph."""
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
-
-    node = find_node(root, selector)
+    graph = load_valid_graph(root)
+    node = graph.find(selector)
     if node is None:
         typer.echo(f"Node not found or ambiguous: {selector}")
         raise typer.Exit(code=1)
@@ -170,7 +123,7 @@ def trace(
     else:
         typer.echo("parent: <root>")
 
-    ancestors = node_ancestors(node)
+    ancestors = graph.ancestors(node)
     if ancestors:
         typer.echo("")
         typer.echo("Trace:")
@@ -191,12 +144,7 @@ def list_command(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """List graph nodes."""
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
+    graph = load_valid_graph(root)
 
     if kind is not None and kind.endswith("s"):
         kind = kind[:-1]
@@ -205,7 +153,7 @@ def list_command(
         typer.echo(f"unsupported node kind {kind!r}; expected one of: {supported}")
         raise typer.Exit(code=1)
 
-    nodes = find_nodes_by_kind(root, kind)
+    nodes = graph.find_by_kind(kind)
     for node in nodes:
         typer.echo(f"{node.id}\t{node.path}")
 
@@ -216,8 +164,8 @@ def show(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Print a node's marker file."""
-    node = load_valid_node(root, selector)
-    typer.echo(marker_content(node).rstrip())
+    graph, node = load_valid_node(root, selector)
+    typer.echo(graph.marker_content(node).rstrip())
 
 
 @app.command()
@@ -226,12 +174,7 @@ def context(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Print deterministic context around a node for an agent."""
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
+    load_valid_graph(root)
 
     try:
         typer.echo(read_context_node(root, selector)["markdown"])
@@ -250,15 +193,10 @@ def new_command(
 ) -> None:
     """Create a product graph node in the valid location."""
     root.mkdir(parents=True, exist_ok=True)
-    issues = validate_graph(root)
-    if issues:
-        typer.echo(f"Invalid product graph: {root}")
-        for issue in issues:
-            typer.echo(f"- {issue.path}: {issue.message}")
-        raise typer.Exit(code=1)
+    graph = load_valid_graph(root)
 
     try:
-        node = create_node(root, kind=kind, slug=slug, title=title, under=under)
+        node = graph.create_node(kind=kind, slug=slug, title=title, under=under)
     except (ValueError, FileExistsError) as error:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
@@ -268,19 +206,24 @@ def new_command(
     typer.echo(f"marker: {node.marker_file}")
 
 
-def load_valid_node(root: Path, selector: str):
-    issues = validate_graph(root)
+def load_valid_graph(root: Path) -> ProductGraph:
+    graph = ProductGraph(root)
+    issues = graph.validate()
     if issues:
         typer.echo(f"Invalid product graph: {root}")
         for issue in issues:
             typer.echo(f"- {issue.path}: {issue.message}")
         raise typer.Exit(code=1)
+    return graph
 
-    node = find_node(root, selector)
+
+def load_valid_node(root: Path, selector: str):
+    graph = load_valid_graph(root)
+    node = graph.find(selector)
     if node is None:
         typer.echo(f"Node not found or ambiguous: {selector}")
         raise typer.Exit(code=1)
-    return node
+    return graph, node
 
 
 def parse_skills_option(args: list[str]) -> str:

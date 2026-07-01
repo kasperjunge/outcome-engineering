@@ -6,10 +6,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from outcome_engineering import cli
-from outcome_engineering.example import create_example
-from outcome_engineering.graph import (
-    create_node,
-    delete_node,
+from outcome_engineering.product_graph.discovery import (
     discover_flywheel,
     find_node,
     find_nodes_by_kind,
@@ -17,15 +14,19 @@ from outcome_engineering.graph import (
     marker_content,
     node_ancestors,
     node_icp_references,
-    parse_icp_references,
     related_icps,
     supporting_files,
-    validate,
+)
+from outcome_engineering.product_graph.frontmatter import parse_icp_references
+from outcome_engineering.product_graph.mutations import (
+    create_node,
+    delete_node,
     write_marker,
 )
-from outcome_engineering.serve import build_graph_payload, make_server
+from outcome_engineering.product_graph.validation import validate
+from outcome_engineering.local_ui.server import build_graph_payload, make_server
 from outcome_engineering.hosted import create_app
-from outcome_engineering.read import context_node, list_nodes, show_node, trace_node, validation_payload
+from outcome_engineering.product_graph.read import context_node, list_nodes, show_node, trace_node, validation_payload
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
     SKILL_NAMES,
@@ -37,68 +38,145 @@ from outcome_engineering.skill_installer import (
 )
 
 
-def test_example_graph_is_valid(tmp_path: Path) -> None:
+def write_file(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content.strip() + "\n", encoding="utf-8")
+
+
+def create_sample_graph(root: Path) -> None:
+    write_file(root / "VISION.md", "# Product\n\nA product graph for tests.")
+    write_file(
+        root / "STRATEGY.md",
+        """---
+type: strategy
+id: strategy.product
+name: Test Strategy
+starts: 2026-01-01
+ends: 2026-12-31
+---
+
+# Test Strategy
+""",
+    )
+    write_file(
+        root / "icps" / "solo-knowledge-worker" / "ICP.md",
+        """---
+type: icp
+id: icp.solo-knowledge-worker
+status: active
+---
+
+# Solo Knowledge Worker
+""",
+    )
+    write_file(
+        root / "outcomes" / "delegation-confidence" / "OUTCOME.md",
+        """---
+type: outcome
+id: outcome.delegation-confidence
+icps:
+  - icp.solo-knowledge-worker
+status: active
+---
+
+# Delegation Confidence
+""",
+    )
+    write_file(
+        root / "outcomes" / "delegation-confidence" / "opportunities" / "users-do-not-know-what-to-delegate" / "OPPORTUNITY.md",
+        """---
+type: opportunity
+id: opportunity.users-do-not-know-what-to-delegate
+status: active
+---
+
+# Users Do Not Know What To Delegate
+""",
+    )
+    write_file(
+        root
+        / "outcomes"
+        / "delegation-confidence"
+        / "opportunities"
+        / "users-do-not-know-what-to-delegate"
+        / "evidence"
+        / "interview-patterns.md",
+        "# Interview Patterns",
+    )
+    write_file(
+        root
+        / "outcomes"
+        / "delegation-confidence"
+        / "opportunities"
+        / "users-do-not-know-what-to-delegate"
+        / "opportunities"
+        / "recurring-work-is-hard-to-describe"
+        / "OPPORTUNITY.md",
+        """---
+type: opportunity
+id: opportunity.recurring-work-is-hard-to-describe
+status: active
+---
+
+# Recurring Work Is Hard To Describe
+""",
+    )
+    write_file(
+        root
+        / "outcomes"
+        / "delegation-confidence"
+        / "opportunities"
+        / "users-do-not-know-what-to-delegate"
+        / "opportunities"
+        / "recurring-work-is-hard-to-describe"
+        / "solutions"
+        / "delegation-interview"
+        / "SOLUTION.md",
+        """---
+type: solution
+id: solution.delegation-interview
+status: active
+---
+
+# Delegation Interview
+""",
+    )
+    write_file(
+        root / "outcomes" / "delegation-confidence" / "opportunities" / "agents-lack-safe-access-to-tools" / "OPPORTUNITY.md",
+        """---
+type: opportunity
+id: opportunity.agents-lack-safe-access-to-tools
+status: active
+---
+
+# Agents Lack Safe Access To Tools
+""",
+    )
+    write_file(
+        root
+        / "outcomes"
+        / "delegation-confidence"
+        / "opportunities"
+        / "agents-lack-safe-access-to-tools"
+        / "solutions"
+        / "agent-central"
+        / "SOLUTION.md",
+        """---
+type: solution
+id: solution.agent-central
+status: active
+---
+
+# Agent Central
+""",
+    )
+
+
+def test_sample_graph_is_valid(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     assert validate(root) == []
-
-
-def test_comprehensive_example_graph_is_valid(tmp_path: Path) -> None:
-    root = tmp_path / "product"
-    create_example(root, force=False, comprehensive=True)
-
-    assert validate(root) == []
-
-
-def test_comprehensive_example_exercises_ui_payload(tmp_path: Path) -> None:
-    root = tmp_path / "product"
-    create_example(root, force=False, comprehensive=True)
-
-    payload = build_graph_payload(root)
-    ids = {node["id"] for node in payload["nodes"]}
-    statuses = {node["status"] for node in payload["nodes"]}
-    icp_edges = [edge for edge in payload["edges"] if edge["type"] == "icp"]
-    structural_edges = [edge for edge in payload["edges"] if edge["type"] == "structural"]
-
-    assert len(payload["nodes"]) >= 40
-    assert "icp.enterprise-product-ops" in ids
-    assert "outcome.agent-legible-product-memory" in ids
-    assert "prd.traceable-prd-panel-mvp" in ids
-    assert {"active", "planned", "shipped", "blocked"} <= statuses
-    assert len(icp_edges) >= 6
-    assert len(structural_edges) >= 30
-    assert payload["vision"] and payload["strategy"]
-
-
-def test_boligsiden_example_graph_is_valid(tmp_path: Path) -> None:
-    root = tmp_path / "product"
-    create_example(root, force=False, boligsiden=True)
-
-    assert validate(root) == []
-
-
-def test_boligsiden_example_exercises_marketplace_payload(tmp_path: Path) -> None:
-    root = tmp_path / "product"
-    create_example(root, force=False, boligsiden=True)
-
-    payload = build_graph_payload(root)
-    ids = {node["id"] for node in payload["nodes"]}
-    icp_edges = [edge for edge in payload["edges"] if edge["type"] == "icp"]
-    structural_edges = [edge for edge in payload["edges"] if edge["type"] == "structural"]
-
-    assert len(payload["nodes"]) >= 45
-    assert "icp.active-home-buyer" in ids
-    assert "icp.estate-agent" in ids
-    assert "outcome.buyer-search-confidence" in ids
-    assert "outcome.seller-market-readiness" in ids
-    assert "outcome.market-transparency-trust" in ids
-    assert "prd.smart-alerts-mvp" in ids
-    assert "prd.agent-fit-comparison-mvp" in ids
-    assert len(icp_edges) >= 5
-    assert len(structural_edges) >= 35
-    assert "public Boligsiden surfaces" in payload["strategy"]
-    assert "validated with analytics" in payload["strategy"]
 
 
 def test_assumption_tests_must_belong_to_solutions(tmp_path: Path) -> None:
@@ -165,7 +243,7 @@ def test_create_assumption_test_requires_solution_parent(tmp_path: Path) -> None
 
 def test_find_node_and_ancestors(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     node = find_node(root, "solution.agent-central")
 
@@ -178,7 +256,7 @@ def test_find_node_and_ancestors(tmp_path: Path) -> None:
 
 def test_find_nodes_by_kind(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     solutions = find_nodes_by_kind(root, "solution")
 
@@ -187,7 +265,7 @@ def test_find_nodes_by_kind(tmp_path: Path) -> None:
 
 def test_marker_content_and_supporting_files(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     node = find_node(root, "opportunity.users-do-not-know-what-to-delegate")
 
     assert node is not None
@@ -244,7 +322,7 @@ def test_create_icp_rejects_under(tmp_path: Path) -> None:
 
 def test_example_graph_resolves_icp_inherited_through_ancestors(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     outcome = find_node(root, "outcome.delegation-confidence")
     solution = find_node(root, "solution.delegation-interview")
@@ -257,7 +335,7 @@ def test_example_graph_resolves_icp_inherited_through_ancestors(tmp_path: Path) 
 
 def test_unknown_icp_reference_is_invalid(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     outcome_marker = root / "outcomes" / "delegation-confidence" / "OUTCOME.md"
     outcome_marker.write_text(
         outcome_marker.read_text(encoding="utf-8").replace("icp.solo-knowledge-worker", "icp.does-not-exist"),
@@ -271,7 +349,7 @@ def test_unknown_icp_reference_is_invalid(tmp_path: Path) -> None:
 
 def test_icp_reference_only_allowed_on_outcome_and_opportunity(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     solution_marker = root / "outcomes" / "delegation-confidence" / "opportunities" / "agents-lack-safe-access-to-tools" / "solutions" / "agent-central" / "SOLUTION.md"
     text = solution_marker.read_text(encoding="utf-8")
     solution_marker.write_text(text.replace("id: solution.agent-central\n", "id: solution.agent-central\nicps: [icp.solo-knowledge-worker]\n"), encoding="utf-8")
@@ -283,7 +361,7 @@ def test_icp_reference_only_allowed_on_outcome_and_opportunity(tmp_path: Path) -
 
 def test_misplaced_icp_marker_is_invalid(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     stray = root / "outcomes" / "delegation-confidence" / "icps" / "stray"
     stray.mkdir(parents=True)
     (stray / "ICP.md").write_text("# Stray\n", encoding="utf-8")
@@ -595,7 +673,7 @@ def test_parse_skills_option() -> None:
 
 def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     payload = build_graph_payload(root)
 
@@ -621,7 +699,7 @@ def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) 
 
 def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     schema = build_graph_payload(root)["schema"]["childKinds"]
 
@@ -632,7 +710,7 @@ def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
 
 def test_build_graph_payload_exposes_optional_flywheel(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     write_valid_flywheel(root)
 
     payload = build_graph_payload(root)
@@ -704,7 +782,7 @@ def test_server_serves_ui_and_graph_api(tmp_path: Path) -> None:
     from urllib.request import urlopen
 
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     server = make_server(root, host="127.0.0.1", port=0)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -729,7 +807,7 @@ def test_server_handles_favicon_without_browser_console_404(tmp_path: Path) -> N
     from urllib.request import urlopen
 
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     server = make_server(root, host="127.0.0.1", port=0)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -809,7 +887,7 @@ def test_graph_template_has_separate_flywheel_mode() -> None:
 
 def test_read_service_returns_cli_equivalent_context_with_source_metadata(tmp_path: Path) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     listed = list_nodes(root)
     shown = show_node(root, "solution.agent-central")
@@ -835,7 +913,7 @@ def test_hosted_app_exposes_read_only_http_api(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
 
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     client = TestClient(create_app(root))
 
     page = client.get("/")
@@ -865,7 +943,7 @@ def test_hosted_app_reports_selector_and_validation_errors(tmp_path: Path) -> No
     from fastapi.testclient import TestClient
 
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
     client = TestClient(create_app(root))
 
     assert client.get("/api/nodes/missing").status_code == 404
@@ -878,7 +956,7 @@ def test_hosted_app_reports_selector_and_validation_errors(tmp_path: Path) -> No
 
 
 def test_graph_page_can_be_rendered_read_only() -> None:
-    from outcome_engineering.serve import graph_page
+    from outcome_engineering.local_ui.server import graph_page
 
     page = graph_page(read_only=True)
 
@@ -889,7 +967,7 @@ def test_graph_page_can_be_rendered_read_only() -> None:
 
 def test_serve_command_reports_bind_failure_without_traceback(tmp_path: Path, monkeypatch) -> None:
     root = tmp_path / "product"
-    create_example(root, force=False)
+    create_sample_graph(root)
 
     def fail_bind(*args, **kwargs) -> None:
         raise OSError(48, "Address already in use")

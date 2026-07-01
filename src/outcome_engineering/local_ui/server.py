@@ -7,12 +7,8 @@ from importlib import resources
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from outcome_engineering.graph import (
-    create_node,
-    delete_node,
-    write_marker,
-)
-from outcome_engineering.read import build_graph_payload, issue_dicts
+from outcome_engineering.product_graph.core import ProductGraph
+from outcome_engineering.product_graph.read import build_graph_payload, issue_dicts
 
 
 def _issues(root: Path) -> list[dict]:
@@ -68,6 +64,9 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
     def _selector(self, prefix: str) -> str:
         return unquote(urlparse(self.path).path[len(prefix) :])
 
+    def _graph(self) -> ProductGraph:
+        return ProductGraph(self.root)
+
     # -- routes ---------------------------------------------------------------
     def do_GET(self) -> None:
         path = urlparse(self.path).path
@@ -88,8 +87,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             return
         data = self._read_json()
         try:
-            node = create_node(
-                self.root,
+            node = self._graph().create_node(
                 kind=data["kind"],
                 slug=data["slug"],
                 title=data.get("title"),
@@ -113,7 +111,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             self._send_json(400, {"error": "missing field: content"})
             return
         try:
-            node = write_marker(self.root, self._selector(prefix), data["content"])
+            node = self._graph().write_marker(self._selector(prefix), data["content"])
         except ValueError as error:
             self._send_json(400, {"error": str(error)})
             return
@@ -127,7 +125,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         params = parse_qs(urlparse(self.path).query)
         cascade = params.get("cascade", ["false"])[0] == "true"
         try:
-            delete_node(self.root, self._selector(prefix), cascade=cascade)
+            self._graph().delete_node(self._selector(prefix), cascade=cascade)
         except ValueError as error:
             self._send_json(400, {"error": str(error)})
             return
