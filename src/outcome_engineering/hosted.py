@@ -9,15 +9,10 @@ from fastapi.responses import HTMLResponse
 
 from outcome_engineering.model import KIND_TO_RELATIONSHIP
 from outcome_engineering.read import (
+    GraphReader,
     NodeResolutionError,
-    build_graph_payload,
-    context_node,
-    list_nodes,
-    show_node,
-    trace_node,
-    validation_payload,
 )
-from outcome_engineering.serve import graph_page
+from outcome_engineering.ui import graph_page
 
 
 def graph_root_from_env() -> Path:
@@ -25,7 +20,7 @@ def graph_root_from_env() -> Path:
 
 
 def create_app(root: Path | None = None) -> FastAPI:
-    graph_root = (root or graph_root_from_env()).resolve()
+    reader = GraphReader(root or graph_root_from_env())
     app = FastAPI(
         title="Outcome Engineering hosted graph",
         description="Read-only HTTP access to one Outcome Engineering product graph.",
@@ -38,44 +33,44 @@ def create_app(root: Path | None = None) -> FastAPI:
 
     @app.get("/system/health")
     def health() -> dict:
-        payload = validation_payload(graph_root)
-        return {"ok": payload["valid"], "graphRoot": str(graph_root), "source": payload["source"]}
+        payload = reader.validation_payload()
+        return {"ok": payload["valid"], "graphRoot": str(reader.root), "source": payload["source"]}
 
     @app.get("/api/validate")
     def validate_graph() -> dict:
-        return validation_payload(graph_root)
+        return reader.validation_payload()
 
     @app.get("/api/graph")
     def graph() -> dict:
-        ensure_valid_graph(graph_root)
-        return build_graph_payload(graph_root, read_only=True, include_source=True)
+        ensure_valid_graph(reader)
+        return reader.graph_payload(read_only=True, include_source=True)
 
     @app.get("/api/nodes")
     def nodes(kind: Annotated[str | None, Query(description="Optional graph node kind filter.")] = None) -> dict:
-        ensure_valid_graph(graph_root)
+        ensure_valid_graph(reader)
         normalized_kind = normalize_kind(kind)
-        return list_nodes(graph_root, normalized_kind)
+        return reader.list_nodes(normalized_kind)
 
     @app.get("/api/nodes/{selector}/trace")
     def trace(selector: str) -> dict:
-        ensure_valid_graph(graph_root)
-        return resolve_or_http(trace_node, graph_root, selector)
+        ensure_valid_graph(reader)
+        return resolve_or_http(reader.trace_node, selector)
 
     @app.get("/api/nodes/{selector}/context")
     def context(selector: str) -> dict:
-        ensure_valid_graph(graph_root)
-        return resolve_or_http(context_node, graph_root, selector)
+        ensure_valid_graph(reader)
+        return resolve_or_http(reader.context_node, selector)
 
     @app.get("/api/nodes/{selector}")
     def node(selector: str) -> dict:
-        ensure_valid_graph(graph_root)
-        return resolve_or_http(show_node, graph_root, selector)
+        ensure_valid_graph(reader)
+        return resolve_or_http(reader.show_node, selector)
 
     return app
 
 
-def ensure_valid_graph(root: Path) -> None:
-    payload = validation_payload(root)
+def ensure_valid_graph(reader: GraphReader) -> None:
+    payload = reader.validation_payload()
     if not payload["valid"]:
         raise HTTPException(status_code=503, detail=payload)
 
@@ -90,9 +85,9 @@ def normalize_kind(kind: str | None) -> str | None:
     return normalized
 
 
-def resolve_or_http(fn, root: Path, selector: str) -> dict:
+def resolve_or_http(fn, selector: str) -> dict:
     try:
-        return fn(root, selector)
+        return fn(selector)
     except NodeResolutionError as error:
         status = 409 if error.reason == "ambiguous" else 404
         raise HTTPException(status_code=status, detail={"error": error.reason, "selector": selector}) from error

@@ -59,6 +59,38 @@ class SourceMetadata:
         }
 
 
+@dataclass(frozen=True)
+class GraphReader:
+    root: Path
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "root", self.root.resolve())
+
+    def source_metadata(self) -> dict:
+        return SourceMetadata.from_root(self.root).to_dict()
+
+    def issues(self) -> list[dict]:
+        return issue_dicts(self.root)
+
+    def validation_payload(self) -> dict:
+        return validation_payload(self.root)
+
+    def graph_payload(self, *, read_only: bool = False, include_source: bool = False) -> dict:
+        return build_graph_payload(self.root, read_only=read_only, include_source=include_source)
+
+    def list_nodes(self, kind: str | None = None, *, include_root_context: bool = True) -> dict:
+        return list_nodes(self.root, kind, include_root_context=include_root_context)
+
+    def show_node(self, selector: str) -> dict:
+        return show_node(self.root, selector)
+
+    def trace_node(self, selector: str) -> dict:
+        return trace_node(self.root, selector)
+
+    def context_node(self, selector: str) -> dict:
+        return context_node(self.root, selector)
+
+
 def title_from_body(text: str, fallback: str) -> str:
     return title_from_markdown(text, fallback)
 
@@ -91,27 +123,12 @@ def build_graph_payload(root: Path, *, read_only: bool = False, include_source: 
     for node in discovered:
         if node.kind not in NODE_KINDS:
             continue
-        body = marker_content(node).rstrip()
-        icp_refs = parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else []
-        nodes.append(
-            {
-                "id": node.id,
-                "kind": node.kind,
-                "slug": node.slug,
-                "title": title_from_body(body, node.slug),
-                "status": status_from_body(body),
-                "parent": node.parent.id if node.parent is not None else None,
-                "children": [child.id for child in node.children],
-                "icps": icp_refs,
-                "body": body,
-                "marker": _relative_or_absolute(node.marker_file, root),
-                "path": _relative_or_absolute(node.path, root),
-                "deletable": node.path != root and not read_only,
-            }
-        )
+        payload = node_payload(root, node)
+        payload["deletable"] = node.path != root and not read_only
+        nodes.append(payload)
         if node.parent is not None:
             edges.append({"source": node.parent.id, "target": node.id, "type": "structural"})
-        for ref in icp_refs:
+        for ref in payload["icps"]:
             edges.append({"source": node.id, "target": ref, "type": "icp"})
             icp_served_by.setdefault(ref, [])
             if node.id not in icp_served_by[ref]:
@@ -145,9 +162,11 @@ def placement_schema() -> dict:
     }
 
 
-def list_nodes(root: Path, kind: str | None = None) -> dict:
+def list_nodes(root: Path, kind: str | None = None, *, include_root_context: bool = True) -> dict:
     root = root.resolve()
     nodes = [node for node in discover_nodes(root) if node.kind in NODE_KINDS]
+    if not include_root_context:
+        nodes = [node for node in nodes if node.kind not in {"vision", "strategy"}]
     if kind is not None:
         nodes = [node for node in nodes if node.kind == kind]
     return {
@@ -218,6 +237,7 @@ def node_payload(root: Path, node: ProductNode) -> dict:
         "title": title_from_body(body, node.slug),
         "status": status_from_body(body),
         "parent": node.parent.id if node.parent is not None else None,
+        "relationship": node.relationship,
         "children": [child.id for child in node.children],
         "icps": parse_icp_references(body) if node.kind in {"outcome", "opportunity"} else [],
         "body": body,
@@ -234,6 +254,7 @@ def node_summary(root: Path, node: ProductNode) -> dict:
         "slug": node.slug,
         "title": title_from_body(body, node.slug),
         "status": status_from_body(body),
+        "relationship": node.relationship,
         "marker": _relative_or_absolute(node.marker_file, root),
         "path": _relative_or_absolute(node.path, root),
     }
