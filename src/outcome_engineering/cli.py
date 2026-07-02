@@ -4,9 +4,7 @@ from pathlib import Path
 
 import typer
 
-from outcome_engineering.product_graph.core import NodeResolutionError, ProductGraph
-from outcome_engineering.product_graph.read import context_node as read_context_node
-from outcome_engineering.product_graph.model import KIND_TO_RELATIONSHIP
+from outcome_engineering.product_graph import NodeResolutionError, ProductGraph
 from outcome_engineering.skill_installer import (
     install_project_skills,
     install_skill,
@@ -148,8 +146,8 @@ def list_command(
 
     if kind is not None and kind.endswith("s"):
         kind = kind[:-1]
-    if kind is not None and kind not in KIND_TO_RELATIONSHIP:
-        supported = ", ".join(sorted(KIND_TO_RELATIONSHIP))
+    if kind is not None and kind not in ProductGraph.kinds():
+        supported = ", ".join(ProductGraph.kinds())
         typer.echo(f"unsupported node kind {kind!r}; expected one of: {supported}")
         raise typer.Exit(code=1)
 
@@ -174,10 +172,10 @@ def context(
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
 ) -> None:
     """Print deterministic context around a node for an agent."""
-    load_valid_graph(root)
+    graph = load_valid_graph(root)
 
     try:
-        typer.echo(read_context_node(root, selector)["markdown"])
+        typer.echo(graph.context(selector)["markdown"])
     except NodeResolutionError as error:
         typer.echo(f"Node not found or ambiguous: {error.selector}")
         raise typer.Exit(code=1) from error
@@ -185,7 +183,7 @@ def context(
 
 @app.command("new")
 def new_command(
-    kind: str = typer.Argument(..., help=f"Node kind: {', '.join(sorted(KIND_TO_RELATIONSHIP))}."),
+    kind: str = typer.Argument(..., help=f"Node kind: {', '.join(ProductGraph.kinds())}."),
     slug: str = typer.Argument(..., help="Filesystem slug for the node."),
     root: Path = typer.Option(Path("product"), "--root", "-r", help="Product graph root."),
     under: str | None = typer.Option(None, "--under", "-u", help="Parent node id, slug, path, or marker file."),

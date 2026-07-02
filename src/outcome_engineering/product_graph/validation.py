@@ -59,13 +59,8 @@ def validate(root: Path) -> list[ValidationIssue]:
 
     context = ValidationContext()
     graph_dirs = _graph_dirs(root)
-    _validate_markers(root, graph_dirs, context)
-    _validate_relationship_directories(graph_dirs, context)
-    _validate_collection_markers(root, context)
-    _validate_icp_references(root, graph_dirs, context)
-    _validate_root_strategy(root, context)
-    _validate_strategy_periods_do_not_overlap(context.strategy_periods, context.issues)
-    _validate_flywheel(root, context.issues)
+    for validator in VALIDATORS:
+        validator(root, graph_dirs, context)
     return context.issues
 
 
@@ -173,7 +168,7 @@ def _validate_relationship_placement(root: Path, path: Path, marker: Path, kind:
         )
 
 
-def _validate_relationship_directories(graph_dirs: list[Path], context: ValidationContext) -> None:
+def _validate_relationship_directories(root: Path, graph_dirs: list[Path], context: ValidationContext) -> None:
     for path in graph_dirs:
         current_kind = _current_kind(path)
         for rel_dir in relationship_dirs(path):
@@ -195,7 +190,7 @@ def _validate_relationship_children(rel_dir: Path, issues: list[ValidationIssue]
             issues.append(ValidationIssue(child_dir, f"missing marker file for child under {rel_dir.name}/"))
 
 
-def _validate_collection_markers(root: Path, context: ValidationContext) -> None:
+def _validate_collection_markers(root: Path, graph_dirs: list[Path], context: ValidationContext) -> None:
     icps_dir = root / ICP_COLLECTION
     if not icps_dir.is_dir():
         return
@@ -232,7 +227,7 @@ def _validate_icp_reference(marker: Path, reference: str, icp_ids: set[str], iss
         issues.append(ValidationIssue(marker, f"icp reference {reference!r} does not resolve to a known ICP"))
 
 
-def _validate_root_strategy(root: Path, context: ValidationContext) -> None:
+def _validate_root_strategy(root: Path, graph_dirs: list[Path], context: ValidationContext) -> None:
     root_strategy = root / "STRATEGY.md"
     if not root_strategy.is_file():
         return
@@ -240,7 +235,8 @@ def _validate_root_strategy(root: Path, context: ValidationContext) -> None:
     _validate_strategy_marker(root_strategy, context.issues, context.strategy_periods)
 
 
-def _validate_flywheel(root: Path, issues: list[ValidationIssue]) -> None:
+def _validate_flywheel(root: Path, graph_dirs: list[Path], context: ValidationContext) -> None:
+    issues = context.issues
     flywheels_dir = root / FLYWHEEL_COLLECTION
     if not flywheels_dir.exists():
         return
@@ -372,9 +368,11 @@ def _parse_iso_date(value: str, marker: Path, field: str, issues: list[Validatio
         return None
 
 
-def _validate_strategy_periods_do_not_overlap(strategy_periods: list[StrategyPeriod], issues: list[ValidationIssue]) -> None:
-    for index, current in enumerate(sorted(strategy_periods, key=lambda period: (period.starts, period.ends, str(period.marker)))):
-        for other in strategy_periods[index + 1 :]:
+def _validate_strategy_periods_do_not_overlap(root: Path, graph_dirs: list[Path], context: ValidationContext) -> None:
+    issues = context.issues
+    ordered = sorted(context.strategy_periods, key=lambda period: (period.starts, period.ends, str(period.marker)))
+    for index, current in enumerate(ordered):
+        for other in ordered[index + 1 :]:
             if current.starts <= other.ends and other.starts <= current.ends:
                 issues.append(
                     ValidationIssue(
@@ -383,3 +381,15 @@ def _validate_strategy_periods_do_not_overlap(strategy_periods: list[StrategyPer
                     )
                 )
 
+
+# Each validation rule shares the (root, graph_dirs, context) signature so the
+# pipeline stays a flat, extendable list.
+VALIDATORS = (
+    _validate_markers,
+    _validate_relationship_directories,
+    _validate_collection_markers,
+    _validate_icp_references,
+    _validate_root_strategy,
+    _validate_strategy_periods_do_not_overlap,
+    _validate_flywheel,
+)

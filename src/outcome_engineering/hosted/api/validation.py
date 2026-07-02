@@ -1,21 +1,21 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from fastapi import APIRouter, Depends
 
-from outcome_engineering.hosted.dependencies import graph_root
+from outcome_engineering.hosted.dependencies import graph as graph_dependency
+from outcome_engineering.hosted.source import source_dict
+from outcome_engineering.product_graph import ProductGraph
 from outcome_engineering.product_graph.read import validation_payload
 
 router = APIRouter(tags=["validation"])
 
 
 @router.get("/system/health")
-def health(root: Path = Depends(graph_root)) -> dict:
-    payload = validation_payload(root)
-    return {"ok": payload["valid"], "graphRoot": str(root), "source": payload["source"]}
+def health(graph: ProductGraph = Depends(graph_dependency)) -> dict:
+    payload = validation_payload(graph)
+    return {"ok": payload["valid"], "graphRoot": str(graph.root), "source": source_dict(graph.root)}
 
 
 @router.get("/api/validate")
-def validate_graph(root: Path = Depends(graph_root)) -> dict:
-    return validation_payload(root)
+def validate_graph(graph: ProductGraph = Depends(graph_dependency)) -> dict:
+    return {**validation_payload(graph), "source": source_dict(graph.root)}

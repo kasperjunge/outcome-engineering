@@ -26,6 +26,7 @@ from outcome_engineering.product_graph.mutations import (
 from outcome_engineering.product_graph.validation import validate
 from outcome_engineering.local_ui.server import build_graph_payload, make_server
 from outcome_engineering.hosted import create_app
+from outcome_engineering.product_graph import ProductGraph
 from outcome_engineering.product_graph.read import context_node, list_nodes, show_node, trace_node, validation_payload
 from outcome_engineering.cli import parse_skills_option
 from outcome_engineering.skill_installer import (
@@ -675,7 +676,7 @@ def test_build_graph_payload_separates_structural_and_icp_edges(tmp_path: Path) 
     root = tmp_path / "product"
     create_sample_graph(root)
 
-    payload = build_graph_payload(root)
+    payload = build_graph_payload(ProductGraph(root))
 
     ids = {node["id"] for node in payload["nodes"]}
     assert "outcome.delegation-confidence" in ids
@@ -701,7 +702,7 @@ def test_build_graph_payload_exposes_placement_schema(tmp_path: Path) -> None:
     root = tmp_path / "product"
     create_sample_graph(root)
 
-    schema = build_graph_payload(root)["schema"]["childKinds"]
+    schema = build_graph_payload(ProductGraph(root))["schema"]["childKinds"]
 
     assert schema["root"] == ["icp", "outcome", "strategy"]
     assert schema["outcome"] == ["opportunity"]
@@ -713,7 +714,7 @@ def test_build_graph_payload_exposes_optional_flywheel(tmp_path: Path) -> None:
     create_sample_graph(root)
     write_valid_flywheel(root)
 
-    payload = build_graph_payload(root)
+    payload = build_graph_payload(ProductGraph(root))
 
     assert payload["flywheel"]["id"] == "flywheel.strategy"
     assert {node["id"] for node in payload["flywheel"]["nodes"]} == {
@@ -885,18 +886,19 @@ def test_graph_template_has_separate_flywheel_mode() -> None:
     assert 'function showFlywheelEdgeDetail(source, target)' in page
 
 
-def test_read_service_returns_cli_equivalent_context_with_source_metadata(tmp_path: Path) -> None:
+def test_read_service_returns_cli_equivalent_context(tmp_path: Path) -> None:
     root = tmp_path / "product"
     create_sample_graph(root)
+    graph = ProductGraph(root)
 
-    listed = list_nodes(root)
-    shown = show_node(root, "solution.agent-central")
-    traced = trace_node(root, "solution.agent-central")
-    context = context_node(root, "solution.agent-central")
-    validation = validation_payload(root)
+    listed = list_nodes(graph)
+    shown = show_node(graph, "solution.agent-central")
+    traced = trace_node(graph, "solution.agent-central")
+    context = context_node(graph, "solution.agent-central")
+    validation = validation_payload(graph)
 
     assert validation["valid"] is True
-    assert "source" in listed and listed["source"]["branch"] == "main"
+    assert "source" not in listed
     assert "vision.product" in {node["id"] for node in listed["nodes"]}
     assert shown["node"]["id"] == "solution.agent-central"
     assert [node["id"] for node in traced["trace"]] == [
@@ -936,6 +938,7 @@ def test_hosted_app_exposes_read_only_http_api(tmp_path: Path) -> None:
     assert traced.status_code == 200 and traced.json()["trace"][0]["id"] == "outcome.delegation-confidence"
     assert context.status_code == 200 and "# Context: solution.agent-central" in context.json()["markdown"]
     assert validation.status_code == 200 and validation.json()["valid"] is True
+    assert graph.json()["source"]["branch"] == "unknown"
     assert mutation.status_code == 405
 
 
@@ -1027,3 +1030,18 @@ def test_server_create_edit_delete_round_trip(tmp_path: Path) -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_product_graph_caches_discovery_and_invalidates_on_mutation(tmp_path: Path) -> None:
+    root = tmp_path / "product"
+    create_sample_graph(root)
+    graph = ProductGraph(root)
+
+    assert graph.nodes() is graph.nodes()
+
+    graph.create_node(kind="outcome", slug="new-outcome")
+    assert "outcome.new-outcome" in {node.id for node in graph.nodes()}
+
+    graph.delete_node("outcome.new-outcome")
+    assert "outcome.new-outcome" not in {node.id for node in graph.nodes()}
+    assert graph.find("outcome.new-outcome") is None

@@ -11,10 +11,6 @@ from outcome_engineering.product_graph.core import ProductGraph
 from outcome_engineering.product_graph.read import build_graph_payload, issue_dicts
 
 
-def _issues(root: Path) -> list[dict]:
-    return issue_dicts(root)
-
-
 def graph_page(*, read_only: bool = False) -> str:
     page = (resources.files("outcome_engineering") / "templates" / "graph.html").read_text(encoding="utf-8")
     return page.replace("const OE_READ_ONLY = false;", f"const OE_READ_ONLY = {'true' if read_only else 'false'};")
@@ -77,7 +73,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
         elif path == "/api/graph":
-            self._send_json(200, build_graph_payload(self.root))
+            self._send_json(200, build_graph_payload(self._graph()))
         else:
             self._send_json(404, {"error": "not found"})
 
@@ -99,7 +95,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         except (ValueError, FileExistsError) as error:
             self._send_json(400, {"error": str(error)})
             return
-        self._send_json(201, {"id": node.id, "issues": _issues(self.root)})
+        self._send_json(201, {"id": node.id, "issues": issue_dicts(self._graph())})
 
     def do_PUT(self) -> None:
         prefix = "/api/nodes/"
@@ -115,7 +111,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         except ValueError as error:
             self._send_json(400, {"error": str(error)})
             return
-        self._send_json(200, {"id": node.id, "issues": _issues(self.root)})
+        self._send_json(200, {"id": node.id, "issues": issue_dicts(self._graph())})
 
     def do_DELETE(self) -> None:
         prefix = "/api/nodes/"
@@ -129,7 +125,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         except ValueError as error:
             self._send_json(400, {"error": str(error)})
             return
-        self._send_json(200, {"ok": True, "issues": _issues(self.root)})
+        self._send_json(200, {"ok": True, "issues": issue_dicts(self._graph())})
 
 
 def make_server(root: Path, host: str = "127.0.0.1", port: int = 8000) -> ThreadingHTTPServer:

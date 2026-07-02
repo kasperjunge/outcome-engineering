@@ -81,17 +81,20 @@ def discover_nodes(root: Path) -> list[ProductNode]:
     return nodes
 
 
-def find_node(root: Path, selector: str) -> ProductNode | None:
-    root = root.resolve()
+def match_nodes(nodes: list[ProductNode], selector: str) -> list[ProductNode]:
     selector_path = Path(selector)
     if selector_path.exists():
         resolved_selector = selector_path.resolve()
-        for node in discover_nodes(root):
-            if node.path == resolved_selector or node.marker_file == resolved_selector:
-                return node
-        return None
+        return [node for node in nodes if node.path == resolved_selector or node.marker_file == resolved_selector]
+    return [node for node in nodes if node.id == selector or node.slug == selector]
 
-    matches = [node for node in discover_nodes(root) if node.id == selector or node.slug == selector]
+
+def matching_nodes(root: Path, selector: str) -> list[ProductNode]:
+    return match_nodes(discover_nodes(root), selector)
+
+
+def find_node(root: Path, selector: str) -> ProductNode | None:
+    matches = matching_nodes(root, selector)
     if len(matches) == 1:
         return matches[0]
     return None
